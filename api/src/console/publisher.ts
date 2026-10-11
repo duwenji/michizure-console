@@ -185,7 +185,7 @@ export async function deleteMyPublisher(deps: Deps, req: Request): Promise<Respo
       items.push({
         Put: {
           TableName: deps.table,
-          Item: { PK: `CH#${channelId}`, SK: `REVOKE#${now}`, type: 'revocation', channelId, reason: '配信元が退会したため', severity: 'low', operatorSub: req.caller.sub, revokedAt: now, GSI2PK: 'REVOKED', GSI2SK: `${now}#${channelId}` },
+          Item: { PK: `CH#${channelId}`, SK: `REVOKE#${now}`, type: 'revocation', channelId, reason: 'チャンネル提供者が退会したため', severity: 'low', operatorSub: req.caller.sub, revokedAt: now, GSI2PK: 'REVOKED', GSI2SK: `${now}#${channelId}` },
         },
       });
       const approved = (ch.latestApproved as { submissionId?: string } | undefined)?.submissionId;
@@ -243,7 +243,7 @@ export async function deleteMyPublisher(deps: Deps, req: Request): Promise<Respo
         Put: {
           TableName: deps.table,
           Item: {
-            PK: `COL#${collectionId}`, SK: `REVOKE#${now}`, type: 'revocation', kind: 'collection', collectionId, reason: '制作元が退会したため', severity: 'low',
+            PK: `COL#${collectionId}`, SK: `REVOKE#${now}`, type: 'revocation', kind: 'collection', collectionId, reason: '素材提供者が退会したため', severity: 'low',
             operatorSub: req.caller.sub, revokedAt: now, GSI2PK: 'REVOKED', GSI2SK: `${now}#col:${collectionId}`,
           },
         },
@@ -311,7 +311,7 @@ export async function deleteMyPublisher(deps: Deps, req: Request): Promise<Respo
         TableName: deps.table, Key: { PK: `PUB#${publisherId}`, SK: 'PUB' },
         UpdateExpression: 'SET #s = :deleted, deletedAt = :now, displayName = :gone, updatedAt = :now, rev = rev + :one REMOVE contact, statusReason, pendingTransferId',
         ConditionExpression: 'rev = :rev', ExpressionAttributeNames: { '#s': 'status' },
-        ExpressionAttributeValues: { ':deleted': 'deleted', ':gone': '（退会した配信元）', ':now': now, ':one': 1, ':rev': rev },
+        ExpressionAttributeValues: { ':deleted': 'deleted', ':gone': '（退会した提供者）', ':now': now, ':one': 1, ':rev': rev },
       },
     },
     { Delete: { TableName: deps.table, Key: { PK: `USER#${req.caller.sub}`, SK: 'USER' } } },
@@ -325,7 +325,7 @@ export async function deleteMyPublisher(deps: Deps, req: Request): Promise<Respo
   if (revoked) await deps.requestPublish('revoke');
   // The channels that used its collections hear they are gone (D-18).
   for (const collectionId of revokedCollections) {
-    await notifyUsers(deps, await usesOfCollection(deps, collectionId), 'collection.revoked_used', collectionId, { message: '制作元が退会したため' });
+    await notifyUsers(deps, await usesOfCollection(deps, collectionId), 'collection.revoked_used', collectionId, { message: '素材提供者が退会したため' });
   }
   return noContent();
 }

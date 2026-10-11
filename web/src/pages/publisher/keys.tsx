@@ -6,7 +6,7 @@ import { Empty, Status, Time, useLoad } from '../common';
 import { download } from './home';
 
 const KEY_STATUS: Record<string, string> = { active: '使用中', pending_transfer: '移し替え待ち', unbound: '外した' };
-const TRANSFER_STATE: Record<string, string> = { requested: '運用者の確認待ち', approved: '承認', rejected: '認められなかった', cancelled: '取り消した' };
+const TRANSFER_STATE: Record<string, string> = { requested: '運営の確認待ち', approved: '承認', rejected: '認められなかった', cancelled: '取り消した' };
 const REASONS = { lost: 'なくした', leaked: '漏れたおそれがある', other: 'その他' } as const;
 
 /** The publisher's keys, and moving to a new key when the old one is lost or leaked (ADR-001 A-15, DES-006). */
@@ -45,14 +45,14 @@ export function PublisherKeys() {
 
       <h2>鍵の移し替え</h2>
       <p>
-        鍵をなくした、または漏れたおそれがあるときは、新しい鍵を作って移し替えを申し出ます。運用者が、登録した連絡先など鍵とは別の方法であなたであることを確かめてから承認します。
+        鍵をなくした、または漏れたおそれがあるときは、新しい鍵を作って移し替えを申し出ます。運営が、登録した連絡先など鍵とは別の方法であなたであることを確かめてから承認します。
         承認されると、すべてのチャンネルが新しい鍵に移り、古い鍵で署名した審査待ちの申請は差し戻されます。申し出ている間は、新しい申請はできません。
       </p>
       {transfers.data?.items.length === 0 && <Empty>移し替えの申し出はありません。</Empty>}
       {transfers.data && transfers.data.items.length > 0 && (
         <table>
           <thead>
-            <tr><th>申し出</th><th>状態</th><th>新しいアカウントID</th><th>利用者に見せる理由</th><th></th></tr>
+            <tr><th>申し出</th><th>状態</th><th>新しいアカウントID</th><th>散策者に見せる理由</th><th></th></tr>
           </thead>
           <tbody>
             {transfers.data.items.map((t) => (
@@ -96,7 +96,7 @@ function RequestTransfer({ onDone }: { onDone: () => void }) {
   const [made, setMade] = useState<{ key: PublisherKey; file: KeyFile }>();
   const [saved, setSaved] = useState(false);
   const [reason, setReason] = useState<keyof typeof REASONS>('lost');
-  const [publicReason, setPublicReason] = useState('配信元の鍵の紛失');
+  const [publicReason, setPublicReason] = useState('チャンネル提供者の鍵の紛失');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -157,11 +157,11 @@ function RequestTransfer({ onDone }: { onDone: () => void }) {
             </select>
           </label>
           <label>
-            利用者に見せる理由（アプリで一度表示されます。60 文字まで）
+            散策者に見せる理由（アプリで一度表示されます。60 文字まで）
             <input required maxLength={60} value={publicReason} onChange={(e) => setPublicReason(e.target.value)} />
           </label>
           <label>
-            運用者への説明（本人確認の手がかり。公開しません）
+            運営への説明（本人確認の手がかり。公開しません）
             <textarea maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
           </label>
           <button disabled={busy || !saved || !publicReason.trim()}>移し替えを申し出る</button>

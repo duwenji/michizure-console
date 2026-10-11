@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: SanpoGuide チャンネル管理システム 管理 API
   version: 1.1.0
-  summary: 配信元と運用者が SPA から使う API（sanpo-channel-console API-001）
+  summary: チャンネル提供者と運営が SPA から使う API（sanpo-channel-console API-001）
   description: |
     [console-api.md](../console-api.md)（API-001 1.1）を機械で読める形にしたもの。
     方針・状態・権限の根拠は契約書が正本で、食い違いがあれば契約書に合わせてこのファイルを直す。
@@ -24,26 +24,26 @@ tags:
   - name: me
     description: ログインしているユーザー
   - name: publisher
-    description: 配信元（登録・鍵・移し替え・退会）
+    description: チャンネル提供者（登録・鍵・移し替え・退会）
   - name: channels
     description: チャンネルと申請
   - name: collections
-    description: 素材集と申請（制作元。1.1）
+    description: 素材集と申請（素材提供者。1.1）
   - name: review
-    description: 審査（運用者）
+    description: 審査（運営）
   - name: admin-publishers
-    description: 配信元の管理（運用者）
+    description: チャンネル提供者の管理（運営）
   - name: keys
-    description: 署名鍵・鍵セット（運用者）
+    description: 署名鍵・鍵セット（運営）
   - name: publications
-    description: 公開と操作の記録（運用者）
+    description: 公開と操作の記録（運営）
 
 paths:
   /api/me:
     get:
       tags: [me]
       operationId: getMe
-      summary: ログインしているユーザー・役割・配信元
+      summary: ログインしているユーザー・役割・チャンネル提供者
       responses:
         '200':
           description: ユーザー
@@ -56,7 +56,7 @@ paths:
     post:
       tags: [publisher]
       operationId: registerPublisher
-      summary: 配信元として登録（pending_key）
+      summary: チャンネル提供者として登録（pending_key）
       requestBody:
         required: true
         content:
@@ -68,7 +68,7 @@ paths:
     get:
       tags: [publisher]
       operationId: getMyPublisher
-      summary: 自分の配信元
+      summary: 自分のチャンネル提供者
       responses:
         '200': { $ref: '#/components/responses/Publisher' }
         default: { $ref: '#/components/responses/Error' }
@@ -193,7 +193,7 @@ paths:
     get:
       tags: [publisher]
       operationId: listMyHistory
-      summary: 自分の配信元・チャンネルの経緯
+      summary: 自分のチャンネル提供者・チャンネルの経緯
       parameters:
         - { $ref: '#/components/parameters/Cursor' }
         - { $ref: '#/components/parameters/Limit' }
@@ -231,7 +231,7 @@ paths:
     get:
       tags: [channels]
       operationId: getChannel
-      summary: チャンネル（配信元は自分のもの、運用者はすべて）
+      summary: チャンネル（チャンネル提供者は自分のもの、運営はすべて）
       responses:
         '200': { $ref: '#/components/responses/Channel' }
         default: { $ref: '#/components/responses/Error' }
@@ -336,7 +336,7 @@ paths:
     post:
       tags: [publisher]
       operationId: enableProducerRole
-      summary: 制作元の役割を有効にする（1.1、C-15）
+      summary: 素材提供者の役割を有効にする（1.1、C-15）
       parameters: [{ $ref: '#/components/parameters/IfMatch' }]
       responses:
         '200': { $ref: '#/components/responses/Publisher' }
@@ -372,7 +372,7 @@ paths:
     get:
       tags: [collections]
       operationId: getCollection
-      summary: 素材集（制作元は自分のもの、運用者はすべて）
+      summary: 素材集（素材提供者は自分のもの、運営はすべて）
       responses:
         '200': { $ref: '#/components/responses/Collection' }
         default: { $ref: '#/components/responses/Error' }
@@ -427,7 +427,7 @@ paths:
             schema:
               type: object
               properties:
-                note: { type: string, maxLength: 2000, description: 運用者への説明 }
+                note: { type: string, maxLength: 2000, description: 運営への説明 }
       responses:
         '201':
           description: 申請とアップロード先
@@ -809,7 +809,7 @@ paths:
     get:
       tags: [admin-publishers]
       operationId: listPublishers
-      summary: 配信元の一覧（新しい順）
+      summary: チャンネル提供者の一覧（新しい順）
       parameters:
         - name: status
           in: query
@@ -818,7 +818,7 @@ paths:
         - { $ref: '#/components/parameters/Limit' }
       responses:
         '200':
-          description: 配信元
+          description: チャンネル提供者
           content:
             application/json:
               schema:
@@ -834,7 +834,7 @@ paths:
     get:
       tags: [admin-publishers]
       operationId: getPublisher
-      summary: 配信元
+      summary: チャンネル提供者
       responses:
         '200': { $ref: '#/components/responses/Publisher' }
         default: { $ref: '#/components/responses/Error' }
@@ -844,7 +844,7 @@ paths:
     get:
       tags: [admin-publishers]
       operationId: listPublisherChannels
-      summary: 配信元のチャンネル
+      summary: チャンネル提供者のチャンネル
       responses:
         '200': { $ref: '#/components/responses/ChannelList' }
         default: { $ref: '#/components/responses/Error' }
@@ -864,7 +864,7 @@ paths:
     post:
       tags: [admin-publishers]
       operationId: suspendPublisher
-      summary: 配信元を停止（公開中のチャンネルはそのまま）
+      summary: チャンネル提供者を停止（公開中のチャンネルはそのまま）
       parameters: [{ $ref: '#/components/parameters/IfMatch' }]
       requestBody:
         required: true
@@ -1169,7 +1169,7 @@ components:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
     Publisher:
-      description: 配信元
+      description: チャンネル提供者
       headers:
         ETag: { $ref: '#/components/headers/ETag' }
       content:
@@ -1392,7 +1392,7 @@ components:
       properties:
         publisherId: { $ref: '#/components/schemas/Ulid' }
         displayName: { type: string }
-        contact: { type: string, description: 本人と運用者だけに返す }
+        contact: { type: string, description: 本人と運営だけに返す }
         status: { $ref: '#/components/schemas/PublisherStatus' }
         statusReason: { type: string }
         activeAccountId:
@@ -1403,10 +1403,10 @@ components:
           type: array
           items: { type: string, enum: [publisher, producer] }
           description: アカウントの役割（1.1、M-16）。1.0 のアカウントは [publisher]
-        producerVerified: { type: boolean, description: 制作元の身元が確かめられているか（1.1、C-17） }
+        producerVerified: { type: boolean, description: 素材提供者の身元が確かめられているか（1.1、C-17） }
         producerVerification:
           allOf: [{ $ref: '#/components/schemas/Verification' }]
-          description: 身元の確認の記録（運用者にだけ返す）
+          description: 身元の確認の記録（運営にだけ返す）
         limits: { $ref: '#/components/schemas/Limits' }
         usage: { $ref: '#/components/schemas/Usage' }
         rev: { $ref: '#/components/schemas/Rev' }
@@ -1560,7 +1560,7 @@ components:
           type: array
           maxItems: 8
           items: { type: string, pattern: '^[0-9b-hjkmnp-z]{1,8}$', description: geohash の接頭辞 }
-        note: { type: string, maxLength: 2000, description: 運用者への説明 }
+        note: { type: string, maxLength: 2000, description: 運営への説明 }
     Validation:
       type: object
       required: [ok, errors, checkedAt, validatorVersion]
@@ -1911,7 +1911,7 @@ components:
           type: array
           items: { type: integer, minimum: 1 }
           description: 省くとすべての版
-        reason: { type: string, minLength: 1, maxLength: 200, description: 利用者に見せる理由 }
+        reason: { type: string, minLength: 1, maxLength: 200, description: 散策者に見せる理由 }
         severity: { type: string, enum: [high, low] }
     ReasonInput:
       type: object
@@ -1960,7 +1960,7 @@ components:
       properties:
         eventId: { $ref: '#/components/schemas/Ulid' }
         at: { type: string, format: date-time }
-        actorSub: { type: string, description: 運用者にだけ返す }
+        actorSub: { type: string, description: 運営にだけ返す }
         actorRole: { type: string, enum: [publisher, operator, system] }
         action: { type: string }
         target: { type: string }

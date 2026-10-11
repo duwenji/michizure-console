@@ -36,7 +36,7 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
   const used = notice.collectionId ? `素材集 ${notice.collectionId} ` : '';
   const what = notice.version !== undefined ? `${channel}の版 ${notice.version} ` : channel;
   const link = notice.channelId ? `${consoleUrl}/channels/${notice.channelId}` : notice.collectionId ? `${consoleUrl}/collections/${notice.collectionId}` : `${consoleUrl}/`;
-  const message = notice.message ? `\n\n運用者からのメッセージ:\n${notice.message}` : '';
+  const message = notice.message ? `\n\n運営からのメッセージ:\n${notice.message}` : '';
   const findings = notice.findings?.length ? `\n\n指摘（審査基準の項目）:\n${notice.findings.map((f) => `・${f.item}: ${f.detail}`).join('\n')}` : '';
   const lines = ((): [string, string] => {
     switch (notice.event) {
@@ -47,7 +47,7 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
       case 'submission.rejected':
         return [`${what}を却下しました`, `${what}を却下しました。${findings}${message}`];
       case 'channel.revoked':
-        return [`${channel}を取り下げました`, `運用者が${channel}を公開のリストから取り下げました。${message}`];
+        return [`${channel}を取り下げました`, `運営が${channel}を公開のリストから取り下げました。${message}`];
       case 'transfer.approved':
         return [
           '鍵の移し替えを承認しました',
@@ -60,7 +60,7 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
       case 'collection.rejected':
         return [`${what}を却下しました`, `${what}を却下しました。${findings}${message}`];
       case 'collection.revoked':
-        return [`${channel}を取り下げました`, `運用者が${channel}を公開のリストから取り下げました。この素材集を使うチャンネルでは、その素材が出なくなります。${message}`];
+        return [`${channel}を取り下げました`, `運営が${channel}を公開のリストから取り下げました。この素材集を使うチャンネルでは、その素材が出なくなります。${message}`];
       case 'collection.external_failed':
         return [
           `${channel}の外部の素材に取得できないものがあります`,

@@ -17,8 +17,8 @@ export function TransfersPage() {
     <section>
       <h1>鍵の移し替え</h1>
       <p className="muted">
-        承認の前に、鍵とは別の方法（登録済みの連絡先への問い合わせなど）で配信元の本人であることを確かめ、その方法と結果を記録します。
-        承認すると、その配信元のすべてのチャンネルが新しい鍵に移り、古い鍵で署名した審査待ちの申請は差し戻されます。
+        承認の前に、鍵とは別の方法（登録済みの連絡先への問い合わせなど）でチャンネル提供者の本人であることを確かめ、その方法と結果を記録します。
+        承認すると、そのチャンネル提供者のすべてのチャンネルが新しい鍵に移り、古い鍵で署名した審査待ちの申請は差し戻されます。
         漏れたおそれがあるときは、公開中の版を取り下げるかどうかも検討してください。
       </p>
       <label>
@@ -58,15 +58,15 @@ function Transfer({ transfer: t, onDone }: { transfer: Schemas['KeyTransfer']; o
   return (
     <article className="card">
       <dl className="facts">
-        <dt>配信元</dt>
+        <dt>チャンネル提供者</dt>
         <dd><Link to={`/publishers/${t.publisherId}`}>{t.publisherId}</Link></dd>
         <dt>状態</dt>
         <dd><span className={`tag ${t.state}`}>{STATE[t.state]}</span> {t.decisionReason}</dd>
         <dt>申し出</dt>
         <dd><Time value={t.requestedAt} /></dd>
         <dt>理由</dt>
-        <dd>{REASONS[t.reason]}。利用者に見せる理由: {t.publicReason}</dd>
-        <dt>配信元の説明</dt>
+        <dd>{REASONS[t.reason]}。散策者に見せる理由: {t.publicReason}</dd>
+        <dt>チャンネル提供者の説明</dt>
         <dd>{t.note ?? '—'}</dd>
         <dt>今の鍵 → 新しい鍵</dt>
         <dd><code>{t.fromAccountId}</code> → <code>{t.toAccountId}</code></dd>
@@ -106,7 +106,7 @@ function Transfer({ transfer: t, onDone }: { transfer: Schemas['KeyTransfer']; o
               onDone();
             }}
           >
-            <p className="muted">理由は配信元にメールで伝わります。新しい鍵の紐づけは外れます。</p>
+            <p className="muted">理由はチャンネル提供者にメールで伝わります。新しい鍵の紐づけは外れます。</p>
           </ReasonForm>
         </>
       )}

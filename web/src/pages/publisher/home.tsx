@@ -44,7 +44,7 @@ export function PublisherHome() {
           <Link to="/channels">チャンネルへ</Link>。パッケージの <code>channel.json</code> の <code>publisher</code> には、上のアカウントIDを書きます。
         </p>
       )}
-      {p.status === 'suspended' && <p className="warn">運用者が停止しています。申請はできません。理由について運用者に問い合わせてください。</p>}
+      {p.status === 'suspended' && <p className="warn">運営が停止しています。申請はできません。理由について運営に問い合わせてください。</p>}
     </section>
   );
 }
@@ -65,7 +65,7 @@ function Register({ onDone }: { onDone: () => void }) {
   };
   return (
     <section>
-      <h1>配信元として登録する</h1>
+      <h1>チャンネル提供者として登録する</h1>
       <p>SanpoGuide のアプリにチャンネルを届けるための登録です。登録すると、次に鍵を作ってこのアカウントに紐づけます。</p>
       <form className="action" onSubmit={(e) => void submit(e)}>
         <label>
@@ -135,7 +135,7 @@ function KeySetup({ onBound }: { onBound: () => void }) {
       <h2>鍵を紐づける</h2>
       <p>
         パッケージには、あなたの鍵で署名します。鍵はこの画面の中で作り、<strong>秘密鍵はサーバーに送りません</strong>。秘密鍵は合言葉で暗号化したファイルとして、あなたが保存します。
-        なくすと、運用者の本人確認を経ないとチャンネルを更新できなくなります。
+        なくすと、運営の本人確認を経ないとチャンネルを更新できなくなります。
       </p>
       <div className="inline">
         <label>

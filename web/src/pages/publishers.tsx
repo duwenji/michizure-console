@@ -16,7 +16,7 @@ export function PublishersPage() {
   );
   return (
     <section>
-      <h1>配信元</h1>
+      <h1>提供者（チャンネル・素材）</h1>
       <label>
         状態で絞り込む{' '}
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -25,7 +25,7 @@ export function PublishersPage() {
         </select>
       </label>
       <Status error={list.error} loading={list.loading} />
-      {list.data?.items.length === 0 && <Empty>配信元はまだいません。</Empty>}
+      {list.data?.items.length === 0 && <Empty>提供者はまだいません。</Empty>}
       {list.data && list.data.items.length > 0 && (
         <table>
           <thead>
@@ -79,7 +79,7 @@ export function PublisherPage() {
 
   return (
     <section>
-      <p><Link to="/publishers">← 配信元の一覧</Link></p>
+      <p><Link to="/publishers">← 提供者の一覧</Link></p>
       <Status error={pub.error} loading={pub.loading} />
       {p && (
         <>
@@ -149,7 +149,7 @@ export function PublisherPage() {
           </ul>
           <h2>素材集</h2>
           <p className="small">
-            役割: {(p.roles ?? ['publisher']).map((r) => (r === 'producer' ? '制作元' : '配信元')).join('・')}。
+            役割: {(p.roles ?? ['publisher']).map((r) => (r === 'producer' ? '素材提供者' : 'チャンネル提供者')).join('・')}。
             身元の確認: {p.producerVerified ? <>確認済み{p.producerVerification && `（${p.producerVerification.method}、${p.producerVerification.detail}）`}</> : '未確認'}
           </p>
           <Status error={collections.error} loading={collections.loading} />
@@ -163,7 +163,7 @@ export function PublisherPage() {
               </li>
             ))}
           </ul>
-          <p><Link to={`/audit?target=PUB%23${publisherId}`}>この配信元の操作の記録</Link></p>
+          <p><Link to={`/audit?target=PUB%23${publisherId}`}>この提供者の操作の記録</Link></p>
         </>
       )}
     </section>

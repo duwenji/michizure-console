@@ -69,7 +69,7 @@ export function PublisherSettings() {
               公開中のチャンネルはすべて取り下げられ、表示名と連絡先は消えます。チャンネル ID とアカウントIDは、ほかの人も含めて二度と使えません。
             </p>
             <label>
-              確認のため、配信元 ID <code>{p.publisherId}</code> を入れてください
+              確認のため、提供者 ID <code>{p.publisherId}</code> を入れてください
               <input value={confirm} onChange={(e) => setConfirm(e.target.value)} />
             </label>
             <button className="danger" disabled={confirm !== p.publisherId}>退会する</button>

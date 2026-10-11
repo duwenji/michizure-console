@@ -70,7 +70,7 @@ const NAV: [string, string][] = [
   ['/review', '審査'],
   ['/publications', '公開'],
   ['/keys', '署名鍵・鍵セット'],
-  ['/publishers', '配信元'],
+  ['/publishers', '提供者'],
   ['/transfers', '鍵の移し替え'],
   ['/channels', 'チャンネル'],
   ['/audit', '操作の記録'],
@@ -128,7 +128,7 @@ function Shell({ session }: { session: Session }) {
         ) : (
           <section>
             <h1>このアカウントでは使えません</h1>
-            <p>運用者にも配信元にもなっていません。登録の確認が済んでいるか確かめ、一度ログアウトしてからログインし直してください。</p>
+            <p>運営の担当者にも提供者にもなっていません。登録の確認が済んでいるか確かめ、一度ログアウトしてからログインし直してください。</p>
           </section>
         )}
       </main>
