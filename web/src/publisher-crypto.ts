@@ -148,12 +148,22 @@ export interface SignedPackage {
   files: string[];
 }
 
+/** What a `signature.json` signs: a channel (API-003 F-6) or a collection (API-004 1.2). */
+interface PackageKind {
+  manifest: 'channel.json' | 'collection.json';
+  type: 'channel-package' | 'collection-package';
+  subjectKey: 'channel' | 'collection';
+  ownerKey: 'publisher' | 'producer';
+  /** The subject's name in messages. */
+  what: string;
+}
+
 /**
- * Signs a package the way API-003 F-6 says: SHA-256 of every file but `signature.json`, signed as
- * a `channel-package` payload, written to `signature.json` in a new ZIP. Checks first that the
- * package is for this channel and names this key as its publisher.
+ * Signs a package: SHA-256 of every file but `signature.json`, signed as [kind]'s payload, written
+ * to `signature.json` in a new ZIP. Checks first that the package is for [id] and names this key
+ * as its owner.
  */
-export async function signPackage(zip: Uint8Array, key: PublisherKey, expect: { channel: string }): Promise<SignedPackage> {
+async function signAs(kind: PackageKind, zip: Uint8Array, key: PublisherKey, id: string): Promise<{ zip: Uint8Array; version: number; files: string[] }> {
   let entries: Record<string, Uint8Array>;
   try {
     entries = unzipSync(zip);
@@ -165,30 +175,42 @@ export async function signPackage(zip: Uint8Array, key: PublisherKey, expect: { 
     if (name.endsWith('/') || name === 'signature.json') continue; // folders, and a signature from before
     files[name] = data;
   }
-  const manifestBytes = files['channel.json'];
-  if (!manifestBytes) throw new Error('channel.json がありません（ZIP の一番上に置いてください）');
-  let manifest: { id?: unknown; version?: unknown; publisher?: unknown };
+  const manifestBytes = files[kind.manifest];
+  if (!manifestBytes) throw new Error(`${kind.manifest} がありません（ZIP の一番上に置いてください）`);
+  let manifest: Record<string, unknown>;
   try {
     manifest = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(manifestBytes));
   } catch {
-    throw new Error('channel.json が UTF-8 の JSON として読めません');
+    throw new Error(`${kind.manifest} が UTF-8 の JSON として読めません`);
   }
-  if (manifest.id !== expect.channel) throw new Error(`channel.json の id が ${String(manifest.id)} です（このチャンネルは ${expect.channel}）`);
-  if (typeof manifest.version !== 'number' || !Number.isInteger(manifest.version)) throw new Error('channel.json の version が整数ではありません');
-  if (manifest.publisher !== key.accountId) throw new Error(`channel.json の publisher を、あなたのアカウントID ${key.accountId} にしてください`);
+  if (manifest.id !== id) throw new Error(`${kind.manifest} の id が ${String(manifest.id)} です（この${kind.what}は ${id}）`);
+  if (typeof manifest.version !== 'number' || !Number.isInteger(manifest.version)) throw new Error(`${kind.manifest} の version が整数ではありません`);
+  if (manifest[kind.ownerKey] !== key.accountId) throw new Error(`${kind.manifest} の ${kind.ownerKey} を、あなたのアカウントID ${key.accountId} にしてください`);
 
   const hashes: Record<string, string> = {};
   for (const name of Object.keys(files).sort()) hashes[name] = hex(await sha256(files[name]!));
   const payload = new TextEncoder().encode(
-    JSON.stringify({ type: 'channel-package', channel: expect.channel, version: manifest.version, publisher: key.accountId, files: hashes }),
+    JSON.stringify({ type: kind.type, [kind.subjectKey]: id, version: manifest.version, [kind.ownerKey]: key.accountId, files: hashes }),
   );
   const signature = new TextEncoder().encode(
     JSON.stringify({ payload: b64url.encode(payload), publisherKey: b64url.encode(key.publicKey), sig: b64url.encode(await sign(key, payload)) }),
   );
-  return {
-    zip: zipSync({ ...files, 'signature.json': signature }, { level: 6 }),
-    channel: expect.channel,
-    version: manifest.version,
-    files: Object.keys(hashes),
-  };
+  return { zip: zipSync({ ...files, 'signature.json': signature }, { level: 6 }), version: manifest.version as number, files: Object.keys(hashes) };
+}
+
+/** A channel package (API-003 F-6). */
+export async function signPackage(zip: Uint8Array, key: PublisherKey, expect: { channel: string }): Promise<SignedPackage> {
+  const signed = await signAs(
+    { manifest: 'channel.json', type: 'channel-package', subjectKey: 'channel', ownerKey: 'publisher', what: 'チャンネル' },
+    zip, key, expect.channel,
+  );
+  return { ...signed, channel: expect.channel };
+}
+
+/** A collection package (API-004 1.2, DES-010 N-3): the same, as its producer. */
+export async function signCollectionPackage(zip: Uint8Array, key: PublisherKey, expect: { collection: string }): Promise<{ zip: Uint8Array; version: number; files: string[] }> {
+  return signAs(
+    { manifest: 'collection.json', type: 'collection-package', subjectKey: 'collection', ownerKey: 'producer', what: '素材集' },
+    zip, key, expect.collection,
+  );
 }

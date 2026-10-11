@@ -8,7 +8,7 @@ import { AI_SERVICES, listModels, reply, type AiService } from '../ai';
 import { Empty, Status, Time, useLoad } from './common';
 
 /** The review policy's items (SanpoGuide docs/channel-review-policy.md), for findings. */
-const ITEMS: [string, string][] = [
+export const ITEMS: [string, string][] = [
   ['1', '1 機械で確かめる項目'],
   ['2.1', '2.1 語り口と内容'],
   ['2.2', '2.2 安全'],
@@ -40,7 +40,7 @@ export function ReviewQueuePage() {
               <tr key={s.submissionId}>
                 <td>
                   {s.kind === 'collection'
-                    ? <>素材集 <code>{s.collectionId}</code></>
+                    ? <Link to={`/review/collections/${s.collectionId}/${s.submissionId}`}>素材集 <code>{s.collectionId}</code></Link>
                     : <Link to={`/review/${s.channelId}/${s.submissionId}`}><code>{s.channelId}</code></Link>}
                 </td>
                 <td>{s.version}</td>

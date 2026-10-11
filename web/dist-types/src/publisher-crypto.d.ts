@@ -46,11 +46,15 @@ export interface SignedPackage {
     version: number;
     files: string[];
 }
-/**
- * Signs a package the way API-003 F-6 says: SHA-256 of every file but `signature.json`, signed as
- * a `channel-package` payload, written to `signature.json` in a new ZIP. Checks first that the
- * package is for this channel and names this key as its publisher.
- */
+/** A channel package (API-003 F-6). */
 export declare function signPackage(zip: Uint8Array, key: PublisherKey, expect: {
     channel: string;
 }): Promise<SignedPackage>;
+/** A collection package (API-004 1.2, DES-010 N-3): the same, as its producer. */
+export declare function signCollectionPackage(zip: Uint8Array, key: PublisherKey, expect: {
+    collection: string;
+}): Promise<{
+    zip: Uint8Array;
+    version: number;
+    files: string[];
+}>;

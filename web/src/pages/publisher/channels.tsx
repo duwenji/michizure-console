@@ -6,6 +6,7 @@ import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';
 import { openKeyFile, signPackage } from '../../publisher-crypto';
 import { Empty, Status, Time, useLoad } from '../common';
+import { StageNote, ValidationView } from '../validation';
 
 const STATE: Record<string, string> = {
   uploading: 'アップロード待ち', validating: '機械の確認中', validation_failed: '機械の確認で不合格', awaiting_review: '審査待ち',
@@ -150,7 +151,10 @@ export function PublisherChannel() {
           <dt>状態</dt>
           <dd>{c.listed ? '公開中' : c.status === 'revoked' ? '取り下げ' : '未公開'}</dd>
           <dt>公開中の版</dt>
-          <dd>{c.latestApproved ? <>版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）</> : '—'}</dd>
+          <dd>
+            {c.latestApproved ? <>版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）</> : '—'}
+            {c.latestApproved && <div className="small"><StageNote appStage={(c.latestApproved as { appStage?: number }).appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>}
+          </dd>
           {c.revocations?.map((r) => (
             <Fragment key={r.revokedAt}>
               <dt>取り下げ</dt>
@@ -182,13 +186,7 @@ export function PublisherChannel() {
                     </div>
                   )}
                 </td>
-                <td>
-                  {s.validation
-                    ? s.validation.ok
-                      ? '合格'
-                      : s.validation.errors.map((x) => <div key={x.code + x.detail}><code>{x.code}</code> {x.detail}</div>)
-                    : '—'}
-                </td>
+                <td><ValidationView validation={s.validation} /></td>
                 <td>
                   {TRIABLE.includes(s.state) && s.validation?.ok && (
                     <button
