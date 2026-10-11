@@ -44,7 +44,7 @@
 | K-3 | 素材集の承認（C-17）: アカウントに `producerVerification` がなければ、要求の `verification` を必須にし、同じトランザクションで書く。表示名の変更（`PATCH /api/publisher`）で `producerVerification` を消す | DM-001 M-17、D-20 |
 | K-4 | 素材集の承認では、パッケージを公開用のバケットの `col/{sha256}.zip` に写し、申請の `listing` から `latestApproved` を作る（パッケージを開かない）。`minAppVersion` は段と版の対応表（K-6）から決める | DES-007 J-8 |
 | K-5 | **D-8 の確かめ直しと同時の書き込み**: 素材集の承認は、利用の記録を読み、`listing.resourceTypes` に記録の素材の ID と種類があることを確かめ（なければ `resource_in_use`）、読んだ利用の記録の `rev` を条件に入れる。チャンネルの承認は、使う素材集の項目の `rev` を条件に入れる。どちらかが後から書くと、もう一方の条件が外れて 412 になる | DM-001 M-22 の「`rev` の条件」。チャンネルと素材集の承認が同時に来ても、参照中の素材が消えない |
-| K-6 | 段と版の対応表（API-001 C-21）は環境ごとの設定（`infra/lib/config.ts` の `appStageVersions`。PR を通して変える）から環境変数 `APP_STAGE_VERSIONS`（JSON）で API の Lambda に渡す。既定は `{"0":1,"1":9999,"2":9999,"3":9999}`（段 0 は今の値） | DES-007 J-9 |
+| K-6 | 段と版の対応表（API-001 C-21）は環境ごとの設定（`infra/lib/config.ts` の `appStageVersions`。PR を通して変える）から環境変数 `APP_STAGE_VERSIONS`（JSON）で API の Lambda に渡す。既定は `{"0":1,"1":9999,"2":9999,"3":9999}`（段 0 は今の値）。2026-10-11 に段 1 を 2 にした（SanpoGuide の versionCode 2 が文字と画像に対応。ADR-002 T-8） | DES-007 J-9 |
 | K-7 | **チャンネルの承認での素材集の確かめ直し**（API-001 1.1）: API は station-format を持たないので、機械審査が記録した `listing.collections`・`listing.uses` と、使う素材集の今の項目（`LISTED`・`status`・`latestApproved` の版・`grants`・`resourceTypes`）で確かめる。リストに載っていない・版が `minVersion` より古い・利用許諾が外れた・参照する素材がない、のどれかなら `invalid_state`（`detail` に理由）。通れば、利用の記録を書き直す（使わなくなった素材集の記録は消す） | 機械審査から承認までの間に、素材集が取り下げ・更新されることがある |
 | K-8 | 素材集の取り下げは、チャンネルと同じ形（`REVOKE#` の項目、`REVOKED` の GSI2、`kind = collection`）。利用の記録は残す（知らせの宛先のため。DM-001） | DM-001 M-25 |
 | K-9 | チャンネルの取り下げで、そのチャンネルの利用の記録を消す（GSI1 `CH#{channelId}` / `USES#` で引く） | DM-001 1.3「利用の記録」 |
