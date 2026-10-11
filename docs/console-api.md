@@ -10,15 +10,17 @@
 | 関連Skill | 020_api-contract-design |
 | 作成日 | 2026-10-03 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | 開発者（2026-10-03） |
+| 承認者 | 開発者（1.0: 2026-10-03、1.1: 2026-10-11） |
 | ステータス | 承認済 |
-| 版 | 1.0 |
+| 版 | 1.1 |
 
 入出力の正本は [api/console.openapi.yaml](api/console.openapi.yaml)。本書は方針・状態・エラー・権限を説明し、食い違いがあれば本書に合わせて OpenAPI を直す。
 
 ## 目的・背景
 
 [ADR-001](adr/ADR-001-aws-architecture.md) で管理システムの構成を、[DM-001](data-model.md) でデータを決めた。本書は、配信元と運用者が SPA から使う API を決める（ADR-001 T-3）。
+
+1.1 では、SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)（素材の制作元の切り出し）と [DM-001](data-model.md) 1.3 に合わせて、制作元の役割と素材集の操作を足す。
 
 この API の利用者は、同じリポジトリの SPA（`web/`）だけ。アプリ（SanpoGuide）はこの API を使わない。アプリが使うのは、公開用の静的ファイル（SanpoGuide の API-002）だけである。
 
@@ -28,6 +30,7 @@
 - 配信元: 登録・退会、鍵の紐づけ、鍵の移し替えの申し出、チャンネルの登録、申請（アップロード）・取り消し、試用チケット、審査の結果と経緯の確認
 - 運用者: 審査（パッケージ・見本用のプロンプトの取得、見本の保存、判定）、取り下げ、配信元の停止・上限、鍵の移し替えの承認、鍵セット・署名鍵の登録、公開の履歴と手動の公開、操作の記録
 - 認証・権限、エラー、同時の書き込み、一覧の続き、上限
+- （1.1）制作元: 役割を有効にする、素材集の登録・申請・取り消し・審査の結果の確認、素材集を使っているチャンネルの確認。運用者: 素材集の審査（身元の確認を含む）・取り下げ
 
 非スコープ:
 - 公開用の静的ファイル（SanpoGuide の API-002）
@@ -42,6 +45,8 @@
 | DM-001 | AP-01〜AP-22、状態の移り方、M-2（上限）、M-5（版の番号）、M-11（`rev`） | 本書の操作の対応先。1.1 の改訂案あり（[DM-001 への影響](#dm-001-への影響)） |
 | SanpoGuide API-002 | `channels[]` の項目（`description`・`tags`・`regions`・`icon`）、試用チケット、鍵セット | 申請の入力・試用チケット・鍵セットの登録 |
 | SanpoGuide API-003 | エラーコード、配信元の署名 | 機械審査の結果をそのまま返す |
+| DM-001 1.3 | M-16〜M-25、AP-23〜AP-29 | 1.1 で API にする |
+| SanpoGuide ADR-002・API-004 | D-8・D-9・D-14・D-17〜D-22、素材集の形式、`CollectionReferences` | 1.1 で API にする。エラーコードは API-003・API-004 のもの |
 
 ## 方針・決定事項
 
@@ -68,6 +73,19 @@
 | C-11 | 鍵の移し替えの単位 | 配信元ごとにする（DM-001 ではチャンネルごと）。配信元が使う鍵は 1 つなので、すべてのチャンネルが一緒に移る。DM-001 を 1.1 に改める |
 | C-12 | 運用者が見られる範囲 | 運用者は `/api/admin/*` のほか、配信元向けの読み取りの操作（`GET /api/channels/{channelId}` など）も、どの配信元のものでも呼べる |
 | C-13 | 秘密を送らない | AI の API キー、配信元の秘密鍵は、どの操作にも含めない。見本は AI の出力だけを保存する |
+
+### 素材の制作元の決定（1.1、2026-10-11。DM-001 1.3 の決定から Claude が提案）
+
+| No. | 論点 | 決定 |
+|---|---|---|
+| C-15 | 役割とパス | アカウントは今の `/api/publisher` のまま（M-16。パスを変えると古い SPA が動かなくなるため）。制作元の役割は `POST /api/publisher/roles/producer` で有効にする。素材集の操作には `producer` の役割が要る（ないと `role_required`）。Cognito のグループは今の `publisher` のまま（役割はアカウントの項目で見る） |
+| C-16 | 素材集の操作 | `/api/collections/…` に、チャンネルと同じ形の操作を置く（登録・一覧・申請・取り消し）。試用チケットとアイコンはない（M-19）。運用者の操作は `/api/admin/collections/…` に、チャンネルと同じ判定・取り下げを置く。審査待ちの一覧（`/api/admin/review-queue`）は共通で、項目の `kind` で見分ける |
+| C-17 | 身元の確認（D-20・M-17） | アカウントに身元の記録がないうちは、素材集の `approve` の要求に `verification`（`method`・`detail`）が必須。記録があれば省ける。記録がなく `verification` もないときは `producer_not_verified`。記録の中身は運用者だけが見られる（本人には「確認済みか」だけ） |
+| C-18 | 使っているチャンネル（D-18） | `GET /api/collections/{collectionId}/used-by` で、利用の記録（M-22）を返す。制作元と運用者が見られる。返すのはチャンネルの ID・名前・版・配信元の表示名・参照している素材の ID（どれもリストに載っている内容） |
+| C-19 | 機械審査の結果 | チャンネルの `validation` に `collections`（宣言した素材集ごとの解決の結果。`CollectionReferences` の状態とエラーコード）を足す。素材集の `validation` に `external`（外部の素材ごとの確認。M-20）・`inUse`（D-8 で拒んだ理由。M-22）・`warnings`（拒まないが知らせること。例: 利用許諾の縮小で使えなくなるチャンネル）を足す |
+| C-20 | 通知（C-14 に追加） | 素材集の判定・取り下げ、外部の素材の確認で見つかった不具合（M-21）を制作元に知らせる。素材集の取り下げ・新しい版の承認・利用許諾の縮小を、利用の記録にあるチャンネルの配信元に知らせる（D-18）。宛先と送り方は C-14 と同じ |
+| C-21 | 段と版の対応表（DM-001 未決事項 No.5） | CDK のコンテキスト（環境ごとの設定ファイル）に置き、変えるときは PR を通して配備する。運用者の画面からは変えない。アプリの素材の第 1 段の版が決まるまでは、どの段も仮の大きな値にする |
+| C-22 | 退会（C-4 に追加） | 退会では、公開中の素材集もすべて取り下げる（理由は「制作元が退会したため」）。素材集の審査待ちの申請も取り消す |
 
 ### 全体の流れ
 
@@ -131,6 +149,22 @@ sequenceDiagram
 | POST | `/api/channels/{channelId}/submissions/{submissionId}/test-tickets` | P | 試用チケットを発行 | AP-16・17 |
 | GET | `/api/channels/{channelId}/submissions/{submissionId}/test-tickets` | P | 試用チケットの一覧 | AP-16 |
 
+### 制作元（1.1）
+
+権限: R = 制作元の役割を持つアカウント（自分のもの）
+
+| メソッド | パス | 権限 | 概要 | DM-001 |
+|---|---|---|---|---|
+| POST | `/api/publisher/roles/producer` | P | 制作元の役割を有効にする（If-Match）。C-15 | M-16・M-17 |
+| POST | `/api/collections` | R | 素材集 ID を登録 | M-18・M-19 |
+| GET | `/api/collections` | R | 自分の素材集の一覧 | AP-23 |
+| GET | `/api/collections/{collectionId}` | R・O | 素材集 | AP-24 |
+| GET | `/api/collections/{collectionId}/used-by` | R・O | 素材集を使っているチャンネル。C-18 | AP-28 |
+| POST | `/api/collections/{collectionId}/submissions` | R | 申請を作り、アップロード先を受け取る | AP-17 |
+| GET | `/api/collections/{collectionId}/submissions` | R・O | 申請の一覧（新しい順） | AP-25 |
+| GET | `/api/collections/{collectionId}/submissions/{submissionId}` | R・O | 申請（機械審査の結果、判定と理由） | AP-25 |
+| POST | `/api/collections/{collectionId}/submissions/{submissionId}/withdraw` | R | 申請を取り消す（If-Match） | — |
+
 ### 運用者
 
 | メソッド | パス | 概要 | DM-001 |
@@ -162,6 +196,15 @@ sequenceDiagram
 | GET | `/api/admin/publications` | 公開の履歴 | AP-14 |
 | POST | `/api/admin/publications` | 今すぐ作り直して公開する | AP-13 |
 | GET | `/api/admin/audit` | 操作の記録（`?month=` または `?target=`） | AP-18・19 |
+| GET | `/api/admin/collections/{collectionId}/submissions/{submissionId}/package` | （1.1）素材集のパッケージの取得先（署名付き URL、5 分） | — |
+| GET | `/api/admin/collections/{collectionId}/submissions/{submissionId}/reviews` | （1.1）審査の記録 | — |
+| POST | `/api/admin/collections/{collectionId}/submissions/{submissionId}/start` | （1.1）審査を始める（If-Match） | — |
+| POST | `/api/admin/collections/{collectionId}/submissions/{submissionId}/release` | （1.1）審査を戻す（If-Match） | — |
+| POST | `/api/admin/collections/{collectionId}/submissions/{submissionId}/approve` | （1.1）承認（If-Match）。C-17 | — |
+| POST | `/api/admin/collections/{collectionId}/submissions/{submissionId}/return` | （1.1）差し戻し（If-Match） | — |
+| POST | `/api/admin/collections/{collectionId}/submissions/{submissionId}/reject` | （1.1）却下（If-Match） | — |
+| POST | `/api/admin/collections/{collectionId}/revoke` | （1.1）取り下げ（If-Match） | AP-27 |
+| GET | `/api/admin/publishers/{publisherId}/collections` | （1.1）アカウントの素材集 | AP-23 |
 
 ## リクエスト・レスポンス仕様
 
@@ -209,6 +252,49 @@ sequenceDiagram
 - 受け付けるのは、配信元が `active`、移し替えの申し出がない、チャンネルが自分のもの、審査待ちの申請がない（DM-001 M-2）、今日の申請の数が上限の内、のとき
 - 両方のファイルが届いたら機械審査が始まる（`validating`）。結果は `validation` に入る。不合格なら `validation_failed`
 - 機械審査では、API-003 の確認（ADR-001 A-11）に加えて、次を確かめる: アイコンが PNG で 256×256 以下、`channel.json` の `id` がこのチャンネル、`publisher` が配信元の今の鍵、`version` が最後に承認した版より大きい（M-5）
+
+### POST /api/collections/{collectionId}/submissions（1.1）
+
+```json
+// 要求
+{ "note": "運用者への説明" }
+// 応答 201
+{
+  "submission": { "kind": "collection", "submissionId": "01J…", "collectionId": "kamakura-audio-guide", "state": "uploading", "rev": 1, … },
+  "uploads": { "package": { "url": "https://…s3…", "fields": { … }, "maxBytes": 2097152 } },
+  "uploadExpiresAt": "…"
+}
+```
+
+- 受け付けるのは、アカウントが `active` で制作元の役割を持つ、移し替えの申し出がない、素材集が自分のもの、審査待ちの申請がない、今日の申請の数（チャンネルと合わせて数える。M-19）が上限の内、のとき
+- 機械審査では、API-004 の確かめる手順 1（`CollectionValidator`）に加えて、次を確かめる: `collection.json` の `id` がこの素材集、`producer` がアカウントの今の鍵、`version` が最後に承認した版より大きい（M-5）、外部の素材の大きさと SHA-256（M-20）、利用の記録にある素材の ID が残り種類が変わっていない（D-8・M-22。`inUse` に理由）。利用許諾を狭めて使えなくなるチャンネルがあれば `warnings` に出す（拒まない）
+
+### 機械審査の結果（1.1 で足したもの）
+
+```json
+// チャンネルの申請の validation
+{ "ok": false, "appStage": 2,
+  "collections": [ { "as": "kamakura", "collectionId": "kamakura-audio-guide", "status": "unusable", "code": "not_granted", "detail": "…" } ],
+  "errors": [ { "code": "not_granted", "detail": "kamakura: …" } ], … }
+// 素材集の申請の validation
+{ "ok": false, "appStage": 2,
+  "external": [ { "resourceId": "hachimangu-audio", "ok": false, "detail": "sha256 differs" } ],
+  "inUse": [ { "channelId": "kamakura-history", "resourceId": "old-photo", "detail": "removed" } ],
+  "warnings": [ { "code": "grants_narrowed", "detail": "kamakura-history can no longer use it" } ],
+  "errors": [ { "code": "resource_mismatch", "detail": "…" }, { "code": "resource_in_use", "detail": "…" } ], … }
+```
+
+- チャンネルの `collections[].status` は `usable` / `unusable`（`CollectionReferences` の結果。機械審査は、その時点で公開中の素材集を読んで解決するので `not_fetched` は出ない）。1 つでも `unusable` があれば不合格（API-003 1.2 手順 9a）
+- 承認のときに、チャンネルは素材集をもう一度解決し、素材集は D-8 をもう一度確かめる。通らなければ `409 resource_in_use`（素材集）または `409 invalid_state`（チャンネル。`detail` に理由）
+
+### POST /api/admin/collections/{collectionId}/submissions/{submissionId}/approve（1.1）
+
+```json
+{ "message": "…", "verification": { "method": "登録済みの連絡先への電話", "detail": "鎌倉市観光協会の代表番号から本人と確認" } }
+```
+
+- アカウントに身元の記録（`producerVerification`）がなければ `verification` が必須（C-17）。あれば省け、送っても上書きしない（表示名を変えて記録が消えたときだけ書く）
+- 承認すると、`tags`・`regions`・`media`・`resourcesSize`・`grants`・`minAppVersion` を計算して `latestApproved` に写し（M-24）、公開の Lambda を呼ぶ。利用の記録にあるチャンネルの配信元に知らせる（C-20）
 
 ### POST …/test-tickets
 
@@ -259,7 +345,7 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 
 ### DELETE /api/publisher（退会）
 
-要求の本文に `{ "confirm": "{publisherId}" }` を必須にする（打ち間違い防止）。処理: 公開中のチャンネルをすべて取り下げ（理由は「配信元が退会したため」）、審査待ちの申請を取り消し、移し替えの申し出を取り消し、配信元を `deleted` にして表示名・連絡先を消し、Cognito のユーザーを消す。応答 204。
+要求の本文に `{ "confirm": "{publisherId}" }` を必須にする（打ち間違い防止）。処理: 公開中のチャンネルをすべて取り下げ（理由は「配信元が退会したため」）、（1.1）公開中の素材集をすべて取り下げ（理由は「制作元が退会したため」。C-22）、審査待ちの申請を取り消し、移し替えの申し出を取り消し、配信元を `deleted` にして表示名・連絡先を消し、Cognito のユーザーを消す。応答 204。
 
 ### POST /api/admin/keysets
 
@@ -286,13 +372,17 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | 401 | `unauthorized` | トークンがない・切れた（API Gateway が返す） | トークンを更新して 1 回だけ再送。だめならログインへ |
 | 403 | `forbidden` | 役割が違う、他の配信元のもの | 画面を出さない |
 | 403 | `publisher_not_active` | 配信元が `pending_key` か `suspended` | 状態と理由を出す |
+| 403 | `role_required` | （1.1）制作元の役割がないアカウントが素材集の操作をした（C-15） | 役割を有効にする画面へ案内 |
 | 404 | `not_found` | ないもの | 一覧へ戻す |
 | 409 | `already_registered` | 配信元として登録済み | 配信元の画面へ |
 | 409 | `channel_id_taken` | チャンネル ID が使われている（取り下げ済み・退会済みを含む） | 別の ID を促す |
+| 409 | `collection_id_taken` | （1.1）素材集 ID が使われている（取り下げ済み・退会済みを含む。チャンネルの ID とは別に数える） | 別の ID を促す |
+| 409 | `producer_not_verified` | （1.1）身元の記録がないアカウントの素材集を、`verification` なしで承認しようとした（C-17） | 確認の欄を出す |
+| 409 | `resource_in_use` | （1.1）承認のときに、公開中のチャンネルが参照している素材を消した・種類を変えたと分かった（D-8・M-22） | 差し戻しを促す |
 | 409 | `account_id_taken` | その鍵のアカウントIDが、使われている・使われていた（DM-001 M-7） | 別の鍵を促す |
 | 409 | `key_already_bound` | すでに鍵がある配信元が、最初の紐づけをしようとした | 移し替えへ案内 |
 | 409 | `transfer_pending` | 移し替えの申し出の間に申請しようとした、2 つめの申し出 | 状態を出す |
-| 409 | `limit_reached` | チャンネルの数の上限（M-2） | 上限を出す |
+| 409 | `limit_reached` | チャンネル・素材集の数の上限（M-2・M-19） | 上限を出す |
 | 409 | `pending_submission_exists` | そのチャンネルに審査待ちの申請がある | その申請へ案内 |
 | 409 | `invalid_state` | 今の状態ではできない操作（`detail` に今の状態） | 取り直して画面を更新 |
 | 409 | `version_not_newer` | 版の番号が最後に承認した版以下（承認時） | 差し戻しを促す |
@@ -312,6 +402,8 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | 審査の記録の運用者・見本 | 見えない | 見える |
 | 操作の記録 | 自分の配信元・チャンネルの、配信元に見せる操作だけ（運用者の `sub` は出さず「運用者」と出す） | すべて |
 | 他の配信元のもの | 見えない（`404`。存在を明かさない） | 見える |
+| （1.1）身元の確認の記録の中身 | 見えない（「確認済みか」だけ） | 見える |
+| （1.1）素材集を使っているチャンネル | 自分の素材集のぶん（リストに載っている内容だけ） | すべて |
 
 ## DM-001 への影響
 
@@ -344,6 +436,13 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | CV-10 | 退会: チャンネルが取り下げられ、チャンネル ID とアカウントIDが再利用できない |
 | CV-11 | 応答・操作の記録・ログに、AI の API キー、トークン、秘密鍵が含まれない |
 | CV-12 | 配信元に、運用者の `sub` と見本が見えない |
+| CV-14 | （1.1）制作元の役割がないアカウントの素材集の操作が `role_required`、他のアカウントの素材集が 404 |
+| CV-15 | （1.1）素材集の申請: 素材集の数の上限、審査待ち 1 つ、チャンネルと合わせた 1 日の数を、同時の要求でも超えない |
+| CV-16 | （1.1）素材集の機械審査: `id`・`producer`・`version`・外部の素材のハッシュ・D-8 の違反が `validation_failed` になり、`external`・`inUse` に理由が出る。利用許諾の縮小は `warnings` に出て合格する |
+| CV-17 | （1.1）身元の記録がないアカウントの素材集の承認は `verification` が必須で、記録が残る。表示名を変えると記録が消える |
+| CV-18 | （1.1）チャンネルの機械審査: 宣言した素材集が載っていない・利用許諾がない・素材がないとき、`collections` に理由が出て不合格になる |
+| CV-19 | （1.1）素材集の承認・取り下げで、使っているチャンネルの配信元にメールが 1 通ずつ届き、制作元にも判定が届く |
+| CV-20 | （1.1）退会で、公開中の素材集も取り下げられ、素材集 ID が再利用できない |
 | CV-13 | 承認・差し戻し・却下・取り下げ・移し替えの承認・認めないのそれぞれで、配信元の確認済みのメールアドレスに 1 通だけ届く。SES が失敗しても操作は成功し、再送のあと失敗が操作の記録に残る。本文に見本・運用者の `sub`・トークンが含まれない |
 
 ## 互換性方針・移行メモ
@@ -366,6 +465,8 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | 2 | ~~判定・取り下げ・移し替えの結果を配信元に知らせるか~~ → 解決（2026-10-03、C-14: SES でメールを送る） | — |
 | 3 | 鍵の移し替えの本人確認で、何を「鍵とは別の経路」とするか（ADR-001 未決事項 No.6）。API では運用者が `verification` に自由に書く | 運用の開始前 |
 | 4 | 配信元向けの API（CI からの申請。ADR-001 未決事項 No.3） | 配信元の画面の後 |
+| 5 | （1.1）素材集の審査の画面で、`about` の位置を地図に出すか（地点の安全の審査に役立つ。SanpoGuide API-003「審査で確かめること」） | 素材集の審査の画面の設計 |
+| 6 | （1.1）チャンネルの `selectors` が今どの素材集に当たるかを、審査の画面で見せるか | チャンネルの審査の画面の改修 |
 
 ## 関連ドキュメント・参照リンク
 
@@ -374,7 +475,8 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 - [DM-001](data-model.md): データモデル
 - SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)・[審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md)
 - [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457): Problem Details for HTTP APIs
-- 検討の記録: [skill-logs/api_contract_design_2026-10-03.md](skill-logs/api_contract_design_2026-10-03.md)
+- 検討の記録: [skill-logs/api_contract_design_2026-10-03.md](skill-logs/api_contract_design_2026-10-03.md)、[skill-logs/api_contract_design_2026-10-11.md](skill-logs/api_contract_design_2026-10-11.md)（1.1）
+- SanpoGuide [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md)
 
 ## 変更履歴
 
@@ -383,3 +485,4 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | 2026-10-03 | 0.1 | 草案（C-1〜C-4 は開発者の決定、C-5〜C-13 は提案） | Claude |
 | 2026-10-03 | 0.2 | C-14（SES でメールの通知）を追加し、未決事項 No.2 を解消。CV-13、DM-001 への影響 No.8 を追加 | Claude |
 | 2026-10-03 | 1.0 | C-5〜C-14 を承認。DM-001 1.1・ADR-001 1.1 と同時に承認 | Claude（承認: 開発者） |
+| 2026-10-11 | 1.1 | 素材の制作元（SanpoGuide ADR-002、DM-001 1.3）に合わせて改訂: C-15〜C-22、制作元の役割と素材集の操作（11 件）、運用者の素材集の操作（9 件）、機械審査の結果の `collections`・`external`・`inUse`・`warnings`、エラー `role_required`・`collection_id_taken`・`producer_not_verified`・`resource_in_use`、CV-14〜CV-20 | Claude（承認: 開発者） |

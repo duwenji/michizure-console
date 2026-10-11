@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: SanpoGuide チャンネル管理システム 管理 API
-  version: 1.0.0
+  version: 1.1.0
   summary: 配信元と運用者が SPA から使う API（sanpo-channel-console API-001）
   description: |
-    [console-api.md](../console-api.md)（API-001 1.0）を機械で読める形にしたもの。
+    [console-api.md](../console-api.md)（API-001 1.1）を機械で読める形にしたもの。
     方針・状態・権限の根拠は契約書が正本で、食い違いがあれば契約書に合わせてこのファイルを直す。
 
     - 利用者は同じリポジトリの SPA だけ。SPA と同じ CloudFront の `/api/*` で提供する
@@ -27,6 +27,8 @@ tags:
     description: 配信元（登録・鍵・移し替え・退会）
   - name: channels
     description: チャンネルと申請
+  - name: collections
+    description: 素材集と申請（制作元。1.1）
   - name: review
     description: 審査（運用者）
   - name: admin-publishers
@@ -330,11 +332,142 @@ paths:
               schema: { $ref: '#/components/schemas/TestTicket' }
         default: { $ref: '#/components/responses/Error' }
 
+  /api/publisher/roles/producer:
+    post:
+      tags: [publisher]
+      operationId: enableProducerRole
+      summary: 制作元の役割を有効にする（1.1、C-15）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      responses:
+        '200': { $ref: '#/components/responses/Publisher' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/collections:
+    get:
+      tags: [collections]
+      operationId: listMyCollections
+      summary: 自分の素材集の一覧
+      responses:
+        '200': { $ref: '#/components/responses/CollectionList' }
+        default: { $ref: '#/components/responses/Error' }
+    post:
+      tags: [collections]
+      operationId: registerCollection
+      summary: 素材集 ID を登録
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [collectionId]
+              properties:
+                collectionId: { $ref: '#/components/schemas/CollectionId' }
+      responses:
+        '201': { $ref: '#/components/responses/Collection' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/collections/{collectionId}:
+    parameters: [{ $ref: '#/components/parameters/CollectionId' }]
+    get:
+      tags: [collections]
+      operationId: getCollection
+      summary: 素材集（制作元は自分のもの、運用者はすべて）
+      responses:
+        '200': { $ref: '#/components/responses/Collection' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/collections/{collectionId}/used-by:
+    parameters: [{ $ref: '#/components/parameters/CollectionId' }]
+    get:
+      tags: [collections]
+      operationId: listCollectionUsers
+      summary: 素材集を使っているチャンネル（利用の記録、C-18）
+      responses:
+        '200':
+          description: 使っているチャンネル
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/UsedBy' } }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/collections/{collectionId}/submissions:
+    parameters: [{ $ref: '#/components/parameters/CollectionId' }]
+    get:
+      tags: [collections]
+      operationId: listCollectionSubmissions
+      summary: 申請の一覧（新しい順）
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: 申請
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CollectionSubmission' } }
+                  nextCursor: { type: [string, 'null'] }
+        default: { $ref: '#/components/responses/Error' }
+    post:
+      tags: [collections]
+      operationId: createCollectionSubmission
+      summary: 申請を作り、アップロード先を受け取る
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 2000, description: 運用者への説明 }
+      responses:
+        '201':
+          description: 申請とアップロード先
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CollectionSubmissionCreated' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/collections/{collectionId}/submissions/{submissionId}:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    get:
+      tags: [collections]
+      operationId: getCollectionSubmission
+      summary: 申請（機械審査の結果、判定と理由）
+      responses:
+        '200': { $ref: '#/components/responses/CollectionSubmission' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/collections/{collectionId}/submissions/{submissionId}/withdraw:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    post:
+      tags: [collections]
+      operationId: withdrawCollectionSubmission
+      summary: 申請を取り消す（awaiting_review・in_review のとき）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      responses:
+        '200': { $ref: '#/components/responses/CollectionSubmission' }
+        default: { $ref: '#/components/responses/Error' }
+
   /api/admin/review-queue:
     get:
       tags: [review]
       operationId: listReviewQueue
-      summary: 審査待ち（awaiting_review・in_review、古い順）
+      summary: 審査待ち（awaiting_review・in_review、古い順。チャンネルと素材集を kind で見分ける）
       parameters:
         - { $ref: '#/components/parameters/Cursor' }
         - { $ref: '#/components/parameters/Limit' }
@@ -347,7 +480,12 @@ paths:
                 type: object
                 required: [items]
                 properties:
-                  items: { type: array, items: { $ref: '#/components/schemas/Submission' } }
+                  items:
+                    type: array
+                    items:
+                      oneOf:
+                        - { $ref: '#/components/schemas/Submission' }
+                        - { $ref: '#/components/schemas/CollectionSubmission' }
                   nextCursor: { type: [string, 'null'] }
         default: { $ref: '#/components/responses/Error' }
 
@@ -530,6 +668,143 @@ paths:
         '200': { $ref: '#/components/responses/Channel' }
         default: { $ref: '#/components/responses/Error' }
 
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/package:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    get:
+      tags: [review]
+      operationId: getCollectionSubmissionPackage
+      summary: 素材集のパッケージの取得先（署名付き URL、5 分）
+      responses:
+        '200':
+          description: 取得先
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [packageUrl, expiresAt]
+                properties:
+                  packageUrl: { type: string, format: uri }
+                  expiresAt: { type: string, format: date-time }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/reviews:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    get:
+      tags: [review]
+      operationId: listCollectionReviews
+      summary: 審査の記録
+      responses:
+        '200':
+          description: 審査の記録
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Review' } }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/start:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    post:
+      tags: [review]
+      operationId: startCollectionReview
+      summary: 審査を始める（awaiting_review → in_review）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      responses:
+        '200': { $ref: '#/components/responses/CollectionSubmission' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/release:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    post:
+      tags: [review]
+      operationId: releaseCollectionReview
+      summary: 審査を戻す（in_review → awaiting_review）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      responses:
+        '200': { $ref: '#/components/responses/CollectionSubmission' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/approve:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    post:
+      tags: [review]
+      operationId: approveCollectionSubmission
+      summary: 承認（in_review → approved。身元の記録がなければ verification が必須。C-17）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CollectionApproveInput' }
+      responses:
+        '200': { $ref: '#/components/responses/CollectionDecision' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/return:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    post:
+      tags: [review]
+      operationId: returnCollectionSubmission
+      summary: 差し戻し（in_review → returned）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FindingsInput' }
+      responses:
+        '200': { $ref: '#/components/responses/CollectionDecision' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/submissions/{submissionId}/reject:
+    parameters:
+      - { $ref: '#/components/parameters/CollectionId' }
+      - { $ref: '#/components/parameters/SubmissionId' }
+    post:
+      tags: [review]
+      operationId: rejectCollectionSubmission
+      summary: 却下（in_review → rejected）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FindingsInput' }
+      responses:
+        '200': { $ref: '#/components/responses/CollectionDecision' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/collections/{collectionId}/revoke:
+    parameters: [{ $ref: '#/components/parameters/CollectionId' }]
+    post:
+      tags: [review]
+      operationId: revokeCollection
+      summary: 素材集の取り下げ（リストから消し、revokedCollections に 7 日載せる）
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RevokeInput' }
+      responses:
+        '200': { $ref: '#/components/responses/Collection' }
+        default: { $ref: '#/components/responses/Error' }
+
   /api/admin/publishers:
     get:
       tags: [admin-publishers]
@@ -572,6 +847,16 @@ paths:
       summary: 配信元のチャンネル
       responses:
         '200': { $ref: '#/components/responses/ChannelList' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/publishers/{publisherId}/collections:
+    parameters: [{ $ref: '#/components/parameters/PublisherId' }]
+    get:
+      tags: [admin-publishers]
+      operationId: listPublisherCollections
+      summary: アカウントの素材集（1.1）
+      responses:
+        '200': { $ref: '#/components/responses/CollectionList' }
         default: { $ref: '#/components/responses/Error' }
 
   /api/admin/publishers/{publisherId}/suspend:
@@ -861,6 +1146,11 @@ components:
       in: path
       required: true
       schema: { $ref: '#/components/schemas/Ulid' }
+    CollectionId:
+      name: collectionId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/CollectionId' }
     PublisherId:
       name: publisherId
       in: path
@@ -923,6 +1213,41 @@ components:
                 type: string
                 enum: [pending, none]
                 description: approve は pending（公開の Lambda を呼んだ）、return・reject は none
+    Collection:
+      description: 素材集
+      headers:
+        ETag: { $ref: '#/components/headers/ETag' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Collection' }
+    CollectionList:
+      description: 素材集の一覧
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items: { type: array, items: { $ref: '#/components/schemas/Collection' } }
+    CollectionSubmission:
+      description: 素材集の申請
+      headers:
+        ETag: { $ref: '#/components/headers/ETag' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/CollectionSubmission' }
+    CollectionDecision:
+      description: 判定後の素材集の申請と公開の状況
+      headers:
+        ETag: { $ref: '#/components/headers/ETag' }
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [submission, publication]
+            properties:
+              submission: { $ref: '#/components/schemas/CollectionSubmission' }
+              publication: { type: string, enum: [pending, none] }
     KeyTransfer:
       description: 鍵の移し替え
       headers:
@@ -948,6 +1273,10 @@ components:
     ChannelId:
       type: string
       pattern: '^[a-z0-9-]{3,40}$'
+    CollectionId:
+      type: string
+      pattern: '^[a-z0-9-]{3,40}$'
+      description: 素材集 ID（チャンネルの ID とは別の名前空間。1.1）
     AccountId:
       type: string
       pattern: '^sg1[a-z2-7]{32}$'
@@ -977,9 +1306,13 @@ components:
             - unauthorized
             - forbidden
             - publisher_not_active
+            - role_required
             - not_found
             - already_registered
             - channel_id_taken
+            - collection_id_taken
+            - producer_not_verified
+            - resource_in_use
             - account_id_taken
             - key_already_bound
             - transfer_pending
@@ -1035,12 +1368,14 @@ components:
       required: [channels, uploadsPerDay, ticketsPerDay]
       properties:
         channels: { type: integer, minimum: 0, default: 5 }
+        collections: { type: integer, minimum: 0, default: 5, description: 1.1 }
         uploadsPerDay: { type: integer, minimum: 0, default: 20 }
         ticketsPerDay: { type: integer, minimum: 0, default: 10 }
     LimitsOverride:
       type: object
       properties:
         channels: { type: integer, minimum: 0 }
+        collections: { type: integer, minimum: 0 }
         uploadsPerDay: { type: integer, minimum: 0 }
         ticketsPerDay: { type: integer, minimum: 0 }
     Usage:
@@ -1048,7 +1383,8 @@ components:
       required: [channels, uploadsToday, ticketsToday]
       properties:
         channels: { type: integer }
-        uploadsToday: { type: integer }
+        collections: { type: integer, description: 1.1 }
+        uploadsToday: { type: integer, description: チャンネルと素材集の申請を合わせた数（1.1、M-19） }
         ticketsToday: { type: integer }
     Publisher:
       type: object
@@ -1063,6 +1399,14 @@ components:
           oneOf:
             - { $ref: '#/components/schemas/AccountId' }
             - { type: 'null' }
+        roles:
+          type: array
+          items: { type: string, enum: [publisher, producer] }
+          description: アカウントの役割（1.1、M-16）。1.0 のアカウントは [publisher]
+        producerVerified: { type: boolean, description: 制作元の身元が確かめられているか（1.1、C-17） }
+        producerVerification:
+          allOf: [{ $ref: '#/components/schemas/Verification' }]
+          description: 身元の確認の記録（運用者にだけ返す）
         limits: { $ref: '#/components/schemas/Limits' }
         usage: { $ref: '#/components/schemas/Usage' }
         rev: { $ref: '#/components/schemas/Rev' }
@@ -1231,7 +1575,48 @@ components:
             properties:
               code: { type: string, description: API-003 のエラーコード、または bad_icon・id_mismatch・publisher_mismatch・version_not_newer }
               detail: { type: string }
-        appStage: { type: integer, description: 必要なアプリの段（API-003 確認の手順 10） }
+        appStage: { type: integer, description: 必要なアプリの段（API-003 確認の手順 10。1.1 からは使う素材集の中身も数える） }
+        collections:
+          type: array
+          description: （1.1、チャンネル）宣言した素材集ごとの解決の結果（C-19）
+          items:
+            type: object
+            required: [as, collectionId, status]
+            properties:
+              as: { type: string }
+              collectionId: { $ref: '#/components/schemas/CollectionId' }
+              status: { type: string, enum: [usable, unusable] }
+              code: { type: string, description: collection_not_listed・not_granted・bad_manifest など }
+              detail: { type: string }
+        external:
+          type: array
+          description: （1.1、素材集）外部の素材ごとの確認（M-20）
+          items:
+            type: object
+            required: [resourceId, ok]
+            properties:
+              resourceId: { type: string }
+              ok: { type: boolean }
+              detail: { type: string }
+        inUse:
+          type: array
+          description: （1.1、素材集）公開中のチャンネルが参照している素材を消した・種類を変えた（D-8・M-22）
+          items:
+            type: object
+            required: [channelId, resourceId, detail]
+            properties:
+              channelId: { $ref: '#/components/schemas/ChannelId' }
+              resourceId: { type: string }
+              detail: { type: string }
+        warnings:
+          type: array
+          description: （1.1）拒まないが知らせること（例 grants_narrowed）
+          items:
+            type: object
+            required: [code, detail]
+            properties:
+              code: { type: string }
+              detail: { type: string }
         checkedAt: { type: string, format: date-time }
         validatorVersion: { type: string }
     Finding:
@@ -1252,6 +1637,7 @@ components:
       type: object
       required: [submissionId, channelId, accountId, state, rev, createdAt, updatedAt]
       properties:
+        kind: { type: string, enum: [channel], description: 1.1。審査待ちの一覧で素材集の申請と見分ける }
         submissionId: { $ref: '#/components/schemas/Ulid' }
         channelId: { $ref: '#/components/schemas/ChannelId' }
         version: { type: [integer, 'null'], description: パッケージの channel.json から（機械審査の後） }
@@ -1297,6 +1683,138 @@ components:
             package: { $ref: '#/components/schemas/PresignedPost' }
             icon: { $ref: '#/components/schemas/PresignedPost' }
         uploadExpiresAt: { type: string, format: date-time }
+
+    Collection:
+      type: object
+      required: [collectionId, publisherId, status, rev, createdAt, updatedAt]
+      properties:
+        collectionId: { $ref: '#/components/schemas/CollectionId' }
+        publisherId: { $ref: '#/components/schemas/Ulid' }
+        status: { type: string, enum: [active, revoked] }
+        pendingSubmissionId:
+          oneOf:
+            - { $ref: '#/components/schemas/Ulid' }
+            - { type: 'null' }
+        latestApproved:
+          oneOf:
+            - { $ref: '#/components/schemas/CollectionLatestApproved' }
+            - { type: 'null' }
+        listed: { type: boolean, description: 今のリストに載っているか }
+        producerChange:
+          type: [object, 'null']
+          properties:
+            from: { $ref: '#/components/schemas/AccountId' }
+            at: { type: string, format: date-time }
+            reason: { type: string }
+            until: { type: string, format: date-time }
+        externalCheck:
+          type: [object, 'null']
+          description: 毎日の外部の素材の確認（M-21）
+          properties:
+            checkedAt: { type: string, format: date-time }
+            failures:
+              type: array
+              items:
+                type: object
+                properties:
+                  resourceId: { type: string }
+                  url: { type: string }
+                  status: { type: string }
+        revocations:
+          type: array
+          items:
+            type: object
+            required: [reason, severity, revokedAt]
+            properties:
+              versions: { type: array, items: { type: integer } }
+              reason: { type: string }
+              severity: { type: string, enum: [high, low] }
+              revokedAt: { type: string, format: date-time }
+        rev: { $ref: '#/components/schemas/Rev' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CollectionLatestApproved:
+      type: object
+      description: リストの collections[] の 1 件になる内容（DM-001 M-24）
+      required: [submissionId, version, producer, name, summary, media, resourcesSize, tags, grants, package, minAppVersion, approvedAt]
+      properties:
+        submissionId: { $ref: '#/components/schemas/Ulid' }
+        version: { type: integer, minimum: 1 }
+        producer: { $ref: '#/components/schemas/AccountId' }
+        name: { type: string }
+        summary: { type: string }
+        media: { type: array, items: { type: string, enum: [text, image, audio, video] } }
+        resourcesSize: { type: integer }
+        tags: { type: array, items: { type: string } }
+        regions: { type: array, items: { type: string } }
+        grants:
+          type: object
+          required: [publishers]
+          properties:
+            publishers:
+              oneOf:
+                - { type: string, const: '*' }
+                - { type: array, items: { $ref: '#/components/schemas/AccountId' } }
+        package: { $ref: '#/components/schemas/ListedPackage' }
+        appStage: { type: integer }
+        minAppVersion: { type: integer }
+        approvedAt: { type: string, format: date-time }
+    CollectionSubmission:
+      type: object
+      required: [kind, submissionId, collectionId, accountId, state, rev, createdAt, updatedAt]
+      properties:
+        kind: { type: string, enum: [collection] }
+        submissionId: { $ref: '#/components/schemas/Ulid' }
+        collectionId: { $ref: '#/components/schemas/CollectionId' }
+        version: { type: [integer, 'null'], description: パッケージの collection.json から（機械審査の後） }
+        accountId: { $ref: '#/components/schemas/AccountId' }
+        state: { $ref: '#/components/schemas/SubmissionState' }
+        note: { type: string }
+        sha256: { type: [string, 'null'] }
+        size: { type: [integer, 'null'] }
+        validation:
+          oneOf:
+            - { $ref: '#/components/schemas/Validation' }
+            - { type: 'null' }
+        decision:
+          oneOf:
+            - { $ref: '#/components/schemas/Decision' }
+            - { type: 'null' }
+        submittedAt: { type: [string, 'null'], format: date-time }
+        decidedAt: { type: [string, 'null'], format: date-time }
+        rev: { $ref: '#/components/schemas/Rev' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CollectionSubmissionCreated:
+      type: object
+      required: [submission, uploads, uploadExpiresAt]
+      properties:
+        submission: { $ref: '#/components/schemas/CollectionSubmission' }
+        uploads:
+          type: object
+          required: [package]
+          properties:
+            package: { $ref: '#/components/schemas/PresignedPost' }
+        uploadExpiresAt: { type: string, format: date-time }
+    CollectionApproveInput:
+      type: object
+      properties:
+        message: { type: string, maxLength: 2000 }
+        verification:
+          allOf: [{ $ref: '#/components/schemas/Verification' }]
+          description: アカウントに身元の記録がないときは必須（C-17）
+    UsedBy:
+      type: object
+      required: [channelId, channelVersion, publisherName, resources]
+      properties:
+        channelId: { $ref: '#/components/schemas/ChannelId' }
+        channelName: { type: string }
+        channelVersion: { type: integer }
+        publisherName: { type: string }
+        resources:
+          type: array
+          description: 参照している素材の ID（題材で選ぶだけのときは空）
+          items: { type: string }
 
     SignedDocument:
       type: object
@@ -1433,6 +1951,8 @@ components:
         trigger: { type: string, enum: [approve, revoke, transfer, keyset, daily, manual] }
         channelCount: { type: integer }
         revokedCount: { type: integer }
+        collectionCount: { type: integer, description: 1.1 }
+        revokedCollectionCount: { type: integer, description: 1.1 }
 
     AuditEvent:
       type: object
