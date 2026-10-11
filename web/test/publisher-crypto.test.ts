@@ -1,7 +1,7 @@
 import { accountId, sha256Hex, utf8, verifyEd25519 } from '@sanpo-console/protocol';
 import { unzipSync, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
-import { accountIdOf, b64url, createKey, openKeyFile, signPackage } from '../src/publisher-crypto';
+import { accountIdOf, b64url, createKey, openKeyFile, signCollectionPackage, signPackage } from '../src/publisher-crypto';
 
 const passphrase = 'kamakura-history-2026';
 
@@ -69,5 +69,39 @@ describe('signing a package (API-003 F-6)', () => {
     await expect(signPackage(unsignedPackage('sg1' + 'a'.repeat(32)), key, { channel: 'kamakura-history' })).rejects.toThrow('publisher');
     await expect(signPackage(unsignedPackage(key.accountId, { version: '3' }), key, { channel: 'kamakura-history' })).rejects.toThrow('version');
     await expect(signPackage(utf8.encode('not a zip'), key, { channel: 'kamakura-history' })).rejects.toThrow('ZIP');
+  });
+});
+
+describe('signing a collection (API-004 1.2, DES-010 N-3)', () => {
+  const unsignedCollection = (producer: string, change: Record<string, unknown> = {}) =>
+    zipSync({
+      'collection.json': utf8.encode(JSON.stringify({ format: 1, id: 'kamakura-audio-guide', version: 2, producer, ...change })),
+      'resources/text/intro.md': utf8.encode('鶴岡八幡宮の話' + String.fromCharCode(10)),
+    });
+
+  it('writes a collection-package signature that verifies and covers every file', async () => {
+    const { key } = await createKey('素材集の通しの確認の合言葉');
+    const signed = await signCollectionPackage(unsignedCollection(key.accountId), key, { collection: 'kamakura-audio-guide' });
+    const files = unzipSync(signed.zip);
+    const sig = JSON.parse(utf8.decode(files['signature.json']!));
+    const payload = b64url.decode(sig.payload);
+    const body = JSON.parse(utf8.decode(payload));
+    // The form station-format's CollectionValidator reads (SignedKind.COLLECTION).
+    expect(body).toMatchObject({ type: 'collection-package', collection: 'kamakura-audio-guide', version: 2, producer: key.accountId });
+    expect(body).not.toHaveProperty('channel');
+    expect(body.files).toEqual({
+      'collection.json': sha256Hex(files['collection.json']!),
+      'resources/text/intro.md': sha256Hex(files['resources/text/intro.md']!),
+    });
+    expect(verifyEd25519(b64url.decode(sig.publisherKey), payload, b64url.decode(sig.sig))).toBe(true);
+    expect(signed.version).toBe(2);
+  });
+
+  it('checks the package is this collection, by this producer, first', async () => {
+    const { key } = await createKey('素材集の通しの確認の合言葉');
+    await expect(signCollectionPackage(unsignedCollection(key.accountId), key, { collection: 'other' })).rejects.toThrow('id');
+    await expect(signCollectionPackage(unsignedCollection('sg1' + 'a'.repeat(32)), key, { collection: 'kamakura-audio-guide' })).rejects.toThrow('producer');
+    // A channel package isn't a collection.
+    await expect(signCollectionPackage(zipSync({ 'channel.json': utf8.encode('{}') }), key, { collection: 'kamakura-audio-guide' })).rejects.toThrow('collection.json');
   });
 });

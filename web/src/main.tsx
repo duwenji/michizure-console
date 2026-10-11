@@ -6,6 +6,7 @@ import { createApi, describe, type Api } from './api';
 import { createAuth, loadConfig, type Auth, type ConsoleConfig } from './auth';
 import { AuditPage } from './pages/audit';
 import { ChannelPage } from './pages/channel';
+import { CollectionReviewPage, OperatorCollectionPage } from './pages/collection-review';
 import { HomePage } from './pages/home';
 import { KeysPage } from './pages/keys';
 import { PublicationsPage } from './pages/publications';
@@ -13,6 +14,7 @@ import { ReviewPage, ReviewQueuePage } from './pages/review';
 import { PublisherPage, PublishersPage } from './pages/publishers';
 import { TransfersPage } from './pages/transfers';
 import { PublisherChannel, PublisherChannels } from './pages/publisher/channels';
+import { PublisherCollection, PublisherCollections } from './pages/publisher/collections';
 import { PublisherHome } from './pages/publisher/home';
 import { PublisherKeys } from './pages/publisher/keys';
 import { PublisherSettings } from './pages/publisher/settings';
@@ -77,6 +79,7 @@ const NAV: [string, string][] = [
 const PUBLISHER_NAV: [string, string][] = [
   ['/', '概要'],
   ['/channels', 'チャンネル'],
+  ['/collections', '素材集'],
   ['/keys', '鍵'],
   ['/settings', '設定'],
 ];
@@ -99,6 +102,8 @@ function Shell({ session }: { session: Session }) {
             <Route path="/" element={<HomePage />} />
             <Route path="/review" element={<ReviewQueuePage />} />
             <Route path="/review/:channelId/:submissionId" element={<ReviewPage />} />
+            <Route path="/review/collections/:collectionId/:submissionId" element={<CollectionReviewPage />} />
+            <Route path="/collections/:collectionId" element={<OperatorCollectionPage />} />
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/keys" element={<KeysPage />} />
             <Route path="/publishers" element={<PublishersPage />} />
@@ -114,6 +119,8 @@ function Shell({ session }: { session: Session }) {
             <Route path="/" element={<PublisherHome />} />
             <Route path="/channels" element={<PublisherChannels />} />
             <Route path="/channels/:channelId" element={<PublisherChannel />} />
+            <Route path="/collections" element={<PublisherCollections />} />
+            <Route path="/collections/:collectionId" element={<PublisherCollection />} />
             <Route path="/keys" element={<PublisherKeys />} />
             <Route path="/settings" element={<PublisherSettings />} />
             <Route path="*" element={<p>このページはありません。</p>} />

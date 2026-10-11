@@ -55,9 +55,13 @@ export function PublisherPage() {
     async () => (await api.GET('/api/admin/publishers/{publisherId}/channels', { params: { path: { publisherId } } })).data,
     [api, publisherId],
   );
+  const collections = useLoad(
+    async () => (await api.GET('/api/admin/publishers/{publisherId}/collections', { params: { path: { publisherId } } })).data,
+    [api, publisherId],
+  );
   const p = pub.data;
 
-  const [limits, setLimits] = useState<{ channels?: number; uploadsPerDay?: number; ticketsPerDay?: number }>({});
+  const [limits, setLimits] = useState<{ channels?: number; collections?: number; uploadsPerDay?: number; ticketsPerDay?: number }>({});
   const [limitsError, setLimitsError] = useState<string>();
   const saveLimits = async (e: FormEvent, reason: string) => {
     e.preventDefault();
@@ -118,9 +122,9 @@ export function PublisherPage() {
 
           <form className="action" onSubmit={(e) => void saveLimits(e, limitsReason)}>
             <h3>上限を変える</h3>
-            {(['channels', 'uploadsPerDay', 'ticketsPerDay'] as const).map((k) => (
+            {(['channels', 'collections', 'uploadsPerDay', 'ticketsPerDay'] as const).map((k) => (
               <label key={k}>
-                {{ channels: 'チャンネル数', uploadsPerDay: '1 日の申請', ticketsPerDay: '1 日の試用チケット' }[k]}（今 {p.limits[k]}）
+                {{ channels: 'チャンネル数', collections: '素材集の数', uploadsPerDay: '1 日の申請（チャンネルと素材集の合計）', ticketsPerDay: '1 日の試用チケット' }[k]}（今 {p.limits[k]}）
                 <input type="number" min={0} max={1000} value={limits[k] ?? ''} onChange={(e) => setLimits((l) => ({ ...l, [k]: e.target.value === '' ? undefined : Number(e.target.value) }))} />
               </label>
             ))}
@@ -140,6 +144,22 @@ export function PublisherPage() {
               <li key={c.channelId}>
                 <Link to={`/channels/${c.channelId}`}><code>{c.channelId}</code></Link> {c.latestApproved?.name}{' '}
                 <span className={`tag ${c.status}`}>{c.status}</span> {c.listed && <span className="tag active">公開中</span>}
+              </li>
+            ))}
+          </ul>
+          <h2>素材集</h2>
+          <p className="small">
+            役割: {(p.roles ?? ['publisher']).map((r) => (r === 'producer' ? '制作元' : '配信元')).join('・')}。
+            身元の確認: {p.producerVerified ? <>確認済み{p.producerVerification && `（${p.producerVerification.method}、${p.producerVerification.detail}）`}</> : '未確認'}
+          </p>
+          <Status error={collections.error} loading={collections.loading} />
+          {collections.data?.items.length === 0 && <Empty>素材集はありません。</Empty>}
+          <ul className="plain">
+            {collections.data?.items.map((c) => (
+              <li key={c.collectionId}>
+                <Link to={`/collections/${c.collectionId}`}><code>{c.collectionId}</code></Link> {c.latestApproved?.name}{' '}
+                <span className={`tag ${c.status}`}>{c.status}</span> {c.listed && <span className="tag active">公開中</span>}
+                {(c.externalCheck?.failures ?? []).length > 0 && <span className="tag revoked">外部の素材に不具合</span>}
               </li>
             ))}
           </ul>
