@@ -10,6 +10,6 @@
     "serve": "tsx src/serve-cli.ts",
     "vectors": "tsx src/app-vectors.ts"
   },
-  "dependencies": { "@sanpo-console/protocol": "0.1.0" },
+  "dependencies": { "@sanpo-console/protocol": "0.1.0", "fflate": "^0.8.3" },
   "devDependencies": { "@sanpo-console/api": "0.1.0" }
 }

@@ -55,6 +55,29 @@ export interface ChannelEntry {
   package: { url: string; sha256: string; size: number; format: number };
   minAppVersion: number;
   approvedAt: string;
+  /** The kinds of material it uses, with its collections' (API-002 1.2 P-14). */
+  media?: string[];
+  /** Bytes fetched ahead when the channel is chosen, its collections included (P-14). */
+  resourcesSize?: number;
+}
+
+/** One entry of `collections[]` (API-002 1.2 P-10・P-15). */
+export interface CollectionEntry {
+  id: string;
+  version: number;
+  producer: string;
+  producerName: string;
+  producerChange?: { from: string; at: string; reason: string };
+  name: string;
+  summary: string;
+  media: string[];
+  resourcesSize: number;
+  tags: string[];
+  regions?: string[];
+  grants: { publishers: '*' | string[] };
+  package: { url: string; sha256: string; size: number; format: number };
+  minAppVersion: number;
+  approvedAt: string;
 }
 
 export interface RevokedEntry {
@@ -73,6 +96,10 @@ export interface ChannelList {
   expiresAt: string;
   channels: ChannelEntry[];
   revoked: RevokedEntry[];
+  /** API-002 1.2; absent in lists from before it. */
+  collections?: CollectionEntry[];
+  /** Kept apart from `revoked`: collection ids are another namespace (P-11). */
+  revokedCollections?: RevokedEntry[];
 }
 
 export interface ChannelListDigest {

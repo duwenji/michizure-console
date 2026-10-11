@@ -1,5 +1,9 @@
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { b64url } from '@sanpo-console/protocol';
+import type { Notice } from '../console/deps.js';
+import { ulid } from '../console/util.js';
 import { CloudFrontCdn, DynamoStore, S3Storage, kmsSigner } from './aws.js';
+import { checkExternalResources } from './external.js';
 import { SeqConflictError, type Trigger } from './ports.js';
 import { publish, type ProviderConfig } from './publisher.js';
 
@@ -23,8 +27,11 @@ const config: ProviderConfig = {
   ...(optional('CONTACT') ? { contact: optional('CONTACT')! } : {}),
 };
 
+const store = new DynamoStore(env('TABLE_NAME'));
+const sqs = new SQSClient({});
+
 const deps = {
-  store: new DynamoStore(env('TABLE_NAME')),
+  store,
   storage: new S3Storage(env('PUBLIC_BUCKET'), env('ARCHIVE_BUCKET')),
   cdn: new CloudFrontCdn(env('DISTRIBUTION_ID')),
   signerFor: kmsSigner,
@@ -38,11 +45,35 @@ const deps = {
  */
 export async function handler(event: { trigger?: string } = {}) {
   const trigger = TRIGGERS.includes(event.trigger as Trigger) ? (event.trigger as Trigger) : 'manual';
+  let record;
   try {
-    return await publish(deps, trigger);
+    record = await publish(deps, trigger);
   } catch (e) {
     // Another run took the next seq in between: build again on top of it, once.
-    if (e instanceof SeqConflictError) return publish(deps, trigger);
-    throw e;
+    if (!(e instanceof SeqConflictError)) throw e;
+    record = await publish(deps, trigger);
+  }
+  if (trigger === 'daily') await dailyExternalCheck();
+  return record;
+}
+
+/** The daily check of outside resources (DES-009 M-7), after the list is out: it never fails the run. */
+async function dailyExternalCheck() {
+  try {
+    const result = await checkExternalResources({
+      targets: () => store.externalTargets(),
+      record: (id, check) => store.recordExternalCheck(id, check),
+      now: () => new Date(),
+      notifyFailures: async (target, failures) => {
+        const notice: Notice = {
+          noticeId: ulid(Date.now()), event: 'collection.external_failed', publisherId: target.publisherId, collectionId: target.collectionId,
+          message: failures.map((f) => `${f.resourceId}: ${f.status}`).join('\n'),
+        };
+        await sqs.send(new SendMessageCommand({ QueueUrl: env('NOTIFY_QUEUE_URL'), MessageBody: JSON.stringify(notice) }));
+      },
+    });
+    console.log(JSON.stringify({ externalCheck: result }));
+  } catch (e) {
+    console.error(JSON.stringify({ externalCheck: 'failed', error: e instanceof Error ? e.stack : String(e) }));
   }
 }

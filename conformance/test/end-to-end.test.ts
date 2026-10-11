@@ -1,6 +1,7 @@
 import { MemoryStorage, MemoryStore, noCdn, publish, LIST_PATH } from '@sanpo-console/api/publish';
 import { b64url, sha256Hex, utf8 } from '@sanpo-console/protocol';
 import { makeTestProvider, sampleChannel, type TestProvider } from '@sanpo-console/protocol/testing';
+import { zipSync } from 'fflate';
 import type { Server } from 'node:http';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { checkProvider, type CheckId, type CheckOptions } from '../src/check.js';
@@ -13,6 +14,33 @@ let storage: MemoryStorage;
 let files: Map<string, Uint8Array>;
 let server: Server;
 let base: string;
+let store: MemoryStore;
+
+/** The collection the channel uses (API-004): one text resource about a spot in Kamakura. */
+function collectionJson(change: Record<string, unknown> = {}) {
+  return {
+    format: 1, id: 'kamakura-audio-guide', version: 2, producer: 'sg1' + 'c'.repeat(32), name: '鎌倉音声ガイド', summary: '寺社の音声ガイド', lang: 'ja',
+    grants: { publishers: '*' },
+    resources: [{ id: 'intro', type: 'text', file: 'resources/text/intro.md', tags: ['history'], about: { type: 'spot', osm: 'way/1', lat: 35.326, lon: 139.5565 } }],
+    ...change,
+  };
+}
+
+/** Puts the collection package out and lists it, as the console does once it's approved. */
+function listCollection(json: Record<string, unknown>, listed: Record<string, unknown> = {}) {
+  const zip = zipSync({ 'collection.json': utf8.encode(JSON.stringify(json)), 'resources/text/intro.md': utf8.encode('鶴岡八幡宮の話\n') });
+  files.set(`col/${sha256Hex(zip)}.zip`, zip);
+  store.collections = [{
+    entry: {
+      id: 'kamakura-audio-guide', version: 2, producer: 'sg1' + 'c'.repeat(32), producerName: '鎌倉市観光協会', name: '鎌倉音声ガイド', summary: '寺社の音声ガイド',
+      media: ['text'], resourcesSize: zip.length, tags: ['history'], regions: ['xn7'], grants: { publishers: '*' },
+      package: { url: `${base}/col/${sha256Hex(zip)}.zip`, sha256: sha256Hex(zip), size: zip.length, format: 1 },
+      minAppVersion: 9999, approvedAt: now.toISOString(), ...listed,
+    } as never,
+  }];
+}
+
+const republish = () => publish({ store, storage, cdn: noCdn, signerFor: () => p.signing, config: { rootPublicKey: p.rootKey, name: 'Local' }, now: () => now }, 'manual');
 
 /** Publishes one channel with the publisher of the app, and serves the public site plus the files. */
 beforeEach(async () => {
@@ -21,11 +49,11 @@ beforeEach(async () => {
   files = new Map();
   ({ server, url: base } = await serveFiles(async (path) => storage.public.get(path) ?? files.get(path)));
 
-  const pkg = utf8.encode('PK… a channel package');
+  const pkg = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version: 3, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 2 }] })) });
   const icon = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
   files.set(`pkg/${sha256Hex(pkg)}.zip`, pkg);
   files.set(`icons/${sha256Hex(icon)}.png`, icon);
-  const store = new MemoryStore();
+  store = new MemoryStore();
   store.keyset = p.discovery.keyset;
   store.keys.set('k-test', { keyId: 'k-test', kmsKeyArn: 'local', status: 'active' });
   store.channels = [
@@ -36,7 +64,9 @@ beforeEach(async () => {
       }),
     },
   ];
-  await publish({ store, storage, cdn: noCdn, signerFor: () => p.signing, config: { rootPublicKey: p.rootKey, name: 'Local' }, now: () => now }, 'manual');
+  store.channels[0]!.material = { ownPrefetchBytes: 0, ownMedia: [], collections: ['kamakura-audio-guide'] };
+  listCollection(collectionJson());
+  await republish();
 });
 
 afterEach(() => new Promise<void>((done) => server.close(() => done())));
@@ -53,6 +83,39 @@ describe('a provider published by this system', () => {
     const s = await statuses({ minSeq: 1 });
     expect(failed(s)).toEqual([]);
     expect(Object.values(s).every((v) => v === 'pass')).toBe(true);
+  });
+});
+
+describe('the checks catch a broken provider (API-002 1.2)', () => {
+  it('V-19: a collection package changed after approval', async () => {
+    const [col] = store.collections;
+    store.collections = [{ entry: { ...col!.entry, package: { ...col!.entry.package, size: col!.entry.package.size + 1 } } }];
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-19']);
+  });
+
+  it('V-20: a channel using a collection that is not listed, or not granted to it', async () => {
+    store.collections = [];
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-20']);
+    listCollection(collectionJson({ grants: { publishers: ['sg1' + 'z'.repeat(32)] } }), { grants: { publishers: ['sg1' + 'z'.repeat(32)] } });
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-20']);
+  });
+
+  it('V-21: media of an unknown kind', async () => {
+    listCollection(collectionJson(), { media: ['hologram'] });
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-21']);
+  });
+
+  it('V-25: tags, regions or grants that differ from the package', async () => {
+    listCollection(collectionJson(), { tags: ['food'] });
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-25']);
+    listCollection(collectionJson(), { regions: ['xn8'] });
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-25']);
   });
 });
 

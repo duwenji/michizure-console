@@ -1,4 +1,4 @@
-import type { ChannelEntry, Keyset, RevokedEntry, Signer, SignedDocument } from '@sanpo-console/protocol';
+import type { ChannelEntry, CollectionEntry, Keyset, RevokedEntry, Signer, SignedDocument } from '@sanpo-console/protocol';
 
 /** What started a publication (DM-001 PUBLICATION.trigger). */
 export type Trigger = 'approve' | 'revoke' | 'transfer' | 'keyset' | 'daily' | 'manual';
@@ -14,6 +14,18 @@ export interface PublicationRecord {
   trigger: Trigger;
   channelCount: number;
   revokedCount: number;
+  collectionCount: number;
+  revokedCollectionCount: number;
+}
+
+/**
+ * A listed channel: its entry, and what the publisher adds up into `media` and `resourcesSize`
+ * from the collections listed now (DM-001 M-24, DES-009 M-4). Channels approved before DES-007
+ * have no [material].
+ */
+export interface ListedChannel {
+  entry: ChannelEntry;
+  material?: { ownPrefetchBytes: number; ownMedia: string[]; collections: string[] };
 }
 
 export interface SigningKeyRecord {
@@ -34,9 +46,13 @@ export interface PublicationStore {
   /** The latest publication's seq, or null before the first one. */
   headSeq(): Promise<number | null>;
   /** Every channel to list: the latest approved version of each active channel (DM-001 M-8, AP-10). */
-  listedChannels(now: Date): Promise<ChannelEntry[]>;
-  /** Revocations still to be listed (within [since, now]) (DM-001 M-9, AP-11). */
+  listedChannels(now: Date): Promise<ListedChannel[]>;
+  /** Every collection to list (DM-001 M-24, AP-26). */
+  listedCollections(now: Date): Promise<CollectionEntry[]>;
+  /** Channel revocations still to be listed (within [since, now]) (DM-001 M-9, AP-11). */
   revocations(since: Date): Promise<RevokedEntry[]>;
+  /** Collection revocations still to be listed (DM-001 M-25, AP-27). */
+  collectionRevocations(since: Date): Promise<RevokedEntry[]>;
   /** Stops listing revocations older than [before]. */
   expireRevocations(before: Date): Promise<void>;
   /** The keyset the root key signed last (AP-15). */

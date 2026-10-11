@@ -11,11 +11,13 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import type { ChannelEntry, RevokedEntry, Signer, SignedDocument } from '@sanpo-console/protocol';
+import type { ChannelEntry, CollectionEntry, RevokedEntry, Signer, SignedDocument } from '@sanpo-console/protocol';
+import type { ExternalFailure, ExternalTarget } from './external.js';
 import {
   SeqConflictError,
   type Cdn,
   type DocumentStorage,
+  type ListedChannel,
   type PublicationRecord,
   type PublicationStore,
   type SigningKeyRecord,
@@ -29,8 +31,41 @@ export const seqKey = (seq: number) => `SEQ#${String(seq).padStart(10, '0')}`;
 interface ChannelItem {
   channelId: string;
   publisherId: string;
-  latestApproved?: Omit<ChannelEntry, 'id' | 'publisherName' | 'publisherChange'> & { submissionId: string };
+  latestApproved?: Omit<ChannelEntry, 'id' | 'publisherName' | 'publisherChange'> & {
+    submissionId: string;
+    // Since DES-007: kept for the publisher to add up, never listed as they are (DES-009 M-4).
+    appStage?: number;
+    collections?: { as: string; id: string; minVersion: number }[];
+    ownPrefetchBytes?: number;
+    ownMedia?: string[];
+  };
   publisherChange?: { from: string; at: string; reason: string; until?: string };
+}
+
+interface CollectionItem {
+  collectionId: string;
+  publisherId: string;
+  latestApproved?: Omit<CollectionEntry, 'id' | 'producerName' | 'producerChange'> & {
+    submissionId: string;
+    resourceTypes?: Record<string, string>;
+    externalResources?: { resourceId: string; url: string; size: number }[];
+    appStage?: number;
+  };
+  producerChange?: { from: string; at: string; reason: string; until?: string };
+}
+
+interface RevocationItem {
+  kind?: 'collection';
+  channelId?: string;
+  collectionId?: string;
+  versions?: number[];
+  reason: string;
+  revokedAt: string;
+}
+
+/** Shown once the listed version is by the new account, for the time `until` gives (API-002 P-9・P-13, V-16). */
+function shownChange(c: { from: string; at: string; reason: string; until?: string } | undefined, listedBy: string, now: Date) {
+  return c?.until && Date.parse(c.until) > now.getTime() && c.from !== listedBy ? { from: c.from, at: c.at, reason: c.reason } : undefined;
 }
 
 /** The publisher's view of the DynamoDB table of DM-001. */
@@ -49,31 +84,62 @@ export class DynamoStore implements PublicationStore {
     return typeof out.Item?.seq === 'number' ? out.Item.seq : null;
   }
 
-  async listedChannels(now: Date): Promise<ChannelEntry[]> {
-    const items = await this.queryAll<ChannelItem>('LISTED');
+  async listedChannels(now: Date): Promise<ListedChannel[]> {
+    // Collections share the partition (DM-001 1.3): only the channels, by their sort key (DES-009 M-1).
+    const items = await this.queryAll<ChannelItem>('LISTED', 'CH#');
     const names = await this.publisherNames([...new Set(items.map((i) => i.publisherId))]);
     return items
       .filter((i) => i.latestApproved)
       .map((i) => {
-        const { submissionId: _s, ...approved } = i.latestApproved!;
-        // Only once a version with the new key is listed, and for 90 days from then (API-002 P-9, V-16).
-        const c = i.publisherChange;
-        const change = c?.until && Date.parse(c.until) > now.getTime() && c.from !== approved.publisher ? c : undefined;
-        return {
+        const { submissionId: _s, appStage: _a, collections, ownPrefetchBytes, ownMedia, ...approved } = i.latestApproved!;
+        const change = shownChange(i.publisherChange, approved.publisher, now);
+        const entry = {
           id: i.channelId,
           ...approved,
           publisherName: names.get(i.publisherId) ?? '',
-          ...(change ? { publisherChange: { from: change.from, at: change.at, reason: change.reason } } : {}),
+          ...(change ? { publisherChange: change } : {}),
         } as ChannelEntry;
+        return ownMedia
+          ? { entry, material: { ownPrefetchBytes: ownPrefetchBytes ?? 0, ownMedia, collections: (collections ?? []).map((c) => c.id) } }
+          : { entry };
+      })
+      .sort((a, b) => a.entry.id.localeCompare(b.entry.id));
+  }
+
+  async listedCollections(now: Date): Promise<CollectionEntry[]> {
+    const items = await this.queryAll<CollectionItem>('LISTED', 'COL#');
+    const names = await this.publisherNames([...new Set(items.map((i) => i.publisherId))]);
+    return items
+      .filter((i) => i.latestApproved)
+      .map((i) => {
+        // What approval keeps for itself stays out of the list (DES-009 M-3).
+        const { submissionId: _s, resourceTypes: _t, externalResources: _e, appStage: _a, ...approved } = i.latestApproved!;
+        const change = shownChange(i.producerChange, approved.producer, now);
+        return {
+          id: i.collectionId,
+          ...approved,
+          producerName: names.get(i.publisherId) ?? '',
+          ...(change ? { producerChange: change } : {}),
+        } as CollectionEntry;
       })
       .sort((a, b) => a.id.localeCompare(b.id));
   }
 
   async revocations(since: Date): Promise<RevokedEntry[]> {
-    const items = await this.queryAll<{ channelId: string; versions?: number[]; reason: string; revokedAt: string }>('REVOKED');
+    return this.revokedOf(false, since);
+  }
+
+  async collectionRevocations(since: Date): Promise<RevokedEntry[]> {
+    return this.revokedOf(true, since);
+  }
+
+  /** Channel and collection revocations share the partition; the kind tells them apart (DES-009 M-1). */
+  private async revokedOf(collections: boolean, since: Date): Promise<RevokedEntry[]> {
+    const items = await this.queryAll<RevocationItem>('REVOKED');
     return items
-      .filter((r) => Date.parse(r.revokedAt) >= since.getTime())
-      .map((r) => ({ id: r.channelId, ...(r.versions ? { versions: r.versions } : {}), reason: r.reason, revokedAt: r.revokedAt }));
+      .filter((r) => (r.kind === 'collection') === collections && Date.parse(r.revokedAt) >= since.getTime())
+      .map((r) => ({ id: String(collections ? r.collectionId : r.channelId), ...(r.versions ? { versions: r.versions } : {}), reason: r.reason, revokedAt: r.revokedAt }))
+      .sort((a, b) => a.revokedAt.localeCompare(b.revokedAt));
   }
 
   async expireRevocations(before: Date) {
@@ -125,7 +191,25 @@ export class DynamoStore implements PublicationStore {
     }
   }
 
-  private async queryAll<T>(gsi2pk: string): Promise<(T & { PK: string; SK: string })[]> {
+  /** Listed collections with outside resources, for the daily check (DES-009 M-7). */
+  async externalTargets(): Promise<ExternalTarget[]> {
+    const items = await this.queryAll<CollectionItem & { externalCheck?: { failures?: ExternalFailure[] } }>('LISTED', 'COL#');
+    return items
+      .filter((i) => (i.latestApproved?.externalResources ?? []).length > 0)
+      .map((i) => ({
+        collectionId: i.collectionId,
+        publisherId: i.publisherId,
+        resources: i.latestApproved!.externalResources!,
+        previousFailures: i.externalCheck?.failures ?? [],
+      }));
+  }
+
+  async recordExternalCheck(collectionId: string, check: { checkedAt: string; failures: ExternalFailure[] }) {
+    // Not a change of state: no rev, so it never gets in the way of an approval's condition.
+    await this.db.send(new UpdateCommand({ TableName: this.table, Key: { PK: `COL#${collectionId}`, SK: 'COL' }, UpdateExpression: 'SET externalCheck = :c', ConditionExpression: 'attribute_exists(PK)', ExpressionAttributeValues: { ':c': check } }));
+  }
+
+  private async queryAll<T>(gsi2pk: string, skPrefix?: string): Promise<(T & { PK: string; SK: string })[]> {
     const items: (T & { PK: string; SK: string })[] = [];
     let start: Record<string, unknown> | undefined;
     do {
@@ -133,8 +217,8 @@ export class DynamoStore implements PublicationStore {
         new QueryCommand({
           TableName: this.table,
           IndexName: GSI2,
-          KeyConditionExpression: 'GSI2PK = :pk',
-          ExpressionAttributeValues: { ':pk': gsi2pk },
+          KeyConditionExpression: skPrefix ? 'GSI2PK = :pk AND begins_with(GSI2SK, :sk)' : 'GSI2PK = :pk',
+          ExpressionAttributeValues: { ':pk': gsi2pk, ...(skPrefix ? { ':sk': skPrefix } : {}) },
           ExclusiveStartKey: start,
         }),
       );

@@ -41,6 +41,18 @@ const list = await signChannelList(
       sampleChannel({ id: 'tokyo-nature', version: 1, publisher, name: '東京の自然', summary: '公園と水辺', minAppVersion: 99 }),
     ],
     revoked: [{ id: 'old-channel', versions: [1, 2], reason: '審査基準に反する内容が見つかったため', revokedAt: '2026-10-01T00:00:00.000Z' }],
+    // API-002 1.2 (DES-009 M-11): a collection, and one taken off the list.
+    collections: [
+      {
+        id: 'kamakura-audio-guide', version: 2, producer: 'sg1' + 'c'.repeat(32), producerName: '鎌倉市観光協会',
+        producerChange: { from: 'sg1' + 'd'.repeat(32), at: '2026-10-02T09:00:00.000Z', reason: '制作元の鍵の紛失' },
+        name: '鎌倉音声ガイド', summary: '寺社の音声ガイド', media: ['audio', 'text'], resourcesSize: 2_489_120, tags: ['faith', 'history'], regions: ['xn7'],
+        grants: { publishers: [publisher] },
+        package: { url: 'https://cdn.example.com/col/x.zip', sha256: '2'.repeat(64), size: 9120, format: 1 },
+        minAppVersion: 14, approvedAt: '2026-10-02T09:00:00.000Z',
+      },
+    ],
+    revokedCollections: [{ id: 'old-collection', versions: [1], reason: '権利者からの申し立てによる', revokedAt: '2026-10-01T00:00:00.000Z' }],
   },
   signer,
 );

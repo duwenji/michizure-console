@@ -1,10 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import type { ChannelEntry, RevokedEntry, SignedDocument } from '@sanpo-console/protocol';
+import type { ChannelEntry, CollectionEntry, RevokedEntry, SignedDocument } from '@sanpo-console/protocol';
 import {
   SeqConflictError,
   type Cdn,
   type DocumentStorage,
+  type ListedChannel,
   type PublicationRecord,
   type PublicationStore,
   type SigningKeyRecord,
@@ -14,12 +15,26 @@ import {
 export interface StoredChannel {
   entry: Omit<ChannelEntry, 'publisherChange'>;
   publisherChange?: { from: string; at: string; reason: string; until?: string };
+  material?: ListedChannel['material'];
+}
+
+export interface StoredCollection {
+  entry: Omit<CollectionEntry, 'producerChange'>;
+  producerChange?: { from: string; at: string; reason: string; until?: string };
+}
+
+function shown<T extends { from: string; at: string; reason: string; until?: string }>(change: T | undefined, listedBy: string, now: Date) {
+  if (!change?.until || Date.parse(change.until) <= now.getTime() || change.from === listedBy) return undefined;
+  const { until: _until, ...rest } = change;
+  return rest;
 }
 
 /** The store in memory, for tests and local runs. */
 export class MemoryStore implements PublicationStore {
   channels: StoredChannel[] = [];
   revoked: (RevokedEntry & { listed: boolean })[] = [];
+  collections: StoredCollection[] = [];
+  revokedCollections: (RevokedEntry & { listed: boolean })[] = [];
   keyset: SignedDocument | null = null;
   keys = new Map<string, SigningKeyRecord>();
   history: PublicationRecord[] = [];
@@ -28,12 +43,18 @@ export class MemoryStore implements PublicationStore {
     return this.history.at(-1)?.seq ?? null;
   }
 
-  async listedChannels(now: Date) {
-    return this.channels.map(({ entry, publisherChange }) => {
-      // As DynamoStore: shown once the listed version is by the new account, until `until` (API-002 P-9).
-      if (!publisherChange?.until || Date.parse(publisherChange.until) <= now.getTime() || publisherChange.from === entry.publisher) return { ...entry };
-      const { until: _until, ...shown } = publisherChange;
-      return { ...entry, publisherChange: shown };
+  async listedChannels(now: Date): Promise<ListedChannel[]> {
+    // As DynamoStore: shown once the listed version is by the new account, until `until` (API-002 P-9).
+    return this.channels.map(({ entry, publisherChange, material }) => {
+      const change = shown(publisherChange, entry.publisher, now);
+      return { entry: { ...entry, ...(change ? { publisherChange: change } : {}) }, ...(material ? { material } : {}) };
+    });
+  }
+
+  async listedCollections(now: Date): Promise<CollectionEntry[]> {
+    return this.collections.map(({ entry, producerChange }) => {
+      const change = shown(producerChange, entry.producer, now);
+      return { ...entry, ...(change ? { producerChange: change } : {}) };
     });
   }
 
@@ -43,8 +64,14 @@ export class MemoryStore implements PublicationStore {
       .map(({ listed: _listed, ...r }) => r);
   }
 
+  async collectionRevocations(since: Date) {
+    return this.revokedCollections
+      .filter((r) => r.listed && Date.parse(r.revokedAt) >= since.getTime())
+      .map(({ listed: _listed, ...r }) => r);
+  }
+
   async expireRevocations(before: Date) {
-    for (const r of this.revoked) if (Date.parse(r.revokedAt) < before.getTime()) r.listed = false;
+    for (const r of [...this.revoked, ...this.revokedCollections]) if (Date.parse(r.revokedAt) < before.getTime()) r.listed = false;
   }
 
   async currentKeyset() {

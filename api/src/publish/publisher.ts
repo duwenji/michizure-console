@@ -5,10 +5,12 @@ import {
   signChannelList,
   verifyChannelList,
   verifyDiscovery,
+  type ChannelEntry,
+  type CollectionEntry,
   type Discovery,
   type SigningKeyEntry,
 } from '@sanpo-console/protocol';
-import type { Cdn, DocumentStorage, PublicationRecord, PublicationStore, SignerFor, Trigger } from './ports.js';
+import type { Cdn, DocumentStorage, ListedChannel, PublicationRecord, PublicationStore, SignerFor, Trigger } from './ports.js';
 
 export const DISCOVERY_PATH = '.well-known/sanpo-channels';
 export const LIST_PATH = 'v1/channels.json';
@@ -50,6 +52,21 @@ async function pickSigningKey(deps: PublishDeps, keys: SigningKeyEntry[], revoke
 }
 
 /**
+ * A channel's entry with what its collections add (DES-009 M-4): its media and theirs, its prefetch
+ * and theirs. A collection not listed now adds nothing (the app can't use it either).
+ */
+export function withMaterial(listed: ListedChannel, collections: Map<string, CollectionEntry>): ChannelEntry {
+  const { entry, material } = listed;
+  if (!material) return entry;
+  const used = material.collections.map((id) => collections.get(id)).filter((c): c is CollectionEntry => c !== undefined);
+  return {
+    ...entry,
+    media: [...new Set([...material.ownMedia, ...used.flatMap((c) => c.media)])].sort(),
+    resourcesSize: material.ownPrefetchBytes + used.reduce((sum, c) => sum + c.resourcesSize, 0),
+  };
+}
+
+/**
  * Builds the channel list from the store, signs its digest, checks the result as an app would,
  * and puts it out (ADR-001 A-10). Safe to run at any time: each run takes the next `seq`.
  */
@@ -80,12 +97,17 @@ export async function publish(deps: PublishDeps, trigger: Trigger): Promise<Publ
   const previousSeq = await store.headSeq();
   const seq = (previousSeq ?? 0) + 1;
   const lifetimeDays = Math.min(config.listLifetimeDays ?? 14, 14);
-  const [channels, revoked] = await Promise.all([
+  const since = new Date(now.getTime() - (config.revokedDays ?? 7) * DAY);
+  const [listed, collections, revoked, revokedCollections] = await Promise.all([
     store.listedChannels(now),
-    store.revocations(new Date(now.getTime() - (config.revokedDays ?? 7) * DAY)),
+    store.listedCollections(now),
+    store.revocations(since),
+    store.collectionRevocations(since),
   ]);
+  const byId = new Map(collections.map((c) => [c.id, c]));
+  const channels = listed.map((c) => withMaterial(c, byId));
   const { document, digest } = await signChannelList(
-    { provider: keyset.provider, seq, issuedAt: now, expiresAt: new Date(now.getTime() + lifetimeDays * DAY), channels, revoked },
+    { provider: keyset.provider, seq, issuedAt: now, expiresAt: new Date(now.getTime() + lifetimeDays * DAY), channels, revoked, collections, revokedCollections },
     signer,
   );
 
@@ -105,6 +127,8 @@ export async function publish(deps: PublishDeps, trigger: Trigger): Promise<Publ
     trigger,
     channelCount: channels.length,
     revokedCount: revoked.length,
+    collectionCount: collections.length,
+    revokedCollectionCount: revokedCollections.length,
   };
   await store.recordPublication(previousSeq, record);
   await deps.storage.putArchive(record.archiveKey, listBytes, 'application/json');

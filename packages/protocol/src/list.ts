@@ -1,7 +1,7 @@
 import { b64url, sha256Hex } from './encoding.js';
 import { LIMITS } from './limits.js';
 import { payloadBytes, signDocument, type Signer } from './signed.js';
-import type { ChannelEntry, ChannelList, ChannelListDigest, ChannelListDocument, RevokedEntry } from './types.js';
+import type { ChannelEntry, ChannelList, ChannelListDigest, ChannelListDocument, CollectionEntry, RevokedEntry } from './types.js';
 
 export interface ListContent {
   provider: string;
@@ -10,6 +10,9 @@ export interface ListContent {
   expiresAt: Date;
   channels: ChannelEntry[];
   revoked: RevokedEntry[];
+  /** API-002 1.2: written on every list, empty or not. */
+  collections?: CollectionEntry[];
+  revokedCollections?: RevokedEntry[];
 }
 
 /** Builds the channel list and signs its digest (API-002 P-8). */
@@ -30,6 +33,8 @@ export async function signChannelList(content: ListContent, signer: Signer): Pro
     expiresAt: content.expiresAt.toISOString(),
     channels: content.channels,
     revoked: content.revoked,
+    collections: content.collections ?? [],
+    revokedCollections: content.revokedCollections ?? [],
   };
   const bytes = payloadBytes(body);
   if (bytes.length > LIMITS.listBytes) throw new Error(`list is ${bytes.length} bytes (max ${LIMITS.listBytes})`);
