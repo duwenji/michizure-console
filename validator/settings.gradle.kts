@@ -21,11 +21,11 @@ dependencyResolutionManagement {
                     username = gprUser
                     password = gprKey
                 }
-                content { includeGroup("com.example.sanpoguide") }
+                content { includeGroup("io.github.duwenji.sanpoguide") }
             }
         }
         // A station-format built locally (`./gradlew :station-format:publishToMavenLocal` in SanpoGuide).
-        mavenLocal { content { includeGroup("com.example.sanpoguide") } }
+        mavenLocal { content { includeGroup("io.github.duwenji.sanpoguide") } }
     }
 }
 
