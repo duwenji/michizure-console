@@ -214,7 +214,7 @@ flowchart LR
 - SanpoGuide [ADR-001](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-001-third-party-channel-curation.md): 第三者のチャンネルは運用者の審査と署名を経たものだけ取り込む
 - SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
 - SanpoGuide [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md): チャンネル・パッケージの形式
-- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md): 審査基準（草案）
+- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md): 審査基準（1.0、2026-10-11 承認）
 - [AWS KMS Sign API](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html): 署名できる大きさ（4,096 バイト）と Ed25519
 - 検討の記録: [skill-logs/adr_2026-10-03.md](../skill-logs/adr_2026-10-03.md)
 

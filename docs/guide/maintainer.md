@@ -46,14 +46,14 @@ flowchart LR
 |---|---|---|
 | `packages/protocol` | API-002 の文書の作成と検証（署名、要約、ID、エラーコード） | DES-001 |
 | `packages/api-types` | 管理 API の型（`docs/api/console.openapi.yaml` から生成） | DES-002 |
-| `api/src/publish` | 公開の処理（Lambda）。DB・S3・CloudFront・KMS は差し替え口の後ろ | DES-001 |
-| `api/src/console` | 管理 API（Lambda。運用者の操作 `operator.ts`、配信元の操作 `publisher.ts`、審査 `review.ts`、鍵の移し替え `transfer.ts`）と Cognito の post-confirmation トリガー | DES-002〜DES-006 |
-| `api/src/notify` | 配信元へのメール（SQS で受けて SES で送る Lambda。開発用は記録だけ） | DES-006 |
-| `validator` | 機械審査の Lambda（Kotlin、Gradle、station-format） | DES-004 |
-| `web` | 運用者・配信元の画面（React + Vite）。配信元の鍵の作成と署名は `web/src/publisher-crypto.ts` | DES-002・DES-003 |
+| `api/src/publish` | 公開の処理（Lambda）。DB・S3・CloudFront・KMS は差し替え口の後ろ。毎日の外部の素材の確認は `external.ts` | DES-001・DES-009 |
+| `api/src/console` | 管理 API（Lambda。運用者の操作 `operator.ts`、配信元の操作 `publisher.ts`、素材集 `collections.ts`、利用の記録 `uses.ts`、審査 `review.ts`、鍵の移し替え `transfer.ts`）と Cognito の post-confirmation トリガー | DES-002〜DES-006・DES-008 |
+| `api/src/notify` | 配信元・制作元へのメール（SQS で受けて SES で送る Lambda。開発用は記録だけ） | DES-006・DES-008 |
+| `validator` | 機械審査の Lambda（Kotlin、Gradle、station-format 2.1.0）。チャンネルと素材集、外部の素材の確認 `External.kt` | DES-004・DES-007 |
+| `web` | 運用者・配信元・制作元の画面（React + Vite）。鍵の作成と署名は `web/src/publisher-crypto.ts` | DES-002・DES-003・DES-010 |
 | `tools/root-key` | ルート鍵の CLI（オフラインの端末で使う） | DES-001 |
 | `tools/provision` | 配備した提供元の初期設定（署名鍵・鍵セットの登録と初回の公開） | DES-001 |
-| `tools/e2e` | 開発用の環境での通しの確認（機械審査、試用チケット、審査と承認、鍵の移し替えとメール） | DES-004〜DES-006 |
+| `tools/e2e` | 開発用の環境での通しの確認（機械審査、試用チケット、審査と承認、鍵の移し替えとメール、素材集 `collections.ts`） | DES-004〜DES-006・DES-009 |
 | `conformance` | 任意の提供元に対する準拠テスト | DES-001 |
 | `infra` | AWS CDK。環境ごとの設定は `infra/lib/config.ts` | ADR-001 |
 
@@ -232,8 +232,8 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 | [ADR-001](../adr/ADR-001-aws-architecture.md) | 構成を変えるとき。なぜ今の形かを知りたいとき |
 | [DM-001](../data-model.md) | テーブルの項目・キー・状態の移り方を変えるとき |
 | [API-001](../console-api.md)・[OpenAPI](../api/console.openapi.yaml) | 管理 API を変えるとき（OpenAPI が入出力の正本） |
-| [DES-001](../design/DES-001-publisher.md)・[DES-002](../design/DES-002-operator-console.md) | 実装の判断と検証の結果 |
+| [DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) | 実装の判断と検証の結果（素材集は DES-007〜DES-010） |
 | [TODO](../TODO.md) | 次にやること、実装の順番、決めたこと |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値、手順、費用 |
 | `docs/skill-logs/` | 判断の経緯 |
-| SanpoGuide の API-002・API-003・審査基準 | アプリとの約束（リスト・パッケージ・審査） |
+| SanpoGuide の API-002・API-003・API-004・審査基準 | アプリとの約束（リスト・パッケージ・素材集・審査） |

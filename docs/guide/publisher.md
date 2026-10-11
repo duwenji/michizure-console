@@ -104,7 +104,7 @@ prompts/
 
 ### 3.4 内容の決まり（審査基準）
 
-審査では、機械の確認に加えて、運用者が中身と AI に話させた見本を確かめます。基準は SanpoGuide の [審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md)（**草案・未承認**）です。主な観点:
+審査では、機械の確認に加えて、運用者が中身と AI に話させた見本を確かめます。基準は SanpoGuide の [審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md)（1.0、2026-10-11 承認）です。主な観点:
 
 - 語り口と内容（2.1）、安全（2.2: 危険な場所・立入禁止・私有地に誘わない）、プライバシー（2.3: 位置・住所・名前などを尋ねさせない）、宣伝（2.4）、AI への指示の書き方（2.5）
 - 情報の少ない小さなスポットで、もっともらしい歴史を作らせないこと（2.7）
