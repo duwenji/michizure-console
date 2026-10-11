@@ -29,7 +29,8 @@ fun interface ExternalFetcher {
 }
 
 /**
- * Which addresses the machine review may fetch from (DES-007 J-6): public unicast only. Loopback,
+ * Which addresses the machine review may fetch from (DES-007 J-6): public unicast only. The daily
+ * check has the same rule in TypeScript (api/src/publish/external.ts, DES-009 M-8): change both. Loopback,
  * private, link-local (the instance metadata range), carrier-grade NAT, multicast and the other
  * special-purpose blocks are refused, so a producer's URL can't make the console read its own side.
  */

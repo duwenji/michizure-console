@@ -115,7 +115,8 @@ export class ConsoleStack extends Stack {
       runtime: lambda.Runtime.NODEJS_22_X,
       architecture: lambda.Architecture.ARM_64,
       memorySize: 512,
-      timeout: Duration.minutes(1),
+      // A minute to publish; the daily run then checks outside resources for up to 5 (DES-009 M-7).
+      timeout: Duration.minutes(6),
       // A-10: one run at a time; the conditional write on seq guards the rest.
       reservedConcurrentExecutions: 1,
       bundling: { format: nodejs.OutputFormat.ESM, target: 'node22', minify: true, sourceMap: true },
@@ -220,6 +221,9 @@ export class ConsoleStack extends Stack {
       validatorZip: props.validatorZip ?? `${repoRoot}validator/build/lambda/validator.zip`,
       alarms,
     });
+    // The daily check tells producers of outside resources that fail (DES-009 M-7).
+    publisher.addEnvironment('NOTIFY_QUEUE_URL', consoleApp.notifyQueue.queueUrl);
+    consoleApp.notifyQueue.grantSendMessages(publisher);
     // Test tickets are signed by the console API, under the same conditions as the list (A-8).
     for (const key of signingKeys) {
       key.addToResourcePolicy(

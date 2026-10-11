@@ -130,7 +130,7 @@ describe('AWS adapters', () => {
     const dynamo = new DynamoStore('table', new DynamoDBClient({ region: 'ap-northeast-1' }));
     const record = {
       seq: 129, issuedAt: '', expiresAt: '', sha256: '', size: 1, keyId: 'k', archiveKey: 'published/129.json',
-      trigger: 'daily' as const, channelCount: 0, revokedCount: 0,
+      trigger: 'daily' as const, channelCount: 0, revokedCount: 0, collectionCount: 0, revokedCollectionCount: 0,
     };
     await dynamo.recordPublication(128, record);
     const items = ddb.commandCalls(TransactWriteCommand)[0]?.args[0].input.TransactItems ?? [];

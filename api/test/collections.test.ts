@@ -1,13 +1,15 @@
 import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, generateEd25519, sha256Hex, signDocument, signEd25519, utf8 } from '@sanpo-console/protocol';
+import { b64url, generateEd25519, sha256Hex, signDocument, signEd25519, utf8, verifyChannelList, verifyDiscovery } from '@sanpo-console/protocol';
 import { zipSync } from 'fflate';
-import { makeTestProvider } from '@sanpo-console/protocol/testing';
+import { makeTestProvider, type TestProvider } from '@sanpo-console/protocol/testing';
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Deps, Notice } from '../src/console/deps.js';
 import type { Caller } from '../src/console/http.js';
 import { route } from '../src/console/router.js';
 import { CursorCodec } from '../src/console/util.js';
+import { DynamoStore } from '../src/publish/aws.js';
+import { DISCOVERY_PATH, LIST_PATH, MemoryStorage, noCdn, publish } from '../src/publish/index.js';
 import type { Trigger } from '../src/publish/ports.js';
 import { freshTable, startDynamoLocal } from './dynamo-local.js';
 
@@ -30,6 +32,8 @@ let duringCopy: () => Promise<void>;
 /** The same for a channel's approval (DES-008 K-5 the other way round). */
 let duringChannelCopy: () => Promise<void>;
 let uploads: Map<string, Uint8Array>;
+let provider: TestProvider;
+let raw: Awaited<ReturnType<typeof freshTable>>['raw'];
 
 beforeAll(async () => {
   local = await startDynamoLocal();
@@ -38,7 +42,8 @@ afterAll(() => local?.stop());
 
 beforeEach(async () => {
   const fresh = await freshTable(local.endpoint);
-  const provider = await makeTestProvider({ now: start });
+  provider = await makeTestProvider({ now: start });
+  raw = fresh.raw;
   clock = start.getTime();
   published = [];
   notices = [];
@@ -431,5 +436,78 @@ describe('channels using collections', () => {
     const col = await call(alice, 'GET', '/api/collections/kamakura-audio-guide');
     expect(col.body).toMatchObject({ pendingSubmissionId: null, producerChange: { from: before, reason: '制作元の鍵の紛失' } });
     expect((await call(alice, 'GET', `/api/collections/kamakura-audio-guide/submissions/${pending}`)).body.state).toBe('returned');
+  });
+});
+
+// ---- DES-009 4c: publishing collections ----
+
+describe('publishing with collections', () => {
+  /** Publishes from the table as the Lambda does, and reads the list back as an app would. */
+  async function publishList() {
+    await deps.db.send(new UpdateCommand({ TableName: deps.table, Key: { PK: 'KEYSET', SK: 'HEAD' }, UpdateExpression: 'SET #d = :d, seq = :s', ExpressionAttributeNames: { '#d': 'document' }, ExpressionAttributeValues: { ':d': await signDocument(provider.keyset, provider.root), ':s': 1 } }));
+    await deps.db.send(new UpdateCommand({ TableName: deps.table, Key: { PK: 'SIGNKEY', SK: 'KEY#k-test' }, UpdateExpression: 'SET #s = :a, keyId = :k, kmsKeyArn = :arn', ExpressionAttributeNames: { '#s': 'status' }, ExpressionAttributeValues: { ':a': 'active', ':k': 'k-test', ':arn': 'local' } }));
+    const storage = new MemoryStorage();
+    const record = await publish({ store: new DynamoStore(deps.table, raw), storage, cdn: noCdn, signerFor: () => provider.signing, config: { rootPublicKey: provider.rootKey, name: 'Test' }, now: () => new Date(clock) }, 'manual');
+    const json = (path: string) => JSON.parse(utf8.decode(storage.public.get(path)!));
+    const discovery = verifyDiscovery(json(DISCOVERY_PATH), { expectedProvider: provider.provider });
+    return { record, list: verifyChannelList(json(LIST_PATH), discovery.keyset, { now: new Date(clock) }).body };
+  }
+
+  async function approvedCollection() {
+    await account(alice, '鎌倉市観光協会');
+    await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } });
+    const sid = await awaitingReview(1);
+    await call(operator, 'POST', `${admin(sid)}/start`, { ifMatch: 2 });
+    await call(operator, 'POST', `${admin(sid)}/approve`, { body: { verification }, ifMatch: 3 });
+  }
+
+  async function channelUsingIt() {
+    await account(bob, '鎌倉歴史散歩の会', false);
+    await call(bob, 'POST', '/api/channels', { body: { channelId: 'kamakura-history' } });
+    const created = await call(bob, 'POST', '/api/channels/kamakura-history/submissions', { body: {} });
+    const sid = created.body.submission.submissionId as string;
+    const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version: 1, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
+    uploads.set(`intake/kamakura-history/${sid}.zip`, zip);
+    const listing = {
+      appStage: 2, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 1 }], ownPrefetchBytes: 300, ownMedia: ['image'],
+      uses: { 'kamakura-audio-guide': { narration: 'audio' } },
+    };
+    await deps.db.send(new UpdateCommand({
+      TableName: deps.table, Key: { PK: 'CH#kamakura-history', SK: `SUB#${sid}` },
+      UpdateExpression: 'SET #s = :s, version = :v, sha256 = :h, #size = :z, iconSha256 = :i, validation = :val, listing = :l, rev = :r REMOVE #ttl',
+      ExpressionAttributeNames: { '#s': 'state', '#size': 'size', '#ttl': 'ttl' },
+      ExpressionAttributeValues: { ':s': 'in_review', ':v': 1, ':h': sha256Hex(zip), ':z': zip.length, ':i': 'cd'.repeat(32), ':val': { ok: true, errors: [] }, ':l': listing, ':r': 3 },
+    }));
+    expect((await call(operator, 'POST', `/api/admin/channels/kamakura-history/submissions/${sid}/approve`, { body: {}, ifMatch: 3 })).status).toBe(200);
+  }
+
+  it('lists collections apart from channels, and adds them up into the channels that use them (M-1〜M-4)', async () => {
+    await approvedCollection();
+    await channelUsingIt();
+    const { record, list } = await publishList();
+    expect(list.channels.map((c) => c.id)).toEqual(['kamakura-history']);
+    const channel = list.channels[0]!;
+    expect(channel).toMatchObject({ media: ['audio', 'image', 'text'], resourcesSize: 300 + LISTING.resourcesSize, minAppVersion: 9999 });
+    // What approval keeps for itself stays out of the list.
+    for (const field of ['appStage', 'collections', 'ownPrefetchBytes', 'ownMedia', 'submissionId']) expect(channel).not.toHaveProperty(field);
+    expect(list.collections).toEqual([
+      expect.objectContaining({
+        id: 'kamakura-audio-guide', version: 1, producerName: '鎌倉市観光協会', media: ['audio', 'text'], resourcesSize: LISTING.resourcesSize,
+        tags: ['history'], regions: ['xn7'], grants: { publishers: '*' }, minAppVersion: 9999,
+      }),
+    ]);
+    for (const field of ['resourceTypes', 'externalResources', 'appStage', 'submissionId']) expect(list.collections![0]).not.toHaveProperty(field);
+    expect(record).toMatchObject({ channelCount: 1, collectionCount: 1, revokedCount: 0, revokedCollectionCount: 0 });
+  });
+
+  it('lists a revoked collection in revokedCollections, never in revoked (M-1)', async () => {
+    await approvedCollection();
+    const col = await call(operator, 'GET', '/api/collections/kamakura-audio-guide');
+    await call(operator, 'POST', '/api/admin/collections/kamakura-audio-guide/revoke', { body: { reason: '権利の申し立て', severity: 'high' }, ifMatch: col.body.rev });
+    const { list } = await publishList();
+    expect(list.channels).toEqual([]);
+    expect(list.revoked).toEqual([]);
+    expect(list.collections).toEqual([]);
+    expect(list.revokedCollections).toEqual([expect.objectContaining({ id: 'kamakura-audio-guide', reason: '権利の申し立て' })]);
   });
 });

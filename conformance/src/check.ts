@@ -3,16 +3,19 @@ import {
   CHANNEL_ID,
   LIMITS,
   ProtocolError,
+  geohash,
   sha256Hex,
   utf8,
   verifyChannelList,
   verifyDiscovery,
   type ChannelList,
+  type CollectionEntry,
   type Keyset,
 } from '@sanpo-console/protocol';
+import { unzipSync } from 'fflate';
 
 /** The checks of API-002 「確認観点」 that a provider is responsible for. */
-export type CheckId = 'V-01' | 'V-02' | 'V-03' | 'V-04' | 'V-05' | 'V-06' | 'V-07' | 'V-08' | 'V-09' | 'V-15' | 'V-16';
+export type CheckId = 'V-01' | 'V-02' | 'V-03' | 'V-04' | 'V-05' | 'V-06' | 'V-07' | 'V-08' | 'V-09' | 'V-15' | 'V-16' | 'V-19' | 'V-20' | 'V-21' | 'V-25';
 
 export interface CheckResult {
   id: CheckId;
@@ -43,7 +46,25 @@ const TITLES: Record<CheckId, string> = {
   'V-09': 'every URL is HTTPS',
   'V-15': 'digest is small enough for KMS to sign',
   'V-16': 'publisher changes are well-formed',
+  'V-19': 'collection ids are unique and well-formed, and their packages match',
+  'V-20': 'collections a channel declares are listed, new enough and granted to its publisher',
+  'V-21': 'media and resourcesSize are well-formed',
+  'V-25': 'collections’ tags, regions and grants match their packages',
 };
+
+const MEDIA = new Set(['text', 'image', 'audio', 'video']);
+
+/** A JSON file inside a package, or undefined when the package isn't a ZIP or lacks it. */
+function jsonIn(zip: Uint8Array, name: string): Record<string, unknown> | undefined {
+  try {
+    const file = unzipSync(zip, { filter: (f) => f.name === name })[name];
+    return file ? (JSON.parse(utf8.decode(file)) as Record<string, unknown>) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const sameList = (a: unknown[], b: unknown[]) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 
 export const title = (id: CheckId) => TITLES[id];
 
@@ -150,7 +171,8 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
     if (badChange) set('V-16', 'fail', `${badChange.id}: publisherChange.from is malformed or equals publisher`);
     else set('V-16', 'pass', `${changes.length} changes`);
 
-    // V-07, V-08: every package and icon.
+    // V-07, V-08: every package and icon. The packages are kept for V-20.
+    const channelPackages = new Map<string, Uint8Array>();
     for (const channel of list.channels) {
       for (const [what, file, limit] of [
         ['package', channel.package, LIMITS.packageBytes],
@@ -163,6 +185,7 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
           const sizeOk = what === 'icon' || bytes.length === (file as { size: number }).size;
           if (sha256Hex(bytes) !== file.sha256 || !sizeOk) set('V-07', 'fail', `${channel.id} ${what}: SHA-256 or size differs`);
           else set('V-07', 'pass', 'all files match');
+          if (what === 'package') channelPackages.set(channel.id, bytes);
         } catch (e) {
           failWith(e instanceof TooLarge ? 'V-08' : 'V-07', new Error(`${channel.id} ${what}: ${e instanceof Error ? e.message : e}`));
         }
@@ -170,6 +193,63 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
     }
     if (list.channels.length === 0) set('V-07', 'skip', 'no channels');
     set('V-08', 'pass', 'list ≤ 1MB, packages ≤ 2MB, icons ≤ 100KB');
+
+    // API-002 1.2 (V-19, V-20, V-21, V-25): collections. A list from before 1.2 has none.
+    const collections: CollectionEntry[] = list.collections ?? [];
+    const colIds = collections.map((c) => c.id);
+    const badCol = colIds.find((id) => !CHANNEL_ID.test(id));
+    const dupCol = colIds.find((id, i) => colIds.indexOf(id) !== i);
+    if (badCol || dupCol) set('V-19', 'fail', badCol ? `bad collection id ${badCol}` : `duplicate collection id ${dupCol}`);
+    const collectionPackages = new Map<string, Uint8Array>();
+    for (const col of collections) {
+      urls.push(col.package.url);
+      if (urlProblem(col.package.url, options.allowLocalHttp ?? false)) continue;
+      try {
+        const bytes = await fetchLimited(fetchImpl, col.package.url, LIMITS.packageBytes);
+        if (sha256Hex(bytes) !== col.package.sha256 || bytes.length !== col.package.size) set('V-19', 'fail', `${col.id}: SHA-256 or size differs`);
+        else collectionPackages.set(col.id, bytes);
+      } catch (e) {
+        failWith(e instanceof TooLarge ? 'V-08' : 'V-19', new Error(`${col.id}: ${e instanceof Error ? e.message : e}`));
+      }
+    }
+    set('V-19', 'pass', `${collections.length} collections`);
+
+    // V-20: what each channel declares (channel.json `collections`) is on this list, new enough, and granted.
+    const byId = new Map(collections.map((c) => [c.id, c]));
+    for (const [channelId, bytes] of channelPackages) {
+      const channel = list.channels.find((c) => c.id === channelId)!;
+      const declared = (jsonIn(bytes, 'channel.json')?.collections as { id: string; minVersion: number }[] | undefined) ?? [];
+      const ids = [channel.publisher, ...(channel.publisherChange ? [channel.publisherChange.from] : [])];
+      for (const use of declared) {
+        const col = byId.get(use.id);
+        const grants = col?.grants.publishers;
+        if (!col) set('V-20', 'fail', `${channelId}: ${use.id} is not listed`);
+        else if (col.version < use.minVersion) set('V-20', 'fail', `${channelId}: ${use.id}@${col.version} is older than ${use.minVersion}`);
+        else if (grants !== '*' && !ids.some((id) => grants?.includes(id))) set('V-20', 'fail', `${channelId}: ${use.id} is not granted to ${channel.publisher}`);
+      }
+    }
+    set('V-20', 'pass', `${channelPackages.size} channels`);
+
+    // V-21: the forms only; the values need the outside resources' sizes, which the list doesn't give (DES-009 M-10).
+    for (const entry of [...list.channels, ...collections] as { id: string; media?: string[]; resourcesSize?: number }[]) {
+      if (entry.media !== undefined && !entry.media.every((m) => MEDIA.has(m))) set('V-21', 'fail', `${entry.id}: media ${entry.media.join(',')}`);
+      if (entry.resourcesSize !== undefined && !(Number.isInteger(entry.resourcesSize) && entry.resourcesSize >= 0)) set('V-21', 'fail', `${entry.id}: resourcesSize ${entry.resourcesSize}`);
+    }
+    set('V-21', 'pass', 'media and resourcesSize are well-formed');
+
+    // V-25: tags, regions and grants are what the package says.
+    for (const [id, bytes] of collectionPackages) {
+      const col = byId.get(id)!;
+      const manifest = jsonIn(bytes, 'collection.json');
+      if (!manifest) { set('V-25', 'fail', `${id}: no collection.json`); continue; }
+      const resources = (manifest.resources as { tags?: string[]; about?: { lat?: number; lon?: number } }[] | undefined) ?? [];
+      const tags = [...new Set(resources.flatMap((r) => r.tags ?? []))];
+      const regions = [...new Set(resources.flatMap((r) => (r.about?.lat !== undefined && r.about?.lon !== undefined ? [geohash(r.about.lat, r.about.lon)] : [])))];
+      if (!sameList(tags, col.tags)) set('V-25', 'fail', `${id}: tags ${col.tags.join(',')} but the package has ${tags.join(',')}`);
+      if (!sameList(regions, col.regions ?? [])) set('V-25', 'fail', `${id}: regions ${(col.regions ?? []).join(',')} but the package has ${regions.join(',')}`);
+      if (JSON.stringify(manifest.grants) !== JSON.stringify(col.grants)) set('V-25', 'fail', `${id}: grants differ from the package`);
+    }
+    set('V-25', 'pass', `${collectionPackages.size} collections`);
   }
 
   // V-09: every URL, including those of documents that failed.

@@ -61,6 +61,8 @@ const lambdaDefaults = (repoRoot: string): Partial<nodejs.NodejsFunctionProps> =
 export class ConsoleApp extends Construct {
   /** The console API, which also signs test tickets (the stack lets it sign in the key policy). */
   readonly consoleFunction: lambda.IFunction;
+  /** The publishers' notices (A-19); the publisher's daily check sends to it too (DES-009 M-7). */
+  readonly notifyQueue: sqs.IQueue;
 
   constructor(scope: Construct, id: string, props: ConsoleAppProps) {
     super(scope, id);
@@ -393,6 +395,7 @@ export class ConsoleApp extends Construct {
       enforceSSL: true,
     });
     notices.grantSendMessages(consoleFn);
+    this.notifyQueue = notices;
     consoleFn.addEnvironment('NOTIFY_QUEUE_URL', notices.queueUrl);
     const notifier = new nodejs.NodejsFunction(this, 'Notify', {
       ...lambdaDefaults(repoRoot),

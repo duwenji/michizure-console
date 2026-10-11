@@ -302,10 +302,10 @@ describe('key transfers', () => {
     expect((await call(alice, 'GET', `/api/channels/kamakura-history/submissions/${v3}`)).body.accountId).toBe(asked.body.toAccountId);
     await call(operator, 'POST', `${base(v3)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${base(v3)}/approve`, { body: {}, ifMatch: 3 });
-    const [entry] = await store.listedChannels(new Date(clock));
-    expect(entry).toMatchObject({ version: 3, publisher: asked.body.toAccountId, publisherChange: { from: oldAccount, reason: '配信元の鍵の紛失' } });
+    const [listed] = await store.listedChannels(new Date(clock));
+    expect(listed?.entry).toMatchObject({ version: 3, publisher: asked.body.toAccountId, publisherChange: { from: oldAccount, reason: '配信元の鍵の紛失' } });
     const later = await store.listedChannels(new Date(clock + 91 * 86_400_000));
-    expect(later[0]).not.toHaveProperty('publisherChange');
+    expect(later[0]?.entry).not.toHaveProperty('publisherChange');
   });
 
   it('can be cancelled by the publisher or refused by an operator, unbinding the new key', async () => {

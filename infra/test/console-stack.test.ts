@@ -167,6 +167,11 @@ describe('ConsoleStack', () => {
         ],
       },
     });
+    // The publisher checks outside resources daily and tells producers through the queue (DES-009 M-7).
+    prod.hasResourceProperties('AWS::Lambda::Function', {
+      Timeout: 360,
+      Environment: { Variables: Match.objectLike({ NOTIFY_QUEUE_URL: Match.anyValue(), DISTRIBUTION_ID: Match.anyValue() }) },
+    });
     // The API copies approved collections to col/ and knows the app version of each stage (DES-008 K-4・K-6).
     prod.hasResourceProperties('AWS::Lambda::Function', {
       Environment: { Variables: Match.objectLike({ APP_STAGE_VERSIONS: '{"0":1,"1":9999,"2":9999,"3":9999}' }) },

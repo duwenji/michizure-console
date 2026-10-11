@@ -61,6 +61,11 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
         return [`${what}を却下しました`, `${what}を却下しました。${findings}${message}`];
       case 'collection.revoked':
         return [`${channel}を取り下げました`, `運用者が${channel}を公開のリストから取り下げました。この素材集を使うチャンネルでは、その素材が出なくなります。${message}`];
+      case 'collection.external_failed':
+        return [
+          `${channel}の外部の素材に取得できないものがあります`,
+          `毎日の確認で、${channel}の外部の素材のうち、次のものを取得できませんでした。置き場所を確かめてください。直らないあいだ、その素材は出ません。\n\n${notice.message ?? ''}`,
+        ];
       case 'collection.updated':
         return [
           `${channel}が使う${used}が更新されました`,
