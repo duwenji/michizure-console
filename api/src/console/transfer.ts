@@ -200,10 +200,51 @@ export async function approveKeyTransfer(deps: Deps, req: Request): Promise<Resp
       new QueryCommand({ TableName: deps.table, IndexName: 'GSI1', KeyConditionExpression: 'GSI1PK = :pk AND begins_with(GSI1SK, :ch)', ExpressionAttributeValues: { ':pk': `PUB#${publisherId}`, ':ch': 'CH#' } }),
     )
   ).Items ?? [];
+  const collections = (
+    await deps.db.send(
+      new QueryCommand({ TableName: deps.table, IndexName: 'GSI1', KeyConditionExpression: 'GSI1PK = :pk AND begins_with(GSI1SK, :c)', ExpressionAttributeValues: { ':pk': `PUB#${publisherId}`, ':c': 'COL#' } }),
+    )
+  ).Items ?? [];
   const items: TransactItems = [];
   const returned: string[] = [];
   const archives: string[] = [];
   const message = '配信元の鍵が移し替えられたため差し戻しました。新しい鍵で署名し直して申請してください。';
+  // Its collections move with it, as its channels do (DM-001 1.3, API-002 P-13).
+  for (const col of collections) {
+    const collectionId = String(col.collectionId);
+    const sets: string[] = [];
+    const values: Record<string, unknown> = {};
+    const listedBy = (col.latestApproved as { producer?: string } | undefined)?.producer;
+    if (listedBy) {
+      sets.push('producerChange = :pc');
+      values[':pc'] = { from: listedBy, at, reason: String(transfer.publicReason) };
+    }
+    if (col.pendingSubmissionId) {
+      const sid = String(col.pendingSubmissionId);
+      const sub = await get(deps, `COL#${collectionId}`, `SUB#${sid}`);
+      if (sub && PENDING.includes(String(sub.state))) {
+        items.push({
+          Update: {
+            TableName: deps.table, Key: { PK: `COL#${collectionId}`, SK: `SUB#${sid}` },
+            UpdateExpression: 'SET #s = :returned, decision = :d, decidedAt = :now, updatedAt = :now, rev = rev + :one REMOVE GSI2PK, GSI2SK, #ttl',
+            ConditionExpression: '#s = :was', ExpressionAttributeNames: { '#s': 'state', '#ttl': 'ttl' },
+            ExpressionAttributeValues: { ':returned': 'returned', ':was': sub.state, ':d': { action: 'return', findings: [], message, at }, ':now': at, ':one': 1 },
+          },
+        });
+        returned.push(sid);
+        archives.push(String(sub.intakeKey));
+      }
+    }
+    if (sets.length || col.pendingSubmissionId) {
+      items.push({
+        Update: {
+          TableName: deps.table, Key: { PK: `COL#${collectionId}`, SK: 'COL' },
+          UpdateExpression: `SET ${[...sets, 'updatedAt = :now', 'rev = rev + :one'].join(', ')}${col.pendingSubmissionId ? ' REMOVE pendingSubmissionId' : ''}`,
+          ExpressionAttributeValues: { ...values, ':now': at, ':one': 1 },
+        },
+      });
+    }
+  }
   for (const ch of channels) {
     const channelId = String(ch.channelId);
     const sets: string[] = [];
@@ -267,7 +308,7 @@ export async function approveKeyTransfer(deps: Deps, req: Request): Promise<Resp
     },
     auditItem(deps, req.caller, {
       action: 'transfer.approve', target: `PUB#${publisherId}`, reason: method,
-      detail: { transferId, from: transfer.fromAccountId, to: transfer.toAccountId, returned, channels: channels.map((c) => c.channelId) },
+      detail: { transferId, from: transfer.fromAccountId, to: transfer.toAccountId, returned, channels: channels.map((c) => c.channelId), collections: collections.map((c) => c.collectionId) },
     }),
   );
   await transact(deps, items, {});

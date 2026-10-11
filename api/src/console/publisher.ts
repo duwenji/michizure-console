@@ -5,6 +5,7 @@ import { CHANNEL_ID, accountId, b64url, providerId, utf8, verifyEd25519 } from '
 import { auditItem, type Deps } from './deps.js';
 import { fail, ifMatch, json, noContent, object, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { DEFAULT_LIMITS, channelView, get, loadChannel, loadPublisher, page, publisherView, type Item } from './shared.js';
+import { deleteUses, notifyUsers, usesOfChannel, usesOfCollection } from './uses.js';
 import { jstDate, ulid } from './util.js';
 
 const CHALLENGE_MS = 10 * 60_000;
@@ -223,6 +224,66 @@ export async function deleteMyPublisher(deps: Deps, req: Request): Promise<Respo
       });
     }
   }
+  // The channels it listed no longer use any collection (DES-008 K-9).
+  for (const ch of channels) if (ch.status === 'active' && ch.GSI2PK === 'LISTED') items.push(...deleteUses(deps, await usesOfChannel(deps, String(ch.channelId))));
+  // Its collections go too, as its channels do (API-001 C-22, DM-001 M-25).
+  const collections = (
+    await deps.db.send(
+      new QueryCommand({ TableName: deps.table, IndexName: 'GSI1', KeyConditionExpression: 'GSI1PK = :pk AND begins_with(GSI1SK, :c)', ExpressionAttributeValues: { ':pk': `PUB#${publisherId}`, ':c': 'COL#' } }),
+    )
+  ).Items ?? [];
+  const revokedCollections: string[] = [];
+  for (const col of collections) {
+    const collectionId = String(col.collectionId);
+    const listed = col.status === 'active' && col.GSI2PK === 'LISTED';
+    if (listed) {
+      revoked = true;
+      revokedCollections.push(collectionId);
+      items.push({
+        Put: {
+          TableName: deps.table,
+          Item: {
+            PK: `COL#${collectionId}`, SK: `REVOKE#${now}`, type: 'revocation', kind: 'collection', collectionId, reason: '制作元が退会したため', severity: 'low',
+            operatorSub: req.caller.sub, revokedAt: now, GSI2PK: 'REVOKED', GSI2SK: `${now}#col:${collectionId}`,
+          },
+        },
+      });
+      const approved = (col.latestApproved as { submissionId?: string } | undefined)?.submissionId;
+      if (approved) {
+        items.push({
+          Update: {
+            TableName: deps.table, Key: { PK: `COL#${collectionId}`, SK: `SUB#${approved}` },
+            UpdateExpression: 'SET #s = :revoked, updatedAt = :now, rev = rev + :one', ExpressionAttributeNames: { '#s': 'state' },
+            ExpressionAttributeValues: { ':revoked': 'revoked', ':now': now, ':one': 1 },
+          },
+        });
+      }
+    }
+    if (col.pendingSubmissionId) {
+      const sid = String(col.pendingSubmissionId);
+      const sub = await get(deps, `COL#${collectionId}`, `SUB#${sid}`);
+      if (sub) {
+        items.push({
+          Update: {
+            TableName: deps.table, Key: { PK: `COL#${collectionId}`, SK: `SUB#${sid}` },
+            UpdateExpression: 'SET #s = :w, decidedAt = :now, updatedAt = :now, rev = rev + :one REMOVE GSI2PK, GSI2SK, #ttl',
+            ExpressionAttributeNames: { '#s': 'state', '#ttl': 'ttl' }, ExpressionAttributeValues: { ':w': 'withdrawn', ':now': now, ':one': 1 },
+          },
+        });
+        archives.push(String(sub.intakeKey));
+      }
+    }
+    if (listed || col.pendingSubmissionId) {
+      items.push({
+        Update: {
+          TableName: deps.table, Key: { PK: `COL#${collectionId}`, SK: 'COL' },
+          UpdateExpression: `SET ${listed ? '#s = :revoked, ' : ''}updatedAt = :now, rev = rev + :one REMOVE pendingSubmissionId${listed ? ', GSI2PK, GSI2SK' : ''}`,
+          ...(listed ? { ExpressionAttributeNames: { '#s': 'status' } } : {}),
+          ExpressionAttributeValues: { ':now': now, ':one': 1, ...(listed ? { ':revoked': 'revoked' } : {}) },
+        },
+      });
+    }
+  }
   if (pub.pendingTransferId) {
     const transfer = await get(deps, `PUB#${publisherId}`, `TRANSFER#${String(pub.pendingTransferId)}`);
     if (transfer) {
@@ -254,12 +315,18 @@ export async function deleteMyPublisher(deps: Deps, req: Request): Promise<Respo
       },
     },
     { Delete: { TableName: deps.table, Key: { PK: `USER#${req.caller.sub}`, SK: 'USER' } } },
-    auditItem(deps, req.caller, { action: 'publisher.delete', target: `PUB#${publisherId}`, detail: { channels: channels.map((c) => c.channelId) } }),
+    auditItem(deps, req.caller, { action: 'publisher.delete', target: `PUB#${publisherId}`, detail: { channels: channels.map((c) => c.channelId), collections: collections.map((c) => c.collectionId) } }),
   );
+  // DynamoDB takes at most 100 writes at once: 5 channels and 5 collections need about 50 (DM-001).
+  if (items.length > 100) fail('invalid_state', 'too much to remove at once; ask an operator to revoke some channels or collections first');
   await transact(deps, items, {});
   for (const key of archives) await deps.archiveUpload(key).catch(() => undefined);
   await deps.deleteUser(req.caller.sub);
   if (revoked) await deps.requestPublish('revoke');
+  // The channels that used its collections hear they are gone (D-18).
+  for (const collectionId of revokedCollections) {
+    await notifyUsers(deps, await usesOfCollection(deps, collectionId), 'collection.revoked_used', collectionId, { message: '制作元が退会したため' });
+  }
   return noContent();
 }
 

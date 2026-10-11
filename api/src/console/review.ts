@@ -7,12 +7,11 @@ import { fail, ifMatch, json, object, requireOperator, requiredText, text, withE
 import { loadSubmission, submissionView, transact } from './publisher.js';
 import { collectionSubmissionView, collectionView, get, loadChannel, loadCollection, loadCollectionSubmission, loadPublisher, page, type Item } from './shared.js';
 import { PUBLISHER_CHANGE_DAYS } from './transfer.js';
+import { accountIdsOf, granted, notifyUsers, usesOfChannel, usesOfCollection } from './uses.js';
 import { ulid } from './util.js';
 
 type TransactItems = NonNullable<ConstructorParameters<typeof TransactWriteCommand>[0]['TransactItems']>;
 
-/** The app version a package needs; one stage for now (DES-005; resources and cues aren't accepted yet). */
-const MIN_APP_VERSION = 1;
 const MAX_SAMPLES = 1024 * 1024;
 const FINDING_ITEM = /^[0-9]+(\.[0-9]+)*$/;
 
@@ -211,6 +210,74 @@ function findingsOf(body: Record<string, unknown>): Schemas['Finding'][] {
   });
 }
 
+/** What the machine review recorded about a channel's material for approval (DES-007 J-10). */
+interface ChannelListing {
+  appStage: number;
+  collections: { as: string; id: string; minVersion: number }[];
+  ownPrefetchBytes: number;
+  ownMedia: string[];
+  /** By collection id: the resources the channel names in it, with their types. */
+  uses: Record<string, Record<string, string>>;
+}
+
+/**
+ * The collections a channel declares, checked once more at approval (DES-008 K-7): still listed,
+ * new enough, granted to the publisher (by any of its ids), and holding what the channel names
+ * with the same types. Returns them with the `rev` the approval's write is conditional on (K-5).
+ */
+async function recheckCollections(deps: Deps, publisherId: string, listing: ChannelListing): Promise<Item[]> {
+  if (listing.collections.length === 0) return [];
+  const ids = await accountIdsOf(deps, publisherId);
+  const problems: string[] = [];
+  const found: Item[] = [];
+  for (const use of listing.collections) {
+    const col = await get(deps, `COL#${use.id}`, 'COL');
+    const la = col?.latestApproved as { version: number; grants?: { publishers?: '*' | string[] }; resourceTypes?: Record<string, string> } | undefined;
+    if (!col || col.status !== 'active' || col.GSI2PK !== 'LISTED' || !la) { problems.push(`${use.as}: ${use.id} is not listed`); continue; }
+    if (la.version < use.minVersion) { problems.push(`${use.as}: ${use.id}@${la.version} is older than ${use.minVersion}`); continue; }
+    if (!granted(la.grants, ids)) { problems.push(`${use.as}: ${use.id} is not granted to this publisher`); continue; }
+    for (const [id, type] of Object.entries(listing.uses[use.id] ?? {})) {
+      const now = la.resourceTypes?.[id];
+      if (now === undefined) problems.push(`${use.as}: ${use.id} has no ${id}`);
+      else if (type !== '' && now !== type) problems.push(`${use.as}: ${id} is ${now}, not ${type}`);
+    }
+    found.push(col);
+  }
+  if (problems.length > 0) fail('invalid_state', `the collections changed since the machine review: ${problems.join('; ')}`);
+  return found;
+}
+
+/**
+ * The approval's writes for the records of use (DM-001 M-22, DES-008 K-5・K-7): each used
+ * collection must be unchanged since it was read, the channel's records are written (each one's
+ * `rev` raised, so a collection approval that read the old one fails), and those of collections it
+ * no longer uses are deleted.
+ */
+async function usesItems(deps: Deps, channelId: string, publisherId: string, version: number, listing: ChannelListing, used: Item[]): Promise<TransactItems> {
+  const existing = new Map((await usesOfChannel(deps, channelId)).map((u) => [String(u.collectionId), u]));
+  const items: TransactItems = used.map((col) => ({
+    ConditionCheck: { TableName: deps.table, Key: { PK: `COL#${String(col.collectionId)}`, SK: 'COL' }, ConditionExpression: 'rev = :r', ExpressionAttributeValues: { ':r': col.rev } },
+  }));
+  for (const [collectionId, resources] of Object.entries(listing.uses)) {
+    const before = existing.get(collectionId);
+    items.push({
+      Put: {
+        TableName: deps.table,
+        Item: {
+          PK: `COL#${collectionId}`, SK: `USEDBY#${channelId}`, type: 'used-by', collectionId, channelId, publisherId, channelVersion: version, resources,
+          rev: Number(before?.rev ?? 0) + 1, GSI1PK: `CH#${channelId}`, GSI1SK: `USES#${collectionId}`,
+        },
+        ConditionExpression: before ? 'rev = :r' : 'attribute_not_exists(PK)',
+        ...(before ? { ExpressionAttributeValues: { ':r': before.rev } } : {}),
+      },
+    });
+  }
+  for (const [collectionId, u] of existing) {
+    if (!(collectionId in listing.uses)) items.push({ Delete: { TableName: deps.table, Key: { PK: String(u.PK), SK: String(u.SK) } } });
+  }
+  return items;
+}
+
 /**
  * Approves a submission (API-001): the package and icon go public, the channel is listed with this
  * version, the previous approved version is superseded, and the list is published again. The
@@ -228,6 +295,9 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
 
   const zip = await deps.readUpload(String(sub.intakeKey));
   if (sha256Hex(zip) !== sub.sha256) fail('invalid_state', 'the uploaded package differs from what the machine review checked');
+  // A submission the machine review passed before DES-007 has no listing: no material, stage 0.
+  const listing = (sub.listing as ChannelListing | undefined) ?? { appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {} };
+  const used = await recheckCollections(deps, String(sub.publisherId), listing);
   const manifest = JSON.parse(utf8.decode(unzipSync(zip, { filter: (f) => f.name === 'channel.json' })['channel.json']!)) as { name: string; summary: string; lang: string };
   const { packageUrl, iconUrl } = await deps.publishApproved({
     packageKey: String(sub.intakeKey), packageSha256: String(sub.sha256), iconKey: String(sub.iconIntakeKey), iconSha256: String(sub.iconSha256),
@@ -241,7 +311,9 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
     ...(sub.tags ? { tags: sub.tags } : {}), ...(sub.regions ? { regions: sub.regions } : {}),
     icon: { url: iconUrl, sha256: String(sub.iconSha256) },
     package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: 1 },
-    minAppVersion: MIN_APP_VERSION, approvedAt: at,
+    minAppVersion: minAppVersionFor(deps, listing.appStage), approvedAt: at,
+    // What the publisher adds up each time it lists the channel (DM-001 M-24).
+    appStage: listing.appStage, collections: listing.collections, ownPrefetchBytes: listing.ownPrefetchBytes, ownMedia: listing.ownMedia,
   };
   const decision = { action: 'approve', at, ...(message ? { message } : {}) };
   // The first version with a transferred key starts the 90 days the list shows the change (API-002 P-9).
@@ -272,6 +344,7 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
     reviewItem(deps, req, sub, at, { action: 'approve', ...(message ? { message } : {}), ...(samplesIds ? { samplesIds } : {}) }),
     auditItem(deps, req.caller, { action: 'submission.approve', target: `CH#${channelId}`, detail: { submissionId: sub.submissionId, version: sub.version } }),
   ];
+  items.push(...(await usesItems(deps, channelId, String(sub.publisherId), Number(sub.version), listing, used)));
   if (previous?.submissionId && previous.submissionId !== sub.submissionId) {
     items.push({
       Update: {
@@ -382,11 +455,7 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
   if (!listing) return fail('invalid_state', 'the submission has no record from the machine review');
 
   // D-8 once more: what listed channels name must still be there, with its type (DES-008 K-5).
-  const uses = (
-    await deps.db.send(
-      new QueryCommand({ TableName: deps.table, KeyConditionExpression: 'PK = :pk AND begins_with(SK, :u)', ExpressionAttributeValues: { ':pk': `COL#${collectionId}`, ':u': 'USEDBY#' }, ConsistentRead: true }),
-    )
-  ).Items ?? [];
+  const uses = await usesOfCollection(deps, collectionId);
   const broken = uses.flatMap((u) =>
     Object.entries((u.resources as Record<string, string> | undefined) ?? {})
       .filter(([id, type]) => listing.resourceTypes[id] === undefined || (type !== '' && listing.resourceTypes[id] !== type))
@@ -405,6 +474,11 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
     appStage: listing.appStage, minAppVersion: minAppVersionFor(deps, listing.appStage), approvedAt: at,
   };
   const decision = { action: 'approve', at, ...(message ? { message } : {}) };
+  // The first version with a transferred key starts the 90 days the list shows the change (API-002 P-13, as P-9).
+  const pending = collection.producerChange as { from: string; at: string; reason: string; until?: string } | undefined;
+  const change = pending && !pending.until && pending.from !== sub.accountId
+    ? { ...pending, until: new Date(Date.parse(at) + PUBLISHER_CHANGE_DAYS * 86_400_000).toISOString() }
+    : undefined;
   const items: TransactItems = [
     {
       Update: {
@@ -417,9 +491,12 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
     {
       Update: {
         TableName: deps.table, Key: { PK: `COL#${collectionId}`, SK: 'COL' },
-        UpdateExpression: 'SET latestApproved = :la, #s = :active, GSI2PK = :listed, GSI2SK = :order, updatedAt = :now, rev = rev + :one REMOVE pendingSubmissionId',
+        UpdateExpression: `SET latestApproved = :la, #s = :active, GSI2PK = :listed, GSI2SK = :order, updatedAt = :now, rev = rev + :one${change ? ', producerChange = :pc' : ''} REMOVE pendingSubmissionId`,
         ConditionExpression: 'pendingSubmissionId = :sid', ExpressionAttributeNames: { '#s': 'status' },
-        ExpressionAttributeValues: { ':la': latestApproved, ':active': 'active', ':listed': 'LISTED', ':order': `COL#${collectionId}`, ':now': at, ':one': 1, ':sid': sub.submissionId },
+        ExpressionAttributeValues: {
+          ':la': latestApproved, ':active': 'active', ':listed': 'LISTED', ':order': `COL#${collectionId}`, ':now': at, ':one': 1, ':sid': sub.submissionId,
+          ...(change ? { ':pc': change } : {}),
+        },
       },
     },
     reviewItem(deps, req, sub, at, { action: 'approve', ...(message ? { message } : {}) }, COLLECTION),
@@ -457,6 +534,14 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
   await notifyAfter(deps, {
     event: 'collection.approved', publisherId: String(sub.publisherId), collectionId, submissionId: String(sub.submissionId), version: Number(sub.version), ...(message ? { message } : {}),
   });
+  // The channels that use it hear of the new version, or that they can no longer use it (D-18, K-11).
+  if (previous?.version !== undefined && uses.length > 0) {
+    const still: Item[] = [];
+    const lost: Item[] = [];
+    for (const u of uses) (granted(listing.grants, await accountIdsOf(deps, String(u.publisherId))) ? still : lost).push(u);
+    await notifyUsers(deps, still, 'collection.updated', collectionId, { version: Number(sub.version) });
+    await notifyUsers(deps, lost, 'collection.grants_narrowed', collectionId, { version: Number(sub.version) });
+  }
   const updated = collectionSubmissionView(await loadCollectionSubmission(deps, collectionId, String(sub.submissionId)));
   return json(200, { submission: updated, publication: 'pending' }, { etag: `"${updated.rev}"` });
 }
@@ -512,5 +597,6 @@ export async function revokeCollection(deps: Deps, req: Request): Promise<Respon
   await transact(deps, items, { 1: ['precondition_failed', 'changed by someone else; read it again'] });
   await deps.requestPublish('revoke');
   await notifyAfter(deps, { event: 'collection.revoked', publisherId: String(collection.publisherId), collectionId, message: reason });
+  await notifyUsers(deps, await usesOfCollection(deps, collectionId), 'collection.revoked_used', collectionId, { message: reason });
   return withEtag(200, await collectionView(deps, await loadCollection(deps, collectionId)));
 }

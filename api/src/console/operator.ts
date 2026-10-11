@@ -4,6 +4,7 @@ import { ProtocolError, b64url, providerId, publicKeyFromRaw, rawPublicKey, veri
 import { createPublicKey } from 'node:crypto';
 import { auditItem, guarded, notifyAfter, type Deps } from './deps.js';
 import { channelView, get, loadChannel, loadPublisher, page, publisherView, type Item } from './shared.js';
+import { deleteUses, usesOfChannel } from './uses.js';
 import { fail, ifMatch, json, limit, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
 
 // ---- publishers ----
@@ -143,6 +144,8 @@ export async function revokeChannel(deps: Deps, req: Request): Promise<Response>
 
   const now = deps.now().toISOString();
   const approved = channel.latestApproved as { submissionId?: string } | undefined;
+  // A revoked channel no longer uses its collections (DES-008 K-9).
+  const uses = await usesOfChannel(deps, channelId);
   await guarded(() =>
     deps.db.send(
       new TransactWriteCommand({
@@ -191,6 +194,7 @@ export async function revokeChannel(deps: Deps, req: Request): Promise<Response>
               ]
             : []),
           auditItem(deps, req.caller, { action: 'channel.revoke', target: `CH#${channelId}`, reason, detail: { severity, versions: versions ?? null } }),
+          ...deleteUses(deps, uses),
         ],
       }),
     ),
