@@ -3,8 +3,8 @@
 | 項目 | 内容 |
 |---|---|
 | 対象 | sanpo-channel-console（SanpoGuide の第三者のチャンネルを審査して公開するシステム） |
-| 版 | 1.0（2026-10-04） |
-| 前提の版 | 実装の順番 2（運用者の画面）まで。[DES-001](../design/DES-001-publisher.md)・[DES-002](../design/DES-002-operator-console.md) |
+| 版 | 1.1（2026-10-12） |
+| 前提の版 | 実装の順番 4（素材集と制作元）まで。[DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) |
 
 ## このシステムでできること
 
@@ -39,7 +39,7 @@ flowchart LR
 | （印なし） | 今使える |
 | 🚧 **予定** | 契約書（[API-001](../console-api.md)）で決まっているが、まだ作っていない。画面・操作の細部は変わることがある |
 
-2026-10-04 の時点で使えるのは、運用者の画面（審査・鍵の移し替えを含む）、配信元の画面（登録・鍵・鍵の移し替え・チャンネル・申請・機械の確認・試用チケット・審査の結果・取り消し・退会）、配信元へのメール（開発用は記録だけ）、開発・保守の道具です。アプリでの試用チケットの読み込みは 🚧 予定です（[TODO](../TODO.md)）。
+2026-10-12 の時点で使えるのは、運用者の画面（チャンネルと素材集の審査・鍵の移し替えを含む）、配信元の画面（登録・鍵・鍵の移し替え・チャンネル・申請・機械の確認・試用チケット・審査の結果・取り消し・退会）、制作元の画面（素材集の登録・申請・身元の確認・使っているチャンネル・毎日の確認の結果）、配信元・制作元へのメール（開発用は記録だけ）、開発・保守の道具です。アプリでの試用チケットの読み込みも、SanpoGuide 側で実装済みです（2026-10-04）。宣伝を含むチャンネル・素材集の申告は 🚧 予定です（[TODO](../TODO.md)）。
 
 ## 環境
 
@@ -69,7 +69,7 @@ flowchart LR
 | 素材集 | 制作元が作る、テキスト・画像・音声・映像の素材のまとまり。チャンネルとは別に審査・公開され、チャンネルが ID や基準で指して使う。形式は SanpoGuide の [API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md) |
 | 制作元 | 素材集を作って申請する人・団体。アカウントは配信元と共通で、「制作元として始める」で役割が加わる |
 | 利用の記録 | どのチャンネルが、どの素材集のどの素材を使っているか。素材集の更新で使われている素材を消せないようにし、取り下げのときに知らせる先になる |
-| 試用チケット | 審査前のチャンネルを、配信元が自分の端末で試すための QR コード。7 日で切れる（アプリでの読み込みは 🚧） |
+| 試用チケット | 審査前のチャンネルを、配信元が自分の端末で試すための QR コード。7 日で切れる。アプリの開発者モードで読み込む |
 | 準拠テスト | 提供元の公開 URL が API-002 の決まりを守っているかを外から確かめる道具 |
 | 操作の記録 | 運用者・配信元の状態を変える操作を、だれが・いつ・何を・なぜしたか残したもの。消さない |
 
@@ -83,5 +83,5 @@ flowchart LR
 | [API-001](../console-api.md)・[OpenAPI](../api/console.openapi.yaml) | 管理 API の契約 |
 | SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md) | 承認済みチャンネル・リストの形式（アプリとの約束） |
 | SanpoGuide [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md) | パッケージの形式 |
-| SanpoGuide [審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか（草案・未承認） |
+| SanpoGuide [審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか（1.0、2026-10-11 承認） |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値と手順 |
