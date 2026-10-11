@@ -374,8 +374,8 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
   <section>
     <div class="sec-head">
       <div class="eyebrow">図 3 · 信頼の鎖</div>
-      <h2>アプリが最初から知っているのは、運営ID（ルート鍵の指紋）だけ</h2>
-      <p>アプリは散策者が登録した運営ID から始めて、署名とハッシュを 1 段ずつたどります。どの段で合わなくても、その文書は捨てて前のものを使い続けます。鍵は 3 か所に分かれていて、どれもリポジトリと管理 API の外にあります。</p>
+      <h2>アプリが最初から知っているのは、リストID（ルート鍵の指紋）だけ</h2>
+      <p>アプリは散策者が登録したリストID から始めて、署名とハッシュを 1 段ずつたどります。どの段で合わなくても、その文書は捨てて前のものを使い続けます。鍵は 3 か所に分かれていて、どれもリポジトリと管理 API の外にあります。</p>
     </div>
     <figure>
       <div class="scroll">
@@ -394,7 +394,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <rect class="bx-acc" x="30" y="44" width="220" height="70" rx="8"/>
         <text class="ta" x="140" y="68">ルート鍵</text>
         <text class="s" x="140" y="86">オフラインの端末（本番）</text>
-        <text class="sm" x="140" y="103">運営ID sc1… = 公開鍵の指紋</text>
+        <text class="sm" x="140" y="103">リストID sc1… = 公開鍵の指紋</text>
 
         <rect class="bx-acc" x="30" y="148" width="220" height="70" rx="8"/>
         <text class="ta" x="140" y="172">署名鍵（KMS）</text>
@@ -452,7 +452,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <path class="ar-d" d="M580,481 L596,481 L596,344 L582,344" marker-end="url(#a3)"/>
 
         <!-- checks -->
-        <text class="chk" x="630" y="66">・ルート鍵の指紋 = 散策者が登録した運営ID</text>
+        <text class="chk" x="630" y="66">・ルート鍵の指紋 = 散策者が登録したリストID</text>
         <text class="chk" x="630" y="86">・ルート鍵の署名、seq が前より小さくない</text>
         <text class="chk" x="630" y="106">・各署名鍵の有効期間は 1 年以内</text>
         <text class="chk" x="630" y="170">・鍵セットにあり、失効しておらず、期間内の鍵</text>
@@ -463,7 +463,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <text class="chk" x="630" y="349">・大きさと SHA-256 がリストと一致（2MB まで）</text>
         <text class="chk" x="630" y="404">・署名した鍵 = channel.json の publisher</text>
         <text class="chk" x="630" y="424">　= リストの publisher（違えば publisherChange）</text>
-        <text class="chk" x="630" y="486">・開発者モードのときだけ。運営を先に登録</text>
+        <text class="chk" x="630" y="486">・開発者モードのときだけ。リストを先に登録</text>
       </svg>
       </div>
       <figcaption>
@@ -712,7 +712,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
           <tr><td class="pk">infra/lib</td><td>AWS CDK。共有部分と公開の面 <code>console-stack.ts</code>、管理の面 <code>console-app.ts</code>、環境ごとの設定 <code>config.ts</code></td><td><div class="loc"><span class="bar" style="width:24px"></span>783</div></td></tr>
           <tr><td class="pk">api/src/publish</td><td>公開の Lambda。DB・S3・CloudFront・KMS は差し替え口の後ろ（手元では Memory 版）。毎日の外部の素材の確認は <code>external.ts</code></td><td><div class="loc"><span class="bar" style="width:28px"></span>903</div></td></tr>
           <tr><td class="pk">packages/protocol</td><td>API-002 の文書の作成と検証（署名・要約・鍵セット・ID・素材集）。公開・準拠テスト・CLI が共用</td><td><div class="loc"><span class="bar" style="width:18px"></span>589</div></td></tr>
-          <tr><td class="pk">conformance/src</td><td>API-002 の準拠テスト（任意の運営の URL に）と、アプリ用のテストベクタ</td><td><div class="loc"><span class="bar" style="width:14px"></span>435</div></td></tr>
+          <tr><td class="pk">conformance/src</td><td>API-002 の準拠テスト（任意のリストの URL に）と、アプリ用のテストベクタ</td><td><div class="loc"><span class="bar" style="width:14px"></span>435</div></td></tr>
           <tr><td class="pk">validator/src</td><td>機械審査の Lambda（Kotlin、Java 21）。判定は SanpoGuide の station-format（今は 2.1.0）。チャンネルと素材集、外部の素材の確認 <code>External.kt</code></td><td><div class="loc"><span class="bar" style="width:28px"></span>911</div></td></tr>
           <tr><td class="pk">tools/root-key · provision</td><td>ルート鍵の CLI（オフライン）、署名鍵と鍵セットの初期登録</td><td><div class="loc"><span class="bar" style="width:10px"></span>321</div></td></tr>
           <tr><td class="pk">api/src/notify</td><td>通知の Lambda（SQS → SES、開発用は記録だけ）</td><td><div class="loc"><span class="bar" style="width:6px"></span>180</div></td></tr>
@@ -733,7 +733,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <thead><tr><th></th><th>開発用（dev）</th><th>本番（prod）</th></tr></thead>
         <tbody>
           <tr><td>ルート鍵</td><td>開発者の端末（<code>~/.sanpo-channel-console/dev/</code>）</td><td>オフラインの端末（T-5 の手順）</td></tr>
-          <tr><td>アプリへの内蔵</td><td>しない（散策者が URL と運営ID で足す）</td><td>内蔵する運営</td></tr>
+          <tr><td>アプリへの内蔵</td><td>しない（散策者が URL とリストID で足す）</td><td>内蔵するリスト</td></tr>
           <tr><td>アプリの段（<code>appStageVersions</code>）</td><td>段 0 = 1、段 1 = 2、段 2・3 = 9999</td><td>開発用と同じ</td></tr>
           <tr><td>一覧のカーソルの鍵</td><td>配備のたびに作り直す（古いカーソルは使えなくなる）</td><td>Secrets Manager</td></tr>
           <tr><td>WAF（Cognito）・DynamoDB の復旧</td><td>なし</td><td>あり</td></tr>
@@ -774,7 +774,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 
   <div class="plan">
     <h3>まだないもの</h3>
-    <p>本番の環境（別の AWS アカウント、オフラインで作るルート鍵、独自ドメイン、SES のサンドボックスの解除）と、アプリに内蔵する本番の運営はまだありません。鍵の移し替えの本人確認の手順は運用の開始前に決めます（審査基準 SanpoGuide の <code>docs/channel-review-policy.md</code> は 2026-10-11 に 1.0 を承認済み）。宣伝を含むチャンネル・素材集の申告と表示（SanpoGuide ADR-002 T-13）もまだです。進み具合は <code>docs/TODO.md</code> にあります。</p>
+    <p>本番の環境（別の AWS アカウント、オフラインで作るルート鍵、独自ドメイン、SES のサンドボックスの解除）と、アプリに内蔵する本番のリストはまだありません。鍵の移し替えの本人確認の手順は運用の開始前に決めます（審査基準 SanpoGuide の <code>docs/channel-review-policy.md</code> は 2026-10-11 に 1.0 を承認済み）。宣伝を含むチャンネル・素材集の申告と表示（SanpoGuide ADR-002 T-13）もまだです。進み具合は <code>docs/TODO.md</code> にあります。</p>
   </div>
 </main>
 </body>

@@ -9,7 +9,7 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 | AWS アカウント | 140023390410（SSO プロファイル `sanpo-dev`） |
 | リージョン | ap-northeast-1 |
 | スタック | `SanpoChannelConsole-dev` |
-| 運営ID | `sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv` |
+| リストID | `sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv` |
 | ルート鍵の公開鍵 | `YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagFVjECEI` |
 | 公開 URL | https://d1vs7kc4zgmwrz.cloudfront.net |
 | 初回の配備 | 2026-10-03（準拠テスト合格。チャンネルはまだない） |
@@ -17,7 +17,7 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 | ログイン | https://sanpo-channel-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_wfKw6aCwX`） |
 | 運営 | tofumiyoshi@gmail.com（`operator` グループ） |
 
-開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.sanpo-channel-console/dev/`、アクセス権は本人のみ）にある。開発用の運営はアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
+開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.sanpo-channel-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
 
 ### 手順
 

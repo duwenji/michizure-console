@@ -18,8 +18,8 @@ packages/protocol  API-002 の文書の作成と検証（共通）
 packages/api-types 管理 API の型（docs/api/console.openapi.yaml から生成）
 api/               Lambda（TypeScript）。公開の処理（api/src/publish）、管理 API（api/src/console）、チャンネル提供者へのメール（api/src/notify）
 tools/root-key     ルート鍵の CLI（オフラインで使う）
-tools/provision    配備した運営に署名鍵・鍵セットを登録して公開する（運営の画面ができるまで）
-conformance/       API-002 の準拠テスト（任意の運営の URL に対して流せる）
+tools/provision    配備した環境に署名鍵・鍵セットを登録して公開する（運営の画面ができるまで）
+conformance/       API-002 の準拠テスト（任意のリストの URL に対して流せる）
 infra/             AWS CDK
 web/               運営・チャンネル提供者・素材提供者の画面（React + Vite）
 validator/         機械審査の Lambda（Kotlin、Gradle、station-format）
@@ -35,11 +35,11 @@ npx vitest run        # テスト（管理 API のテストは Docker で Dynamo
 npm run build -w web  # 画面をビルド（cdk synth の前に要る）
 
 # 手元で公開して、準拠テストをかける（AWS は不要。鍵は使い捨て）
-npm run publish:local -w api            # ../.local/site に書き出し、運営ID を表示
+npm run publish:local -w api            # ../.local/site に書き出し、リストID を表示
 npm run serve -w conformance            # http://127.0.0.1:8787 で配る
-npm run check -w conformance -- http://127.0.0.1:8787 --allow-local-http --provider <運営ID>
+npm run check -w conformance -- http://127.0.0.1:8787 --allow-local-http --provider <リストID>
 
-# 任意の運営に準拠テストをかける
+# 任意のリストに準拠テストをかける
 npm run check -w conformance -- https://channels.example.com --provider sc1…
 
 # ルート鍵（オフラインの端末で。Git の作業ツリーの外に）

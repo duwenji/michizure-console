@@ -11,7 +11,7 @@
 3. [手元での開発とテスト](#3-手元での開発とテスト)
 4. [変更の進め方](#4-変更の進め方)
 5. [配備](#5-配備)
-6. [運営の初期設定](#6-運営の初期設定)
+6. [リストの初期設定](#6-リストの初期設定)
 7. [運営の担当者を足す・外す](#7-運営の担当者を足す外す)
 8. [署名鍵を足す](#8-署名鍵を足す)
 9. [費用と監視](#9-費用と監視)
@@ -52,9 +52,9 @@ flowchart LR
 | `validator` | 機械審査の Lambda（Kotlin、Gradle、station-format 2.1.0）。チャンネルと素材集、外部の素材の確認 `External.kt` | DES-004・DES-007 |
 | `web` | 運営・チャンネル提供者・素材提供者の画面（React + Vite）。鍵の作成と署名は `web/src/publisher-crypto.ts` | DES-002・DES-003・DES-010 |
 | `tools/root-key` | ルート鍵の CLI（オフラインの端末で使う） | DES-001 |
-| `tools/provision` | 配備した運営の初期設定（署名鍵・鍵セットの登録と初回の公開） | DES-001 |
+| `tools/provision` | 配備したリストの初期設定（署名鍵・鍵セットの登録と初回の公開） | DES-001 |
 | `tools/e2e` | 開発用の環境での通しの確認（機械審査、試用チケット、審査と承認、鍵の移し替えとメール、素材集 `collections.ts`） | DES-004〜DES-006・DES-009 |
-| `conformance` | 任意の運営に対する準拠テスト | DES-001 |
+| `conformance` | 任意のリストに対する準拠テスト | DES-001 |
 | `infra` | AWS CDK。環境ごとの設定は `infra/lib/config.ts` | ADR-001 |
 
 機械審査の Lambda（`validator`）は、SanpoGuide の `station-format` を GitHub Packages（`io.github.duwenji.sanpoguide:station-format`）から読み込みます。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew :station-format:publishToMavenLocal`）。
@@ -93,17 +93,17 @@ npm run build -w web    # 画面をビルド（cdk synth の前に要る）
 | `api/test/publisher-api.test.ts` | チャンネル提供者の操作を DynamoDB Local で通しで。鍵の紐づけ、上限、申請、取り消し、退会 |
 | `web/test` | 画面の暗号（鍵のファイル、アカウントID、パッケージの署名）を Node の WebCrypto で |
 | `tools/root-key/test` | ルート鍵の暗号化、鍵セットの確認と署名 |
-| `conformance/test` | 公開 → 手元の HTTP サーバー → 準拠テストの通しと、壊れた運営を見つけること |
+| `conformance/test` | 公開 → 手元の HTTP サーバー → 準拠テストの通しと、壊れたリストを見つけること |
 | `infra/test` | CDK の構成（MFA 必須、KMS の鍵ポリシー、CSP、開発用と本番の違い） |
 
 DynamoDB Local は `$DYNAMODB_ENDPOINT` があればそれを使い、なければ Docker でコンテナを起動します（CI はサービスのコンテナ）。
 
-**AWS なしで運営を試す**:
+**AWS なしでリストを試す**:
 
 ```sh
-npm run publish:local -w api            # ../.local/site に使い捨ての鍵で公開し、運営ID を表示
+npm run publish:local -w api            # ../.local/site に使い捨ての鍵で公開し、リストID を表示
 npm run serve -w conformance            # http://127.0.0.1:8787
-npm run check -w conformance -- http://127.0.0.1:8787 --allow-local-http --provider <運営ID>
+npm run check -w conformance -- http://127.0.0.1:8787 --allow-local-http --provider <リストID>
 ```
 
 **画面を手元で動かす**（開発用の API とログインを使う）:
@@ -138,7 +138,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
 - 本番（`-c env=prod`）はまだ配備しません。本番用のアカウント、本番のルート鍵（T-5）、独自ドメイン（T-7）、SES（T-8）がそろってから
 - 開発用のカーソルの鍵は合成のたびに変わるので、配備すると画面の「さらに読み込む」の続きが切れます（読み込み直せば直る）
 
-## 6. 運営の初期設定
+## 6. リストの初期設定
 
 新しい環境では、配備のあとに一度だけ行います。
 
@@ -148,7 +148,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
    ROOT_KEY_PASSPHRASE=… npm run root-key -w tools/root-key -- generate --out <フォルダ>
    ```
 
-   表示された `rootKey` を `cdk deploy -c rootPublicKey=…` に使い、`provider`（運営ID）を控えます。合言葉は 16 文字以上。秘密鍵の写しを複数の場所に置きます。開発用の鍵は `~/.sanpo-channel-console/dev/` にあります（合言葉も同じ場所。開発用だけの扱い）
+   表示された `rootKey` を `cdk deploy -c rootPublicKey=…` に使い、`provider`（リストID）を控えます。合言葉は 16 文字以上。秘密鍵の写しを複数の場所に置きます。開発用の鍵は `~/.sanpo-channel-console/dev/` にあります（合言葉も同じ場所。開発用だけの扱い）
 2. **署名鍵と鍵セットを登録して公開する**: 運営の画面（[運営ガイド 5.2](operator.md#52-鍵セットを登録する)）で行うか、`tools/provision` で一度に行います
 
    ```sh
@@ -159,7 +159,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
 3. **準拠テスト**
 
    ```sh
-   npm run check -w conformance -- <公開 URL> --provider <運営ID>
+   npm run check -w conformance -- <公開 URL> --provider <リストID>
    ```
 
 ## 7. 運営の担当者を足す・外す
@@ -175,8 +175,8 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 
 | したいこと | コマンド |
 |---|---|
-| 運営を外す | `admin-remove-user-from-group … --group-name operator`（アカウントは残る）、または `admin-disable-user` |
-| MFA の端末をなくした運営の登録をやり直す | `admin-set-user-mfa-preference --user-pool-id $P --username <メール> --software-token-mfa-settings Enabled=false,PreferredMfa=false` のあと、次のログインで MFA をもう一度登録させる。うまくいかなければ、アカウントを作り直す |
+| 運営の担当者を外す | `admin-remove-user-from-group … --group-name operator`（アカウントは残る）、または `admin-disable-user` |
+| MFA の端末をなくした担当者の登録をやり直す | `admin-set-user-mfa-preference --user-pool-id $P --username <メール> --software-token-mfa-settings Enabled=false,PreferredMfa=false` のあと、次のログインで MFA をもう一度登録させる。うまくいかなければ、アカウントを作り直す |
 | 仮のパスワードをもう一度送る | `admin-create-user … --message-action RESEND` |
 
 ## 8. 署名鍵を足す

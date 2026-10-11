@@ -113,7 +113,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  R["ルート鍵（Ed25519、オフライン）<br/>運営ID sc1… = この公開鍵の指紋"]
+  R["ルート鍵（Ed25519、オフライン）<br/>リストID sc1… = この公開鍵の指紋"]
   KS["鍵セット<br/>使ってよい署名鍵と有効期間<br/>（/.well-known/sanpo-channels に入れて公開）"]
   SK["署名鍵（KMS、半年ごとに替える）<br/>秘密鍵は KMS の外に出ない"]
   DG["リストの要約<br/>本体の SHA-256・大きさ・seq・期限"]
@@ -260,7 +260,7 @@ flowchart LR
 | ログの保持 | 14 日 | 期限なし |
 | メール | 記録だけ（`notify: log`） | ドメイン（T-7）と SES の準備（T-8）のあと `ses` |
 | 費用の上限の通知 | 月 5 USD | — |
-| アプリへの内蔵 | しない（散策者が URL と運営IDで足す） | 内蔵する運営 |
+| アプリへの内蔵 | しない（散策者が URL とリストIDで足す） | 内蔵するリスト |
 
 配備の手順は [docs/operations/deploy.md](operations/deploy.md)、費用は [docs/operations/cost.md](operations/cost.md)。
 
