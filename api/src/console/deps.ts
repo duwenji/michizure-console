@@ -40,15 +40,31 @@ export interface Deps {
   publishApproved: (files: { packageKey: string; packageSha256: string; iconKey: string; iconSha256: string }) => Promise<{ packageUrl: string; iconUrl: string }>;
   /** Queues an email to the publisher (ADR-001 A-19); the notification Lambda sends it. */
   notify: (notice: Notice) => Promise<void>;
+  /** Copies an approved collection package to the public `col/{sha256}.zip` and returns its URL (DES-008 K-4). */
+  publishCollection: (packageKey: string, sha256: string) => Promise<string>;
+  /** The app version (versionCode) each app stage needs (API-001 C-21, DES-008 K-6). */
+  appStageVersions: Record<number, number>;
+}
+
+/** Until the app's first material stage ships, material needs a version no app has (DES-007 J-9). */
+export const DEFAULT_APP_STAGE_VERSIONS: Record<number, number> = { 0: 1, 1: 9999, 2: 9999, 3: 9999 };
+
+/** The minAppVersion for an app stage; an unknown stage needs a version no app has. */
+export function minAppVersionFor(deps: Pick<Deps, 'appStageVersions'>, stage: number): number {
+  return deps.appStageVersions[stage] ?? 9999;
 }
 
 /** What happened, for the publisher's email (API-001 C-14). No samples, operator ids or tokens. */
 export interface Notice {
   /** Identifies the notice, so a redelivered message is sent only once (CV-13). */
   noticeId: string;
-  event: 'submission.approved' | 'submission.returned' | 'submission.rejected' | 'channel.revoked' | 'transfer.approved' | 'transfer.rejected';
+  event:
+    | 'submission.approved' | 'submission.returned' | 'submission.rejected' | 'channel.revoked' | 'transfer.approved' | 'transfer.rejected'
+    // To the producer (API-001 C-20).
+    | 'collection.approved' | 'collection.returned' | 'collection.rejected' | 'collection.revoked';
   publisherId: string;
   channelId?: string;
+  collectionId?: string;
   submissionId?: string;
   version?: number;
   transferId?: string;

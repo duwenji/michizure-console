@@ -302,6 +302,7 @@ export class ConsoleApp extends Construct {
     consoleFn.addEnvironment('PUBLIC_BUCKET', props.publicBucket.bucketName);
     consoleFn.addEnvironment('PROVIDER_URL', props.providerUrl);
     consoleFn.addEnvironment('RECORDS_BUCKET', props.recordsBucket.bucketName);
+    consoleFn.addEnvironment('APP_STAGE_VERSIONS', JSON.stringify(config.appStageVersions));
     // Review (stage 3c): read the samples' prompts, keep the samples, publish approved files.
     props.recordsBucket.grantRead(consoleFn, 'samples/*');
     props.recordsBucket.grantReadWrite(consoleFn, 'reviews/*');
@@ -317,6 +318,13 @@ export class ConsoleApp extends Construct {
     intakeBucket.grantRead(consoleFn, 'intake/*');
     intakeBucket.grantDelete(consoleFn, 'intake/*');
     intakeBucket.grantPut(consoleFn, 'archive/*');
+    // Collections (DES-008): their own prefixes, and approved packages under col/ (DM-001 1.3).
+    intakeBucket.grantPut(consoleFn, 'intake-col/*');
+    intakeBucket.grantRead(consoleFn, 'intake-col/*');
+    intakeBucket.grantDelete(consoleFn, 'intake-col/*');
+    intakeBucket.grantPut(consoleFn, 'archive-col/*');
+    intakeBucket.grantRead(consoleFn, 'archive-col/*');
+    props.publicBucket.grantPut(consoleFn, 'col/*');
     // Leaving deletes the user (API-001 C-4).
     consoleFn.addToRolePolicy(new iam.PolicyStatement({ actions: ['cognito-idp:AdminDeleteUser'], resources: [userPool.userPoolArn] }));
     props.table.grantReadWriteData(consoleFn);

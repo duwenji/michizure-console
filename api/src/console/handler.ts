@@ -13,7 +13,7 @@ import { kmsSigner } from '../publish/aws.js';
 import type { SigningKeyRecord } from '../publish/ports.js';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { createHash } from 'node:crypto';
-import type { Deps } from './deps.js';
+import { DEFAULT_APP_STAGE_VERSIONS, type Deps } from './deps.js';
 import { ApiError, problem } from './http.js';
 import { callerFrom, route } from './router.js';
 import { CursorCodec } from './util.js';
@@ -65,7 +65,7 @@ async function load(): Promise<Deps> {
     },
     archiveUpload: async (key) => {
       const bucket = env('INTAKE_BUCKET');
-      const target = key.replace(/^intake\//, 'archive/');
+      const target = key.replace(/^intake-col\//, 'archive-col/').replace(/^intake\//, 'archive/');
       try {
         await s3.send(new CopyObjectCommand({ Bucket: bucket, CopySource: `${bucket}/${key}`, Key: target }));
       } catch (e) {
@@ -135,6 +135,15 @@ async function load(): Promise<Deps> {
       await copy(iconKey, `icons/${iconSha256}.png`, 'image/png');
       return { packageUrl: `${env('PROVIDER_URL')}/pkg/${packageSha256}.zip`, iconUrl: `${env('PROVIDER_URL')}/icons/${iconSha256}.png` };
     },
+    publishCollection: async (packageKey, sha256) => {
+      const key = `col/${sha256}.zip`;
+      await s3.send(new CopyObjectCommand({
+        Bucket: env('PUBLIC_BUCKET'), Key: key, CopySource: `${env('INTAKE_BUCKET')}/${packageKey}`,
+        MetadataDirective: 'REPLACE', ContentType: 'application/zip', CacheControl: 'public, max-age=31536000, immutable',
+      }));
+      return `${env('PROVIDER_URL')}/${key}`;
+    },
+    appStageVersions: appStageVersions(),
     deleteUser: async (sub) => {
       // Sign-in is by email, so the user name is the sub.
       await cognito.send(new AdminDeleteUserCommand({ UserPoolId: env('USER_POOL_ID'), Username: sub }));
@@ -143,6 +152,14 @@ async function load(): Promise<Deps> {
       await sqs.send(new SendMessageCommand({ QueueUrl: env('NOTIFY_QUEUE_URL'), MessageBody: JSON.stringify(notice) }));
     },
   };
+}
+
+/** The app version each app stage needs, from the CDK context (API-001 C-21); a placeholder until set. */
+function appStageVersions(): Record<number, number> {
+  const raw = process.env.APP_STAGE_VERSIONS;
+  if (!raw) return DEFAULT_APP_STAGE_VERSIONS;
+  const parsed = JSON.parse(raw) as Record<string, number>;
+  return Object.fromEntries(Object.entries(parsed).map(([k, v]) => [Number(k), Number(v)]));
 }
 
 const MAX_BODY = 1024 * 1024;

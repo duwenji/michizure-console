@@ -8,8 +8,13 @@ import { jstDate } from './util.js';
 
 export type Item = Record<string, unknown>;
 
-/** DM-001 M-2; an operator can change them per publisher. */
-export const DEFAULT_LIMITS = { channels: 5, uploadsPerDay: 20, ticketsPerDay: 10 };
+/** DM-001 M-2・M-19; an operator can change them per account. */
+export const DEFAULT_LIMITS = { channels: 5, collections: 5, uploadsPerDay: 20, ticketsPerDay: 10 };
+
+/** An account's roles (DM-001 M-16); one from before 1.3 has none written and is a publisher. */
+export function rolesOf(item: Item): ('publisher' | 'producer')[] {
+  return Array.isArray(item.roles) ? (item.roles as ('publisher' | 'producer')[]) : ['publisher'];
+}
 
 export async function get(deps: Deps, PK: string, SK: string): Promise<Item | undefined> {
   return (await deps.db.send(new GetCommand({ TableName: deps.table, Key: { PK, SK }, ConsistentRead: true }))).Item;
@@ -22,7 +27,8 @@ export async function page(deps: Deps, req: Request, input: Omit<QueryCommandInp
   return { items: out.Items ?? [], nextCursor: deps.cursors.encode(out.LastEvaluatedKey) };
 }
 
-export async function publisherView(deps: Deps, item: Item): Promise<Schemas['Publisher']> {
+/** The account as the API shows it; the identity check's record only to operators (API-001 C-17). */
+export async function publisherView(deps: Deps, item: Item, forOperator = false): Promise<Schemas['Publisher']> {
   const quota = await get(deps, `PUB#${String(item.publisherId)}`, `QUOTA#${jstDate(deps.now())}`);
   return {
     publisherId: String(item.publisherId),
@@ -31,9 +37,13 @@ export async function publisherView(deps: Deps, item: Item): Promise<Schemas['Pu
     status: item.status as Schemas['PublisherStatus'],
     ...(item.statusReason ? { statusReason: String(item.statusReason) } : {}),
     activeAccountId: (item.activeAccountId as string | undefined) ?? null,
+    roles: rolesOf(item),
+    producerVerified: item.producerVerification !== undefined,
+    ...(forOperator && item.producerVerification ? { producerVerification: item.producerVerification as Schemas['Verification'] } : {}),
     limits: { ...DEFAULT_LIMITS, ...((item.limits as object | undefined) ?? {}) },
     usage: {
       channels: Number(item.channelCount ?? 0),
+      collections: Number(item.collectionCount ?? 0),
       uploadsToday: Number(quota?.uploads ?? 0),
       ticketsToday: Number(quota?.tickets ?? 0),
     },
@@ -77,4 +87,65 @@ export async function channelView(deps: Deps, item: Item): Promise<Schemas['Chan
 
 export async function loadChannel(deps: Deps, channelId: string): Promise<Item> {
   return (await get(deps, `CH#${channelId}`, 'CH')) ?? fail('not_found', `no channel ${channelId}`);
+}
+
+// ---- collections (DM-001 1.3) ----
+
+async function revocationsOf(deps: Deps, pk: string) {
+  const out = await deps.db.send(
+    new QueryCommand({ TableName: deps.table, KeyConditionExpression: 'PK = :pk AND begins_with(SK, :r)', ExpressionAttributeValues: { ':pk': pk, ':r': 'REVOKE#' } }),
+  );
+  return (out.Items ?? []).map((r) => ({
+    ...(r.versions ? { versions: r.versions as number[] } : {}),
+    reason: String(r.reason),
+    severity: r.severity as 'high' | 'low',
+    revokedAt: String(r.revokedAt),
+  }));
+}
+
+export async function collectionView(deps: Deps, item: Item): Promise<Schemas['Collection']> {
+  return {
+    collectionId: String(item.collectionId),
+    publisherId: String(item.publisherId),
+    status: item.status as 'active' | 'revoked',
+    pendingSubmissionId: (item.pendingSubmissionId as string | undefined) ?? null,
+    latestApproved: (item.latestApproved as Schemas['CollectionLatestApproved'] | undefined) ?? null,
+    listed: item.GSI2PK === 'LISTED',
+    producerChange: (item.producerChange as Schemas['Collection']['producerChange']) ?? null,
+    externalCheck: (item.externalCheck as Schemas['Collection']['externalCheck']) ?? null,
+    revocations: await revocationsOf(deps, `COL#${String(item.collectionId)}`),
+    rev: Number(item.rev),
+    createdAt: String(item.createdAt),
+    updatedAt: String(item.updatedAt),
+  };
+}
+
+export async function loadCollection(deps: Deps, collectionId: string): Promise<Item> {
+  return (await get(deps, `COL#${collectionId}`, 'COL')) ?? fail('not_found', `no collection ${collectionId}`);
+}
+
+export function collectionSubmissionView(item: Item): Schemas['CollectionSubmission'] {
+  return {
+    kind: 'collection',
+    submissionId: String(item.submissionId),
+    collectionId: String(item.collectionId),
+    version: (item.version as number | undefined) ?? null,
+    accountId: String(item.accountId),
+    state: item.state as Schemas['SubmissionState'],
+    ...(item.note !== undefined ? { note: String(item.note) } : {}),
+    sha256: (item.sha256 as string | undefined) ?? null,
+    size: (item.size as number | undefined) ?? null,
+    validation: (item.validation as Schemas['Validation'] | undefined) ?? null,
+    decision: (item.decision as Schemas['Decision'] | undefined) ?? null,
+    submittedAt: (item.submittedAt as string | undefined) ?? null,
+    decidedAt: (item.decidedAt as string | undefined) ?? null,
+    rev: Number(item.rev),
+    createdAt: String(item.createdAt),
+    updatedAt: String(item.updatedAt),
+  };
+}
+
+export async function loadCollectionSubmission(deps: Deps, collectionId: string, submissionId: string): Promise<Item> {
+  const item = await get(deps, `COL#${collectionId}`, `SUB#${submissionId}`);
+  return item?.type === 'submission' ? item : fail('not_found', `no submission ${submissionId}`);
 }

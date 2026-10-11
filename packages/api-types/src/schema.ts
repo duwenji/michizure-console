@@ -248,6 +248,139 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/publisher/roles/producer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 制作元の役割を有効にする（1.1、C-15） */
+        post: operations["enableProducerRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 自分の素材集の一覧 */
+        get: operations["listMyCollections"];
+        put?: never;
+        /** 素材集 ID を登録 */
+        post: operations["registerCollection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/{collectionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        /** 素材集（制作元は自分のもの、運用者はすべて） */
+        get: operations["getCollection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/{collectionId}/used-by": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        /** 素材集を使っているチャンネル（利用の記録、C-18） */
+        get: operations["listCollectionUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/{collectionId}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        /** 申請の一覧（新しい順） */
+        get: operations["listCollectionSubmissions"];
+        put?: never;
+        /** 申請を作り、アップロード先を受け取る */
+        post: operations["createCollectionSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/{collectionId}/submissions/{submissionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        /** 申請（機械審査の結果、判定と理由） */
+        get: operations["getCollectionSubmission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/{collectionId}/submissions/{submissionId}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 申請を取り消す（awaiting_review・in_review のとき） */
+        post: operations["withdrawCollectionSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/review-queue": {
         parameters: {
             query?: never;
@@ -255,7 +388,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 審査待ち（awaiting_review・in_review、古い順） */
+        /** 審査待ち（awaiting_review・in_review、古い順。チャンネルと素材集を kind で見分ける） */
         get: operations["listReviewQueue"];
         put?: never;
         post?: never;
@@ -464,6 +597,165 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        /** 素材集のパッケージの取得先（署名付き URL、5 分） */
+        get: operations["getCollectionSubmissionPackage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        /** 審査の記録 */
+        get: operations["listCollectionReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 審査を始める（awaiting_review → in_review） */
+        post: operations["startCollectionReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 審査を戻す（in_review → awaiting_review） */
+        post: operations["releaseCollectionReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 承認（in_review → approved。身元の記録がなければ verification が必須。C-17） */
+        post: operations["approveCollectionSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 差し戻し（in_review → returned） */
+        post: operations["returnCollectionSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/submissions/{submissionId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 却下（in_review → rejected） */
+        post: operations["rejectCollectionSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/collections/{collectionId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 素材集の取り下げ（リストから消し、revokedCollections に 7 日載せる） */
+        post: operations["revokeCollection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/publishers": {
         parameters: {
             query?: never;
@@ -511,6 +803,25 @@ export interface paths {
         };
         /** 配信元のチャンネル */
         get: operations["listPublisherChannels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/publishers/{publisherId}/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                publisherId: components["parameters"]["PublisherId"];
+            };
+            cookie?: never;
+        };
+        /** アカウントの素材集（1.1） */
+        get: operations["listPublisherCollections"];
         put?: never;
         post?: never;
         delete?: never;
@@ -710,6 +1021,8 @@ export interface components {
     schemas: {
         Ulid: string;
         ChannelId: string;
+        /** @description 素材集 ID（チャンネルの ID とは別の名前空間。1.1） */
+        CollectionId: string;
         AccountId: string;
         Base64Url: string;
         Rev: number;
@@ -722,7 +1035,7 @@ export interface components {
             /** @description 問い合わせ用の要求 ID */
             instance?: string;
             /** @enum {string} */
-            code: "invalid_request" | "invalid_signature" | "challenge_invalid" | "keyset_invalid" | "unauthorized" | "forbidden" | "publisher_not_active" | "not_found" | "already_registered" | "channel_id_taken" | "account_id_taken" | "key_already_bound" | "transfer_pending" | "limit_reached" | "pending_submission_exists" | "invalid_state" | "version_not_newer" | "precondition_failed" | "precondition_required" | "payload_too_large" | "quota_exceeded" | "throttled" | "internal";
+            code: "invalid_request" | "invalid_signature" | "challenge_invalid" | "keyset_invalid" | "unauthorized" | "forbidden" | "publisher_not_active" | "role_required" | "not_found" | "already_registered" | "channel_id_taken" | "collection_id_taken" | "producer_not_verified" | "resource_in_use" | "account_id_taken" | "key_already_bound" | "transfer_pending" | "limit_reached" | "pending_submission_exists" | "invalid_state" | "version_not_newer" | "precondition_failed" | "precondition_required" | "payload_too_large" | "quota_exceeded" | "throttled" | "internal";
             errors?: {
                 /** @description JSON Pointer */
                 path: string;
@@ -748,6 +1061,11 @@ export interface components {
         Limits: {
             /** @default 5 */
             channels: number;
+            /**
+             * @description 1.1
+             * @default 5
+             */
+            collections: number;
             /** @default 20 */
             uploadsPerDay: number;
             /** @default 10 */
@@ -755,11 +1073,15 @@ export interface components {
         };
         LimitsOverride: {
             channels?: number;
+            collections?: number;
             uploadsPerDay?: number;
             ticketsPerDay?: number;
         };
         Usage: {
             channels: number;
+            /** @description 1.1 */
+            collections?: number;
+            /** @description チャンネルと素材集の申請を合わせた数（1.1、M-19） */
             uploadsToday: number;
             ticketsToday: number;
         };
@@ -771,6 +1093,12 @@ export interface components {
             status: components["schemas"]["PublisherStatus"];
             statusReason?: string;
             activeAccountId?: components["schemas"]["AccountId"] | null;
+            /** @description アカウントの役割（1.1、M-16）。1.0 のアカウントは [publisher] */
+            roles?: ("publisher" | "producer")[];
+            /** @description 制作元の身元が確かめられているか（1.1、C-17） */
+            producerVerified?: boolean;
+            /** @description 身元の確認の記録（運用者にだけ返す） */
+            producerVerification?: components["schemas"]["Verification"];
             limits: components["schemas"]["Limits"];
             usage: components["schemas"]["Usage"];
             rev: components["schemas"]["Rev"];
@@ -909,8 +1237,35 @@ export interface components {
                 code: string;
                 detail: string;
             }[];
-            /** @description 必要なアプリの段（API-003 確認の手順 10） */
+            /** @description 必要なアプリの段（API-003 確認の手順 10。1.1 からは使う素材集の中身も数える） */
             appStage?: number;
+            /** @description （1.1、チャンネル）宣言した素材集ごとの解決の結果（C-19） */
+            collections?: {
+                as: string;
+                collectionId: components["schemas"]["CollectionId"];
+                /** @enum {string} */
+                status: "usable" | "unusable";
+                /** @description collection_not_listed・not_granted・bad_manifest など */
+                code?: string;
+                detail?: string;
+            }[];
+            /** @description （1.1、素材集）外部の素材ごとの確認（M-20） */
+            external?: {
+                resourceId: string;
+                ok: boolean;
+                detail?: string;
+            }[];
+            /** @description （1.1、素材集）公開中のチャンネルが参照している素材を消した・種類を変えた（D-8・M-22） */
+            inUse?: {
+                channelId: components["schemas"]["ChannelId"];
+                resourceId: string;
+                detail: string;
+            }[];
+            /** @description （1.1）拒まないが知らせること（例 grants_narrowed） */
+            warnings?: {
+                code: string;
+                detail: string;
+            }[];
             /** Format: date-time */
             checkedAt: string;
             validatorVersion: string;
@@ -929,6 +1284,11 @@ export interface components {
             at: string;
         };
         Submission: {
+            /**
+             * @description 1.1。審査待ちの一覧で素材集の申請と見分ける
+             * @enum {string}
+             */
+            kind?: "channel";
             submissionId: components["schemas"]["Ulid"];
             channelId: components["schemas"]["ChannelId"];
             /** @description パッケージの channel.json から（機械審査の後） */
@@ -969,6 +1329,112 @@ export interface components {
             };
             /** Format: date-time */
             uploadExpiresAt: string;
+        };
+        Collection: {
+            collectionId: components["schemas"]["CollectionId"];
+            publisherId: components["schemas"]["Ulid"];
+            /** @enum {string} */
+            status: "active" | "revoked";
+            pendingSubmissionId?: components["schemas"]["Ulid"] | null;
+            latestApproved?: components["schemas"]["CollectionLatestApproved"] | null;
+            /** @description 今のリストに載っているか */
+            listed?: boolean;
+            producerChange?: {
+                from?: components["schemas"]["AccountId"];
+                /** Format: date-time */
+                at?: string;
+                reason?: string;
+                /** Format: date-time */
+                until?: string;
+            } | null;
+            /** @description 毎日の外部の素材の確認（M-21） */
+            externalCheck?: {
+                /** Format: date-time */
+                checkedAt?: string;
+                failures?: {
+                    resourceId?: string;
+                    url?: string;
+                    status?: string;
+                }[];
+            } | null;
+            revocations?: {
+                versions?: number[];
+                reason: string;
+                /** @enum {string} */
+                severity: "high" | "low";
+                /** Format: date-time */
+                revokedAt: string;
+            }[];
+            rev: components["schemas"]["Rev"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description リストの collections[] の 1 件になる内容（DM-001 M-24） */
+        CollectionLatestApproved: {
+            submissionId: components["schemas"]["Ulid"];
+            version: number;
+            producer: components["schemas"]["AccountId"];
+            name: string;
+            summary: string;
+            media: ("text" | "image" | "audio" | "video")[];
+            resourcesSize: number;
+            tags: string[];
+            regions?: string[];
+            grants: {
+                publishers: "*" | components["schemas"]["AccountId"][];
+            };
+            package: components["schemas"]["ListedPackage"];
+            appStage?: number;
+            minAppVersion: number;
+            /** Format: date-time */
+            approvedAt: string;
+        };
+        CollectionSubmission: {
+            /** @enum {string} */
+            kind: "collection";
+            submissionId: components["schemas"]["Ulid"];
+            collectionId: components["schemas"]["CollectionId"];
+            /** @description パッケージの collection.json から（機械審査の後） */
+            version?: number | null;
+            accountId: components["schemas"]["AccountId"];
+            state: components["schemas"]["SubmissionState"];
+            note?: string;
+            sha256?: string | null;
+            size?: number | null;
+            validation?: components["schemas"]["Validation"] | null;
+            decision?: components["schemas"]["Decision"] | null;
+            /** Format: date-time */
+            submittedAt?: string | null;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            rev: components["schemas"]["Rev"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CollectionSubmissionCreated: {
+            submission: components["schemas"]["CollectionSubmission"];
+            uploads: {
+                package: components["schemas"]["PresignedPost"];
+            };
+            /** Format: date-time */
+            uploadExpiresAt: string;
+        };
+        CollectionApproveInput: {
+            message?: string;
+            /** @description アカウントに身元の記録がないときは必須（C-17） */
+            verification?: components["schemas"]["Verification"];
+        };
+        UsedBy: {
+            channelId: components["schemas"]["ChannelId"];
+            channelName?: string;
+            channelVersion: number;
+            publisherName: string;
+            /** @description 参照している素材の ID（題材で選ぶだけのときは空） */
+            resources: string[];
         };
         SignedDocument: {
             payload: components["schemas"]["Base64Url"];
@@ -1076,6 +1542,10 @@ export interface components {
             trigger: "approve" | "revoke" | "transfer" | "keyset" | "daily" | "manual";
             channelCount: number;
             revokedCount: number;
+            /** @description 1.1 */
+            collectionCount?: number;
+            /** @description 1.1 */
+            revokedCollectionCount?: number;
         };
         AuditEvent: {
             eventId: components["schemas"]["Ulid"];
@@ -1159,6 +1629,51 @@ export interface components {
                 };
             };
         };
+        /** @description 素材集 */
+        Collection: {
+            headers: {
+                ETag: components["headers"]["ETag"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Collection"];
+            };
+        };
+        /** @description 素材集の一覧 */
+        CollectionList: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    items: components["schemas"]["Collection"][];
+                };
+            };
+        };
+        /** @description 素材集の申請 */
+        CollectionSubmission: {
+            headers: {
+                ETag: components["headers"]["ETag"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["CollectionSubmission"];
+            };
+        };
+        /** @description 判定後の素材集の申請と公開の状況 */
+        CollectionDecision: {
+            headers: {
+                ETag: components["headers"]["ETag"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    submission: components["schemas"]["CollectionSubmission"];
+                    /** @enum {string} */
+                    publication: "pending" | "none";
+                };
+            };
+        };
         /** @description 鍵の移し替え */
         KeyTransfer: {
             headers: {
@@ -1189,6 +1704,7 @@ export interface components {
         Limit: number;
         ChannelId: components["schemas"]["ChannelId"];
         SubmissionId: components["schemas"]["Ulid"];
+        CollectionId: components["schemas"]["CollectionId"];
         PublisherId: components["schemas"]["Ulid"];
         TransferId: components["schemas"]["Ulid"];
     };
@@ -1633,6 +2149,189 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
+    enableProducerRole: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Publisher"];
+            default: components["responses"]["Error"];
+        };
+    };
+    listMyCollections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["CollectionList"];
+            default: components["responses"]["Error"];
+        };
+    };
+    registerCollection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    collectionId: components["schemas"]["CollectionId"];
+                };
+            };
+        };
+        responses: {
+            201: components["responses"]["Collection"];
+            default: components["responses"]["Error"];
+        };
+    };
+    getCollection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Collection"];
+            default: components["responses"]["Error"];
+        };
+    };
+    listCollectionUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 使っているチャンネル */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["UsedBy"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listCollectionSubmissions: {
+        parameters: {
+            query?: {
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 申請 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CollectionSubmission"][];
+                        nextCursor?: string | null;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createCollectionSubmission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 運用者への説明 */
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 申請とアップロード先 */
+            201: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionSubmissionCreated"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getCollectionSubmission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["CollectionSubmission"];
+            default: components["responses"]["Error"];
+        };
+    };
+    withdrawCollectionSubmission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["CollectionSubmission"];
+            default: components["responses"]["Error"];
+        };
+    };
     listReviewQueue: {
         parameters: {
             query?: {
@@ -1652,7 +2351,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["Submission"][];
+                        items: (components["schemas"]["Submission"] | components["schemas"]["CollectionSubmission"])[];
                         nextCursor?: string | null;
                     };
                 };
@@ -1900,6 +2599,190 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
+    getCollectionSubmissionPackage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 取得先 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        packageUrl: string;
+                        /** Format: date-time */
+                        expiresAt: string;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listCollectionReviews: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 審査の記録 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Review"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    startCollectionReview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["CollectionSubmission"];
+            default: components["responses"]["Error"];
+        };
+    };
+    releaseCollectionReview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["CollectionSubmission"];
+            default: components["responses"]["Error"];
+        };
+    };
+    approveCollectionSubmission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CollectionApproveInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["CollectionDecision"];
+            default: components["responses"]["Error"];
+        };
+    };
+    returnCollectionSubmission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FindingsInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["CollectionDecision"];
+            default: components["responses"]["Error"];
+        };
+    };
+    rejectCollectionSubmission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+                submissionId: components["parameters"]["SubmissionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FindingsInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["CollectionDecision"];
+            default: components["responses"]["Error"];
+        };
+    };
+    revokeCollection: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 取得したときの `ETag`。ないと 428、違うと 412 */
+                "If-Match": components["parameters"]["IfMatch"];
+            };
+            path: {
+                collectionId: components["parameters"]["CollectionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["Collection"];
+            default: components["responses"]["Error"];
+        };
+    };
     listPublishers: {
         parameters: {
             query?: {
@@ -1955,6 +2838,21 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["ChannelList"];
+            default: components["responses"]["Error"];
+        };
+    };
+    listPublisherCollections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                publisherId: components["parameters"]["PublisherId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["CollectionList"];
             default: components["responses"]["Error"];
         };
     };

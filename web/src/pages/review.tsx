@@ -38,7 +38,11 @@ export function ReviewQueuePage() {
           <tbody>
             {queue.data.items.map((s) => (
               <tr key={s.submissionId}>
-                <td><Link to={`/review/${s.channelId}/${s.submissionId}`}><code>{s.channelId}</code></Link></td>
+                <td>
+                  {s.kind === 'collection'
+                    ? <>素材集 <code>{s.collectionId}</code></>
+                    : <Link to={`/review/${s.channelId}/${s.submissionId}`}><code>{s.channelId}</code></Link>}
+                </td>
                 <td>{s.version}</td>
                 <td><span className={`tag ${s.state}`}>{STATE[s.state] ?? s.state}</span></td>
                 <td><Time value={s.submittedAt} /></td>

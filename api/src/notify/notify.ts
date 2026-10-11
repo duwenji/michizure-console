@@ -32,9 +32,9 @@ const REMEMBER_DAYS = 30;
 const FOOTER = '\n\n—\nSanpoGuide チャンネル管理システム\nこのメールは送信専用です。返信はできません。';
 
 export function render(notice: Notice, consoleUrl: string): { subject: string; body: string } {
-  const channel = notice.channelId ? `チャンネル ${notice.channelId} ` : '';
+  const channel = notice.channelId ? `チャンネル ${notice.channelId} ` : notice.collectionId ? `素材集 ${notice.collectionId} ` : '';
   const what = notice.version !== undefined ? `${channel}の版 ${notice.version} ` : channel;
-  const link = notice.channelId ? `${consoleUrl}/channels/${notice.channelId}` : `${consoleUrl}/`;
+  const link = notice.channelId ? `${consoleUrl}/channels/${notice.channelId}` : notice.collectionId ? `${consoleUrl}/collections/${notice.collectionId}` : `${consoleUrl}/`;
   const message = notice.message ? `\n\n運用者からのメッセージ:\n${notice.message}` : '';
   const findings = notice.findings?.length ? `\n\n指摘（審査基準の項目）:\n${notice.findings.map((f) => `・${f.item}: ${f.detail}`).join('\n')}` : '';
   const lines = ((): [string, string] => {
@@ -52,6 +52,14 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
           '鍵の移し替えを承認しました',
           `鍵の移し替えを承認しました。これからの申請は新しい鍵で署名してください。${notice.returned ? `\n古い鍵で署名した審査待ちの申請 ${notice.returned} 件を差し戻しました。` : ''}`,
         ];
+      case 'collection.approved':
+        return [`${what}を承認しました`, `${what}を承認しました。数分のうちに公開のリストに載り、チャンネルから使えるようになります。${message}`];
+      case 'collection.returned':
+        return [`${what}を差し戻しました`, `${what}を差し戻しました。指摘を直して、もう一度申請してください。${findings}${message}`];
+      case 'collection.rejected':
+        return [`${what}を却下しました`, `${what}を却下しました。${findings}${message}`];
+      case 'collection.revoked':
+        return [`${channel}を取り下げました`, `運用者が${channel}を公開のリストから取り下げました。この素材集を使うチャンネルでは、その素材が出なくなります。${message}`];
       case 'transfer.rejected':
         return ['鍵の移し替えを認めませんでした', `鍵の移し替えの申し出を認めませんでした。新しい鍵の紐づけは外しました。${message}`];
     }
