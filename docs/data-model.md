@@ -10,8 +10,8 @@
 | 関連Skill | 020_data-model-design-unified |
 | 作成日 | 2026-10-03 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | 開発者（1.0〜1.1: 2026-10-03、1.2: 2026-10-04） |
-| ステータス | 1.3 承認待ち（1.2 は承認済） |
+| 承認者 | 開発者（1.0〜1.1: 2026-10-03、1.2: 2026-10-04、1.3: 2026-10-11） |
+| ステータス | 承認済 |
 | 版 | 1.3 |
 
 ## 目的・背景
@@ -553,7 +553,7 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 
 | 日付 | 版 | 変更内容 | 変更者 |
 |---|---|---|---|
-| 2026-10-11 | 1.3 | 素材の制作元（SanpoGuide ADR-002）に合わせて改訂: M-16〜M-25、AP-23〜AP-29、素材集・素材集の申請・審査の記録・取り下げ・利用の記録の項目、アカウントの `roles`・`collectionCount`・`producerVerification`、チャンネルの `appStage`・`collections`・`ownPrefetchBytes`・`ownMedia`、トランザクション、S3 の置き場所、DV-14〜DV-21 | Claude |
+| 2026-10-11 | 1.3 | 素材の制作元（SanpoGuide ADR-002）に合わせて改訂: M-16〜M-25、AP-23〜AP-29、素材集・素材集の申請・審査の記録・取り下げ・利用の記録の項目、アカウントの `roles`・`collectionCount`・`producerVerification`、チャンネルの `appStage`・`collections`・`ownPrefetchBytes`・`ownMedia`、トランザクション、S3 の置き場所、DV-14〜DV-21 | Claude（承認: 開発者） |
 | 2026-10-04 | 1.2 | 実装 3d（DES-006）に合わせた補足: 鍵の移し替えに GSI1 `TRANSFERS`（過去の申し出の一覧）、送ったメールの印 `NOTICE`、`publisherChange.until` を新しい鍵の最初の版の承認から数える | Claude（承認: 開発者） |
 | 2026-10-03 | 0.1 | 草案（M-1〜M-4 は開発者の決定、M-5〜M-13 は提案） | Claude |
 | 2026-10-03 | 1.1 | 管理 API（API-001 1.0）に合わせて改訂: 鍵の移し替えを配信元ごとに（M-14）、配信元の鍵の状態、配信元の `deleted`（M-15）、申請のアイコン・説明・タグ・地域、見本用のプロンプトと見本の置き場所、公開の `manual`、署名鍵の `registered`、通知の操作の記録 | Claude（承認: 開発者） |
