@@ -144,7 +144,12 @@ describe('ConsoleStack', () => {
   it('takes uploads straight to a private intake bucket that forgets settled packages after 90 days', () => {
     prod.hasResourceProperties('AWS::S3::Bucket', {
       CorsConfiguration: { CorsRules: [Match.objectLike({ AllowedMethods: ['POST'] })] },
-      LifecycleConfiguration: { Rules: Match.arrayWith([Match.objectLike({ Prefix: 'archive/', ExpirationInDays: 90 })]) },
+      LifecycleConfiguration: {
+        Rules: Match.arrayWith([
+          Match.objectLike({ Prefix: 'archive/', ExpirationInDays: 90 }),
+          Match.objectLike({ Prefix: 'archive-col/', ExpirationInDays: 90 }),
+        ]),
+      },
     });
     const policies = JSON.stringify(prod.findResources('AWS::IAM::Policy'));
     expect(policies).toContain('cognito-idp:AdminDeleteUser');
@@ -154,7 +159,19 @@ describe('ConsoleStack', () => {
   it('reviews uploads with the Java Lambda, and lets the console API sign tickets only through the key policy', () => {
     prod.hasResourceProperties('AWS::Lambda::Function', { Runtime: 'java21', Handler: 'console.validator.Handler::handleRequest' });
     prod.hasResourceProperties('Custom::S3BucketNotifications', {
-      NotificationConfiguration: { LambdaFunctionConfigurations: [Match.objectLike({ Events: ['s3:ObjectCreated:*'], Filter: { Key: { FilterRules: [{ Name: 'prefix', Value: 'intake/' }] } } })] },
+      NotificationConfiguration: {
+        LambdaFunctionConfigurations: [
+          Match.objectLike({ Events: ['s3:ObjectCreated:*'], Filter: { Key: { FilterRules: [{ Name: 'prefix', Value: 'intake/' }] } } }),
+          // Collections too (DES-007 J-3).
+          Match.objectLike({ Events: ['s3:ObjectCreated:*'], Filter: { Key: { FilterRules: [{ Name: 'prefix', Value: 'intake-col/' }] } } }),
+        ],
+      },
+    });
+    // Reading a collection's outside resources takes up to 10 minutes (J-5); it resolves against the listed ones (J-2).
+    prod.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'console.validator.Handler::handleRequest',
+      Timeout: 900,
+      Environment: { Variables: Match.objectLike({ PUBLIC_BUCKET: Match.anyValue() }) },
     });
     const keyPolicy = JSON.stringify(prod.findResources('AWS::KMS::Key'));
     expect(keyPolicy.match(/ED25519_SHA_512/g)?.length).toBe(2);
