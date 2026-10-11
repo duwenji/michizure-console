@@ -10,8 +10,8 @@
 | 関連Skill | 020_api-contract-design |
 | 作成日 | 2026-10-03 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | 開発者（2026-10-03） |
-| ステータス | 1.1 承認待ち（1.0 は承認済） |
+| 承認者 | 開発者（1.0: 2026-10-03、1.1: 2026-10-11） |
+| ステータス | 承認済 |
 | 版 | 1.1 |
 
 入出力の正本は [api/console.openapi.yaml](api/console.openapi.yaml)。本書は方針・状態・エラー・権限を説明し、食い違いがあれば本書に合わせて OpenAPI を直す。
@@ -76,7 +76,7 @@
 
 ### 素材の制作元の決定（1.1、2026-10-11。DM-001 1.3 の決定から Claude が提案）
 
-| No. | 論点 | 決定（案） |
+| No. | 論点 | 決定 |
 |---|---|---|
 | C-15 | 役割とパス | アカウントは今の `/api/publisher` のまま（M-16。パスを変えると古い SPA が動かなくなるため）。制作元の役割は `POST /api/publisher/roles/producer` で有効にする。素材集の操作には `producer` の役割が要る（ないと `role_required`）。Cognito のグループは今の `publisher` のまま（役割はアカウントの項目で見る） |
 | C-16 | 素材集の操作 | `/api/collections/…` に、チャンネルと同じ形の操作を置く（登録・一覧・申請・取り消し）。試用チケットとアイコンはない（M-19）。運用者の操作は `/api/admin/collections/…` に、チャンネルと同じ判定・取り下げを置く。審査待ちの一覧（`/api/admin/review-queue`）は共通で、項目の `kind` で見分ける |
@@ -485,4 +485,4 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | 2026-10-03 | 0.1 | 草案（C-1〜C-4 は開発者の決定、C-5〜C-13 は提案） | Claude |
 | 2026-10-03 | 0.2 | C-14（SES でメールの通知）を追加し、未決事項 No.2 を解消。CV-13、DM-001 への影響 No.8 を追加 | Claude |
 | 2026-10-03 | 1.0 | C-5〜C-14 を承認。DM-001 1.1・ADR-001 1.1 と同時に承認 | Claude（承認: 開発者） |
-| 2026-10-11 | 1.1 | 素材の制作元（SanpoGuide ADR-002、DM-001 1.3）に合わせて改訂: C-15〜C-22、制作元の役割と素材集の操作（11 件）、運用者の素材集の操作（9 件）、機械審査の結果の `collections`・`external`・`inUse`・`warnings`、エラー `role_required`・`collection_id_taken`・`producer_not_verified`・`resource_in_use`、CV-14〜CV-20 | Claude |
+| 2026-10-11 | 1.1 | 素材の制作元（SanpoGuide ADR-002、DM-001 1.3）に合わせて改訂: C-15〜C-22、制作元の役割と素材集の操作（11 件）、運用者の素材集の操作（9 件）、機械審査の結果の `collections`・`external`・`inUse`・`warnings`、エラー `role_required`・`collection_id_taken`・`producer_not_verified`・`resource_in_use`、CV-14〜CV-20 | Claude（承認: 開発者） |
