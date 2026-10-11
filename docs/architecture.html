@@ -114,7 +114,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
   <header>
     <div class="eyebrow">SANPO-CHANNEL-CONSOLE · AWS / TYPESCRIPT / KOTLIN</div>
     <h1>チャンネル管理システムの構成図</h1>
-    <p>SanpoGuide のアプリに第三者のチャンネルと素材集を届けるため、配信元・制作元の申請を審査し、承認したものだけを署名したリストで公開するシステムです。5 枚の図で説明します。図 1 で「誰が何を使い、どこに何があるか」をつかみ、図 2〜5 で申請の一生・信頼の鎖・公開の処理・メールと警報を追います。</p>
+    <p>SanpoGuide のアプリに第三者のチャンネルと素材集を届けるため、チャンネル提供者・素材提供者の申請を審査し、承認したものだけを署名したリストで公開するシステムです。5 枚の図で説明します。図 1 で「誰が何を使い、どこに何があるか」をつかみ、図 2〜5 で申請の一生・信頼の鎖・公開の処理・メールと警報を追います。</p>
     <div class="facts">
       <span>ソース <b>71 ファイル / 約 10,440 行</b>（TypeScript と Kotlin。テスト・生成した型を除く）</span>
       <span>テスト <b>16 ファイル / 約 2,920 行</b></span>
@@ -123,7 +123,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
       <span>DynamoDB <b>1 テーブル</b></span>
       <span>S3 <b>4 バケット</b></span>
     </div>
-    <p style="font-size:13.5px;color:var(--muted)">アプリとの境界は SanpoGuide の API-002（承認済みチャンネル・リスト）だけです。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来ます。図はコードと CDK から手で書き起こしたもの（2026-10-12 時点。素材集と制作元は 2026-10-11 に追加）です。Lambda・バケット・申請の状態を足したり変えたりしたときは、この文書と <code>docs/architecture.md</code> も更新してください。</p>
+    <p style="font-size:13.5px;color:var(--muted)">アプリとの境界は SanpoGuide の API-002（承認済みチャンネル・リスト）だけです。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来ます。図はコードと CDK から手で書き起こしたもの（2026-10-12 時点。素材集と素材提供者は 2026-10-11 に追加）です。Lambda・バケット・申請の状態を足したり変えたりしたときは、この文書と <code>docs/architecture.md</code> も更新してください。</p>
   </header>
 
   <!-- 1. Overview -->
@@ -131,11 +131,11 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
     <div class="sec-head">
       <div class="eyebrow">図 1 · 全体</div>
       <h2>公開の面に書くのは「公開の Lambda」だけ</h2>
-      <p>運用者・配信元・制作元が使う <b>管理の面</b>（ログインが要る画面と API）と、アプリが取りに来る <b>公開の面</b>（誰でも読める静的ファイル）は、DynamoDB と公開の Lambda でしかつながっていません。管理の面に何かあっても、公開されるのは公開の Lambda が署名したリストだけです。</p>
+      <p>運営・チャンネル提供者・素材提供者が使う <b>管理の面</b>（ログインが要る画面と API）と、アプリが取りに来る <b>公開の面</b>（誰でも読める静的ファイル）は、DynamoDB と公開の Lambda でしかつながっていません。管理の面に何かあっても、公開されるのは公開の Lambda が署名したリストだけです。</p>
     </div>
     <figure>
       <div class="scroll">
-      <svg viewBox="0 0 1000 466" role="img" aria-label="4 層の構成図。利用者（配信元・制作元のブラウザ、運用者のブラウザ、SanpoGuide アプリ）、入口（受付用 S3、管理の CloudFront、Cognito、公開の CloudFront と S3）、処理（機械審査、管理 API、公開の Lambda）、データと鍵（記録用 S3、DynamoDB、KMS の署名鍵）。公開の面へ書くのは公開の Lambda だけ。">
+      <svg viewBox="0 0 1000 466" role="img" aria-label="4 層の構成図。利用者（チャンネル提供者・素材提供者のブラウザ、運営のブラウザ、SanpoGuide アプリ）、入口（受付用 S3、管理の CloudFront、Cognito、公開の CloudFront と S3）、処理（機械審査、管理 API、公開の Lambda）、データと鍵（記録用 S3、DynamoDB、KMS の署名鍵）。公開の面へ書くのは公開の Lambda だけ。">
         <defs>
           <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
           <marker id="a1h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--hot)"/></marker>
@@ -158,12 +158,12 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 
         <!-- band A: users -->
         <rect class="bx" x="116" y="38" width="200" height="64" rx="8"/>
-        <text class="t" x="216" y="60">配信元・制作元のブラウザ</text>
+        <text class="t" x="216" y="60">チャンネル提供者・素材提供者のブラウザ</text>
         <text class="s" x="216" y="77">チャンネル・素材集の申請・移し替え</text>
         <text class="s" x="216" y="93" style="fill:var(--accent)">秘密鍵はここで作り、ここだけ</text>
 
         <rect class="bx" x="336" y="38" width="200" height="64" rx="8"/>
-        <text class="t" x="436" y="60">運用者のブラウザ</text>
+        <text class="t" x="436" y="60">運営のブラウザ</text>
         <text class="s" x="436" y="77">審査・承認・取り下げ</text>
         <text class="s" x="436" y="93" style="fill:var(--accent)">AI のキーはページのメモリだけ</text>
 
@@ -185,7 +185,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 
         <rect class="bx" x="282" y="144" width="250" height="64" rx="8"/>
         <text class="t" x="407" y="166">CloudFront（管理）</text>
-        <text class="s" x="407" y="183">画面（SPA）と /api/* を同じ配信元で</text>
+        <text class="s" x="407" y="183">画面（SPA）と /api/* を同じチャンネル提供者で</text>
         <text class="sm" x="407" y="199">/api/* → HTTP API（JWT・流量制限）</text>
 
         <rect class="bx" x="560" y="144" width="172" height="64" rx="8"/>
@@ -271,7 +271,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
           <span><i class="sw ext"></i>外部サービス</span>
           <span>緑の文字: その場所から外に出ないもの</span>
         </div>
-        <p>配信元・制作元のパッケージは管理 API を通らず、署名つき POST で受付用 S3 に直接届きます（素材集は <code>intake-col/</code>）。大きさと種類は S3 が拒むので、Lambda は大きなファイルを受けません。届くと機械審査が動き、パッケージとアイコンの<b>両方</b>がそろった時点で確かめます。</p>
+        <p>チャンネル提供者・素材提供者のパッケージは管理 API を通らず、署名つき POST で受付用 S3 に直接届きます（素材集は <code>intake-col/</code>）。大きさと種類は S3 が拒むので、Lambda は大きなファイルを受けません。届くと機械審査が動き、パッケージとアイコンの<b>両方</b>がそろった時点で確かめます。</p>
         <p>KMS の署名鍵は IAM ではなく<b>鍵ポリシー</b>で、公開の Lambda と管理 API（試用チケット）にだけ、純粋な Ed25519 での署名を許しています。CloudFront と S3 は信用の根拠ではありません。アプリが署名とハッシュを自分で確かめるからです。</p>
         <p>メールの知らせ（SQS と通知の Lambda）、ログイン時の Cognito のトリガーは図 5 と表に分けました。</p>
       </figcaption>
@@ -283,7 +283,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
     <div class="sec-head">
       <div class="eyebrow">図 2 · 申請の一生</div>
       <h2>チャンネルごとに「決着していない申請」は 1 つだけ</h2>
-      <p>申請はアップロード待ちから始まり、機械審査と運用者の審査を経て、承認か、どこかの出口で終わります。決着していない間はチャンネルの <code>pendingSubmissionId</code> がその申請を指し、次の申請を受け付けません。出口に出たらチャンネルが空き、ファイルは <code>archive/</code> に移って 90 日で消えます。</p>
+      <p>申請はアップロード待ちから始まり、機械審査と運営の審査を経て、承認か、どこかの出口で終わります。決着していない間はチャンネルの <code>pendingSubmissionId</code> がその申請を指し、次の申請を受け付けません。出口に出たらチャンネルが空き、ファイルは <code>archive/</code> に移って 90 日で消えます。</p>
     </div>
     <figure>
       <div class="scroll">
@@ -318,7 +318,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <text class="lbl mid" x="312" y="112">機械審査</text>
         <line class="ar" x1="460" y1="141" x2="488" y2="141" marker-end="url(#a2)"/>
         <line class="ar" x1="490" y1="157" x2="462" y2="157" marker-end="url(#a2)"/>
-        <text class="lbl mid" x="475" y="112">運用者が開始 / 戻す</text>
+        <text class="lbl mid" x="475" y="112">運営が開始 / 戻す</text>
         <line class="ar-acc" x1="626" y1="149" x2="658" y2="149" marker-end="url(#a2a)"/>
         <text class="lbl mid" x="642" y="112" style="fill:var(--accent)">承認</text>
 
@@ -336,7 +336,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <rect class="bx-dash" x="176" y="262" width="124" height="58" rx="8"/>
         <text class="tm" x="238" y="286" style="font-size:11.5px">validation_failed</text><text class="s" x="238" y="305">理由のコードを記録</text>
         <rect class="bx-dash" x="324" y="262" width="136" height="58" rx="8"/>
-        <text class="tm" x="392" y="286">withdrawn</text><text class="s" x="392" y="305">配信元が取り消し</text>
+        <text class="tm" x="392" y="286">withdrawn</text><text class="s" x="392" y="305">チャンネル提供者が取り消し</text>
         <rect class="bx-dash" x="490" y="262" width="136" height="58" rx="8"/>
         <text class="tm" x="558" y="286">returned</text><text class="s" x="558" y="305">差し戻し・鍵の移し替え</text>
         <rect class="bx-dash" x="660" y="262" width="124" height="58" rx="8"/>
@@ -353,7 +353,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <text class="lbl" x="806" y="314">ファイルは archive/ へ</text>
 
         <!-- notes -->
-        <text class="it" x="24" y="356">・差し戻し・却下には審査基準の項目番号（例 2.2）つきの指摘が 1 つ以上要る。配信元の画面とメールに出る</text>
+        <text class="it" x="24" y="356">・差し戻し・却下には審査基準の項目番号（例 2.2）つきの指摘が 1 つ以上要る。チャンネル提供者の画面とメールに出る</text>
         <text class="it" x="24" y="378">・承認のとき、受付用 S3 のパッケージを読み直し、機械審査のときと同じ SHA-256 かを確かめてから pkg/ に写す</text>
         <text class="it" x="24" y="400">・鍵の移し替えを承認すると、古い鍵で署名した決着していない申請（uploading〜in_review）はすべて returned になる</text>
       </svg>
@@ -365,7 +365,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
           <span><i class="sw" style="border-style:dashed"></i>出口（決着）</span>
         </div>
         <p>素材集の申請も同じ状態を通ります（アイコンがないので、パッケージ 1 つが届けば機械審査が動き、試用チケットはありません）。機械審査の結果は、パッケージとアイコンの 2 つの知らせが同時に来ても 1 回しか記録されません。記録は <code>state = uploading</code> を条件にした 1 つのトランザクションだからです。同じ理由で、鍵の移し替えで先に <code>returned</code> になった申請に、あとから機械審査の結果が届いても上書きされません。</p>
-        <p>上限: 1 アカウントのチャンネルは 5、素材集は 5、申請は 1 日 20 回、試用チケットは 1 日 10 枚（日付は日本時間で数える）。運用者がアカウントごとに変えられます。</p>
+        <p>上限: 1 アカウントのチャンネルは 5、素材集は 5、申請は 1 日 20 回、試用チケットは 1 日 10 枚（日付は日本時間で数える）。運営がアカウントごとに変えられます。</p>
       </figcaption>
     </figure>
   </section>
@@ -374,12 +374,12 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
   <section>
     <div class="sec-head">
       <div class="eyebrow">図 3 · 信頼の鎖</div>
-      <h2>アプリが最初から知っているのは、提供元ID（ルート鍵の指紋）だけ</h2>
-      <p>アプリは利用者が登録した提供元ID から始めて、署名とハッシュを 1 段ずつたどります。どの段で合わなくても、その文書は捨てて前のものを使い続けます。鍵は 3 か所に分かれていて、どれもリポジトリと管理 API の外にあります。</p>
+      <h2>アプリが最初から知っているのは、運営ID（ルート鍵の指紋）だけ</h2>
+      <p>アプリは散策者が登録した運営ID から始めて、署名とハッシュを 1 段ずつたどります。どの段で合わなくても、その文書は捨てて前のものを使い続けます。鍵は 3 か所に分かれていて、どれもリポジトリと管理 API の外にあります。</p>
     </div>
     <figure>
       <div class="scroll">
-      <svg viewBox="0 0 1000 520" role="img" aria-label="信頼の鎖。左の列が鍵のありか（オフラインの端末、KMS、配信元のブラウザ）、中央の列が文書（鍵セット、リストの要約、リストの本体、パッケージ、配信元の署名、試用チケット）、右の列がアプリの確かめること。">
+      <svg viewBox="0 0 1000 520" role="img" aria-label="信頼の鎖。左の列が鍵のありか（オフラインの端末、KMS、チャンネル提供者のブラウザ）、中央の列が文書（鍵セット、リストの要約、リストの本体、パッケージ、チャンネル提供者の署名、試用チケット）、右の列がアプリの確かめること。">
         <defs>
           <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
           <marker id="a3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
@@ -394,7 +394,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <rect class="bx-acc" x="30" y="44" width="220" height="70" rx="8"/>
         <text class="ta" x="140" y="68">ルート鍵</text>
         <text class="s" x="140" y="86">オフラインの端末（本番）</text>
-        <text class="sm" x="140" y="103">提供元ID sc1… = 公開鍵の指紋</text>
+        <text class="sm" x="140" y="103">運営ID sc1… = 公開鍵の指紋</text>
 
         <rect class="bx-acc" x="30" y="148" width="220" height="70" rx="8"/>
         <text class="ta" x="140" y="172">署名鍵（KMS）</text>
@@ -402,8 +402,8 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <text class="sm" x="140" y="207">k-2026-10 · 半年ごとに替える</text>
 
         <rect class="bx" x="30" y="374" width="220" height="70" rx="8"/>
-        <text class="t" x="140" y="398">配信元の鍵</text>
-        <text class="s" x="140" y="416">配信元のブラウザ（WebCrypto）</text>
+        <text class="t" x="140" y="398">チャンネル提供者の鍵</text>
+        <text class="s" x="140" y="416">チャンネル提供者のブラウザ（WebCrypto）</text>
         <text class="sm" x="140" y="433">アカウントID sg1… = 指紋</text>
 
         <!-- documents -->
@@ -452,7 +452,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <path class="ar-d" d="M580,481 L596,481 L596,344 L582,344" marker-end="url(#a3)"/>
 
         <!-- checks -->
-        <text class="chk" x="630" y="66">・ルート鍵の指紋 = 利用者が登録した提供元ID</text>
+        <text class="chk" x="630" y="66">・ルート鍵の指紋 = 散策者が登録した運営ID</text>
         <text class="chk" x="630" y="86">・ルート鍵の署名、seq が前より小さくない</text>
         <text class="chk" x="630" y="106">・各署名鍵の有効期間は 1 年以内</text>
         <text class="chk" x="630" y="170">・鍵セットにあり、失効しておらず、期間内の鍵</text>
@@ -463,13 +463,13 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <text class="chk" x="630" y="349">・大きさと SHA-256 がリストと一致（2MB まで）</text>
         <text class="chk" x="630" y="404">・署名した鍵 = channel.json の publisher</text>
         <text class="chk" x="630" y="424">　= リストの publisher（違えば publisherChange）</text>
-        <text class="chk" x="630" y="486">・開発者モードのときだけ。提供元を先に登録</text>
+        <text class="chk" x="630" y="486">・開発者モードのときだけ。運営を先に登録</text>
       </svg>
       </div>
       <figcaption>
         <p>KMS は 4,096 バイトまでしか署名できないので、リストは本体ではなく<b>要約</b>に署名します（API-002 P-8）。要約が本体の SHA-256 と大きさを持つので、本体がどれだけ大きくても署名は 1 回で済みます。</p>
         <p>アプリ側の確認は SanpoGuide の <code>station-format</code>（<code>ProviderDocuments</code>）にあります。このリポジトリの <code>conformance/src/app-vectors.ts</code> が、同じ署名のコードで作った文書をアプリのテストに渡しているので、両側の解釈がずれると SanpoGuide のテストが落ちます。</p>
-        <p>配信元が鍵をなくしたら、運用者が鍵とは別の経路で本人確認したうえで新しい鍵に移します。新しい鍵で署名した最初の版が承認されるまで、リストには古い版（古い鍵）のまま載り、<code>publisherChange</code> は出しません。出すと <code>from</code> と <code>publisher</code> が同じになり、準拠テスト V-16 に反するためです。</p>
+        <p>チャンネル提供者が鍵をなくしたら、運営が鍵とは別の経路で本人確認したうえで新しい鍵に移します。新しい鍵で署名した最初の版が承認されるまで、リストには古い版（古い鍵）のまま載り、<code>publisherChange</code> は出しません。出すと <code>from</code> と <code>publisher</code> が同じになり、準拠テスト V-16 に反するためです。</p>
       </figcaption>
     </figure>
   </section>
@@ -552,7 +552,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
       </svg>
       </div>
       <figcaption>
-        <p>パッケージとアイコンは承認のときに管理 API が <code>pkg/{SHA-256}.zip</code>・<code>icons/{SHA-256}.png</code>（素材集は <code>col/{SHA-256}.zip</code>）に置きます。毎日の実行（03:00 JST）だけは、公開が終わったあとで公開中の素材集の外部の素材の URL に HEAD を送り、取得できない・大きさが違うものを制作元に知らせます。この確認が失敗しても公開は失敗にしません。名前が中身のハッシュなので、同じ名前の中身は変わらず、1 年キャッシュしてよい（<code>immutable</code>）。無効化が要るのはリストと発見の文書だけです。</p>
+        <p>パッケージとアイコンは承認のときに管理 API が <code>pkg/{SHA-256}.zip</code>・<code>icons/{SHA-256}.png</code>（素材集は <code>col/{SHA-256}.zip</code>）に置きます。毎日の実行（03:00 JST）だけは、公開が終わったあとで公開中の素材集の外部の素材の URL に HEAD を送り、取得できない・大きさが違うものを素材提供者に知らせます。この確認が失敗しても公開は失敗にしません。名前が中身のハッシュなので、同じ名前の中身は変わらず、1 年キャッシュしてよい（<code>immutable</code>）。無効化が要るのはリストと発見の文書だけです。</p>
         <p>手元では AWS なしで同じ処理を流せます（<code>MemoryStore</code> と <code>MemoryStorage</code>、使い捨ての鍵）。README の「手元で公開して、準拠テストをかける」を参照。</p>
       </figcaption>
     </figure>
@@ -563,11 +563,11 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
     <div class="sec-head">
       <div class="eyebrow">図 5 · メールと警報</div>
       <h2>メールが届かなくても、操作は失敗にしない</h2>
-      <p>判定・取り下げ・移し替えの結果（素材集の更新・利用許諾の縮小・取り下げは、使っているチャンネルの配信元にも）は、状態を書いた<b>あと</b>で SQS に知らせを入れ、通知の Lambda が配信元・制作元に送ります。公開の Lambda も、外部の素材の不具合を同じキューに入れます。キューに入れられない・送れないときも、操作そのものは成功のままです。</p>
+      <p>判定・取り下げ・移し替えの結果（素材集の更新・利用許諾の縮小・取り下げは、使っているチャンネル提供者にも）は、状態を書いた<b>あと</b>で SQS に知らせを入れ、通知の Lambda がチャンネル提供者・素材提供者に送ります。公開の Lambda も、外部の素材の不具合を同じキューに入れます。キューに入れられない・送れないときも、操作そのものは成功のままです。</p>
     </div>
     <figure>
       <div class="scroll">
-      <svg viewBox="0 0 1000 250" role="img" aria-label="管理 API が SQS に知らせを入れ、通知の Lambda が Cognito で確認済みのアドレスを調べて SES で送る。3 回失敗するとデッドレターキューに入り、警報が運用者に届く。公開の Lambda の失敗も警報になる。">
+      <svg viewBox="0 0 1000 250" role="img" aria-label="管理 API が SQS に知らせを入れ、通知の Lambda が Cognito で確認済みのアドレスを調べて SES で送る。3 回失敗するとデッドレターキューに入り、警報が運営に届く。公開の Lambda の失敗も警報になる。">
         <defs>
           <marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
           <marker id="a5w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--warn)"/></marker>
@@ -619,7 +619,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 
         <rect class="bx-warn" x="440" y="150" width="210" height="62" rx="8"/>
         <text class="t" x="545" y="174" style="fill:var(--warn)">警報（CloudWatch → SNS）</text>
-        <text class="s" x="545" y="192">運用者のメール（設定したときだけ）</text>
+        <text class="s" x="545" y="192">運営のメール（設定したときだけ）</text>
         <line class="ar-warn" x1="400" y1="173" x2="438" y2="173" marker-end="url(#a5w)"/>
         <path class="ar-warn" d="M170,200 L188,200 L188,224 L545,224 L545,214" marker-end="url(#a5w)"/>
 
@@ -629,8 +629,8 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
       </svg>
       </div>
       <figcaption>
-        <p>本文に入るのは、結果・理由（指摘の項目番号と内容、運用者のメッセージ）・画面へのリンクだけです。見本、運用者の ID、トークンは入れません。宛先は配信元が登録した連絡先ではなく、Cognito で確認済みのメールアドレスです。</p>
-        <p>3 回目の失敗だけが <code>notification.failed</code> を記録してからデッドレターキューへ進みます。確認済みのアドレスがない・退会した配信元は、再送せずにすぐ <code>notification.failed</code>（<code>no_verified_email</code>）になります。</p>
+        <p>本文に入るのは、結果・理由（指摘の項目番号と内容、運営のメッセージ）・画面へのリンクだけです。見本、運営の ID、トークンは入れません。宛先はチャンネル提供者が登録した連絡先ではなく、Cognito で確認済みのメールアドレスです。</p>
+        <p>3 回目の失敗だけが <code>notification.failed</code> を記録してからデッドレターキューへ進みます。確認済みのアドレスがない・退会したチャンネル提供者は、再送せずにすぐ <code>notification.failed</code>（<code>no_verified_email</code>）になります。</p>
       </figcaption>
     </figure>
   </section>
@@ -638,22 +638,22 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
   <!-- materials -->
   <section>
     <div class="sec-head">
-      <div class="eyebrow">素材集と制作元（DM-001 1.3）</div>
+      <div class="eyebrow">素材集と素材提供者（DM-001 1.3）</div>
       <h2>素材集は、チャンネルと同じ仕組みに乗る別の単位</h2>
-      <p>素材集は、チャンネルが参照する文字・画像などの素材のまとまりです（SanpoGuide の ADR-002・API-004）。制作元が自分の鍵で署名して申請し、運用者がチャンネルとは別に審査・承認して、同じリストの <code>collections[]</code> に載せます。申請の状態の移り方（図 2）・信頼の鎖（図 3）・公開の処理（図 4）・メール（図 5）は、チャンネルと同じ仕組みを使います。違いだけをまとめます。</p>
+      <p>素材集は、チャンネルが参照する文字・画像などの素材のまとまりです（SanpoGuide の ADR-002・API-004）。素材提供者が自分の鍵で署名して申請し、運営がチャンネルとは別に審査・承認して、同じリストの <code>collections[]</code> に載せます。申請の状態の移り方（図 2）・信頼の鎖（図 3）・公開の処理（図 4）・メール（図 5）は、チャンネルと同じ仕組みを使います。違いだけをまとめます。</p>
     </div>
     <div class="tw">
       <table>
         <thead><tr><th></th><th>チャンネル</th><th>素材集</th></tr></thead>
         <tbody>
-          <tr><td>申請する人</td><td>配信元（アカウントの役割 <code>publisher</code>）</td><td>制作元（同じアカウントで役割 <code>producer</code> を有効にする）。運用者は最初の承認のときに身元の確認を記録する</td></tr>
+          <tr><td>申請する人</td><td>チャンネル提供者（アカウントの役割 <code>publisher</code>）</td><td>素材提供者（同じアカウントで役割 <code>producer</code> を有効にする）。運営は最初の承認のときに身元の確認を記録する</td></tr>
           <tr><td>DynamoDB</td><td><code>CH#{id}</code></td><td><code>COL#{id}</code>（<code>kind = collection</code>。GSI2 は同じパーティションに <code>COL#</code>・<code>col:</code> で入る）</td></tr>
           <tr><td>受付・保管の S3</td><td><code>intake/</code>・<code>archive/</code></td><td><code>intake-col/</code>・<code>archive-col/</code>（同じ保持）</td></tr>
           <tr><td>公開の場所</td><td><code>pkg/{SHA-256}.zip</code>・<code>icons/</code></td><td><code>col/{SHA-256}.zip</code>（アイコンはない）</td></tr>
-          <tr><td>審査</td><td>機械審査 → 運用者（AI の見本あり）</td><td>機械審査（<code>MachineReview.kt</code>、外部の素材の確認 <code>External.kt</code>）→ 運用者（AI の見本はない）</td></tr>
+          <tr><td>審査</td><td>機械審査 → 運営（AI の見本あり）</td><td>機械審査（<code>MachineReview.kt</code>、外部の素材の確認 <code>External.kt</code>）→ 運営（AI の見本はない）</td></tr>
           <tr><td>リスト</td><td><code>channels[]</code>・<code>revoked[]</code></td><td><code>collections[]</code>・<code>revokedCollections[]</code>（API-002 1.2）</td></tr>
-          <tr><td>つながり</td><td colspan="2">チャンネルの承認のときに、使う素材集の版・素材を <b>利用の記録</b>（<code>COL#{id}</code> / <code>USEDBY#{channelId}</code>）に書く。素材集の新しい版・利用許諾の縮小・取り下げは、使っているチャンネルの配信元にメールで知らせる。制作元は自分の素材集を使っているチャンネルを画面で見られる</td></tr>
-          <tr><td>毎日の確認</td><td>—</td><td>公開の Lambda が、毎日の公開のあとで外部の素材の URL に HEAD を送り、新しい不具合を制作元に知らせる（公開は失敗にしない。DES-009 M-7）</td></tr>
+          <tr><td>つながり</td><td colspan="2">チャンネルの承認のときに、使う素材集の版・素材を <b>利用の記録</b>（<code>COL#{id}</code> / <code>USEDBY#{channelId}</code>）に書く。素材集の新しい版・利用許諾の縮小・取り下げは、使っているチャンネル提供者にメールで知らせる。素材提供者は自分の素材集を使っているチャンネルを画面で見られる</td></tr>
+          <tr><td>毎日の確認</td><td>—</td><td>公開の Lambda が、毎日の公開のあとで外部の素材の URL に HEAD を送り、新しい不具合を素材提供者に知らせる（公開は失敗にしない。DES-009 M-7）</td></tr>
           <tr><td>アプリの段</td><td colspan="2">素材の種類ごとに出せるアプリの版を <code>infra/lib/config.ts</code> の <code>appStageVersions</code> で決める。2026-10-11 に段 1（文字・画像）を SanpoGuide の versionCode 2 にした。段 2（音声）・段 3（映像）は仮の大きな値のままで、そうした素材を使うものは今のアプリには出ない</td></tr>
           <tr><td>上限</td><td>アカウントごとに 5</td><td>アカウントごとに 5（チャンネルとは別に数える）</td></tr>
         </tbody>
@@ -707,12 +707,12 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
       <table>
         <thead><tr><th>場所</th><th>役割</th><th>行数</th></tr></thead>
         <tbody>
-          <tr><td class="pk">api/src/console</td><td>管理 API の Lambda。運用者 <code>operator.ts</code>、配信元 <code>publisher.ts</code>、素材集 <code>collections.ts</code>、利用の記録 <code>uses.ts</code>、審査 <code>review.ts</code>（チャンネルと素材集で共通）、移し替え <code>transfer.ts</code>、ルーター、Cognito のトリガー</td><td><div class="loc"><span class="bar" style="width:100px"></span>3,218</div></td></tr>
-          <tr><td class="pk">web/src</td><td>画面（React + Vite）。運用者・配信元・制作元で 1 つの SPA。素材集は <code>pages/publisher/collections.tsx</code>（制作元）と <code>pages/collection-review.tsx</code>（運用者）。鍵と署名は <code>publisher-crypto.ts</code>、AI の見本は <code>ai.ts</code></td><td><div class="loc"><span class="bar" style="width:95px"></span>3,065</div></td></tr>
+          <tr><td class="pk">api/src/console</td><td>管理 API の Lambda。運営 <code>operator.ts</code>、チャンネル提供者 <code>publisher.ts</code>、素材集 <code>collections.ts</code>、利用の記録 <code>uses.ts</code>、審査 <code>review.ts</code>（チャンネルと素材集で共通）、移し替え <code>transfer.ts</code>、ルーター、Cognito のトリガー</td><td><div class="loc"><span class="bar" style="width:100px"></span>3,218</div></td></tr>
+          <tr><td class="pk">web/src</td><td>画面（React + Vite）。運営・チャンネル提供者・素材提供者で 1 つの SPA。素材集は <code>pages/publisher/collections.tsx</code>（素材提供者）と <code>pages/collection-review.tsx</code>（運営）。鍵と署名は <code>publisher-crypto.ts</code>、AI の見本は <code>ai.ts</code></td><td><div class="loc"><span class="bar" style="width:95px"></span>3,065</div></td></tr>
           <tr><td class="pk">infra/lib</td><td>AWS CDK。共有部分と公開の面 <code>console-stack.ts</code>、管理の面 <code>console-app.ts</code>、環境ごとの設定 <code>config.ts</code></td><td><div class="loc"><span class="bar" style="width:24px"></span>783</div></td></tr>
           <tr><td class="pk">api/src/publish</td><td>公開の Lambda。DB・S3・CloudFront・KMS は差し替え口の後ろ（手元では Memory 版）。毎日の外部の素材の確認は <code>external.ts</code></td><td><div class="loc"><span class="bar" style="width:28px"></span>903</div></td></tr>
           <tr><td class="pk">packages/protocol</td><td>API-002 の文書の作成と検証（署名・要約・鍵セット・ID・素材集）。公開・準拠テスト・CLI が共用</td><td><div class="loc"><span class="bar" style="width:18px"></span>589</div></td></tr>
-          <tr><td class="pk">conformance/src</td><td>API-002 の準拠テスト（任意の提供元の URL に）と、アプリ用のテストベクタ</td><td><div class="loc"><span class="bar" style="width:14px"></span>435</div></td></tr>
+          <tr><td class="pk">conformance/src</td><td>API-002 の準拠テスト（任意の運営の URL に）と、アプリ用のテストベクタ</td><td><div class="loc"><span class="bar" style="width:14px"></span>435</div></td></tr>
           <tr><td class="pk">validator/src</td><td>機械審査の Lambda（Kotlin、Java 21）。判定は SanpoGuide の station-format（今は 2.1.0）。チャンネルと素材集、外部の素材の確認 <code>External.kt</code></td><td><div class="loc"><span class="bar" style="width:28px"></span>911</div></td></tr>
           <tr><td class="pk">tools/root-key · provision</td><td>ルート鍵の CLI（オフライン）、署名鍵と鍵セットの初期登録</td><td><div class="loc"><span class="bar" style="width:10px"></span>321</div></td></tr>
           <tr><td class="pk">api/src/notify</td><td>通知の Lambda（SQS → SES、開発用は記録だけ）</td><td><div class="loc"><span class="bar" style="width:6px"></span>180</div></td></tr>
@@ -733,7 +733,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <thead><tr><th></th><th>開発用（dev）</th><th>本番（prod）</th></tr></thead>
         <tbody>
           <tr><td>ルート鍵</td><td>開発者の端末（<code>~/.sanpo-channel-console/dev/</code>）</td><td>オフラインの端末（T-5 の手順）</td></tr>
-          <tr><td>アプリへの内蔵</td><td>しない（利用者が URL と提供元ID で足す）</td><td>内蔵する提供元</td></tr>
+          <tr><td>アプリへの内蔵</td><td>しない（散策者が URL と運営ID で足す）</td><td>内蔵する運営</td></tr>
           <tr><td>アプリの段（<code>appStageVersions</code>）</td><td>段 0 = 1、段 1 = 2、段 2・3 = 9999</td><td>開発用と同じ</td></tr>
           <tr><td>一覧のカーソルの鍵</td><td>配備のたびに作り直す（古いカーソルは使えなくなる）</td><td>Secrets Manager</td></tr>
           <tr><td>WAF（Cognito）・DynamoDB の復旧</td><td>なし</td><td>あり</td></tr>
@@ -757,9 +757,9 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
         <tbody>
           <tr><td>管理 API の操作を足す・変える</td><td><code>docs/api/console.openapi.yaml</code>（型を作り直す）→ <code>api/src/console/router.ts</code> と各ハンドラ。契約は <code>docs/console-api.md</code></td></tr>
           <tr><td>申請の状態の移り方を変える</td><td><code>api/src/console/publisher.ts</code>（申請・取り消し）、<code>review.ts</code>（審査）、<code>validator/</code>（機械審査）。DM-001 の状態図も</td></tr>
-          <tr><td>機械で確かめる項目を変える</td><td>パッケージの形式なら SanpoGuide の <code>station-format</code>、管理システムだけが知る確認（版・配信元・アイコン）なら <code>validator/.../MachineReview.kt</code></td></tr>
+          <tr><td>機械で確かめる項目を変える</td><td>パッケージの形式なら SanpoGuide の <code>station-format</code>、管理システムだけが知る確認（版・チャンネル提供者・アイコン）なら <code>validator/.../MachineReview.kt</code></td></tr>
           <tr><td>リストに載せる項目を変える</td><td><code>api/src/publish/aws.ts</code>（<code>DynamoStore</code>）と <code>packages/protocol/src/types.ts</code>。形式は API-002 の改訂が要る</td></tr>
-          <tr><td>上限（チャンネル数・素材集の数・1 日の申請）を変える</td><td><code>api/src/console/shared.ts</code> の <code>DEFAULT_LIMITS</code>（アカウントごとは運用者の画面から）</td></tr>
+          <tr><td>上限（チャンネル数・素材集の数・1 日の申請）を変える</td><td><code>api/src/console/shared.ts</code> の <code>DEFAULT_LIMITS</code>（アカウントごとは運営の画面から）</td></tr>
           <tr><td>素材集の操作・利用の記録を変える</td><td><code>api/src/console/collections.ts</code>・<code>uses.ts</code>。審査は <code>review.ts</code>（チャンネルと共通）</td></tr>
           <tr><td>アプリの版ごとに出せる素材の種類を変える</td><td><code>infra/lib/config.ts</code> の <code>appStageVersions</code>（PR を通して変える。DES-008 K-6）</td></tr>
           <tr><td>毎日の外部の素材の確認を変える</td><td><code>api/src/publish/external.ts</code>（規則は機械審査の <code>validator/.../External.kt</code> と揃える）</td></tr>
@@ -774,7 +774,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 
   <div class="plan">
     <h3>まだないもの</h3>
-    <p>本番の環境（別の AWS アカウント、オフラインで作るルート鍵、独自ドメイン、SES のサンドボックスの解除）と、アプリに内蔵する本番の提供元はまだありません。鍵の移し替えの本人確認の手順は運用の開始前に決めます（審査基準 SanpoGuide の <code>docs/channel-review-policy.md</code> は 2026-10-11 に 1.0 を承認済み）。宣伝を含むチャンネル・素材集の申告と表示（SanpoGuide ADR-002 T-13）もまだです。進み具合は <code>docs/TODO.md</code> にあります。</p>
+    <p>本番の環境（別の AWS アカウント、オフラインで作るルート鍵、独自ドメイン、SES のサンドボックスの解除）と、アプリに内蔵する本番の運営はまだありません。鍵の移し替えの本人確認の手順は運用の開始前に決めます（審査基準 SanpoGuide の <code>docs/channel-review-policy.md</code> は 2026-10-11 に 1.0 を承認済み）。宣伝を含むチャンネル・素材集の申告と表示（SanpoGuide ADR-002 T-13）もまだです。進み具合は <code>docs/TODO.md</code> にあります。</p>
   </div>
 </main>
 </body>

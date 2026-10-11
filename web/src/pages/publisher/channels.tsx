@@ -225,7 +225,7 @@ export function PublisherChannel() {
       <form className="action" onSubmit={(e) => void submit(e)}>
         <h3>新しい版を申請する</h3>
         <p className="muted">
-          署名する前の ZIP（<code>channel.json</code> と <code>prompts/</code>）を選びます。この画面があなたの鍵で署名し、<code>signature.json</code> を足して送ります。形式は配信元ガイドを見てください。
+          署名する前の ZIP（<code>channel.json</code> と <code>prompts/</code>）を選びます。この画面があなたの鍵で署名し、<code>signature.json</code> を足して送ります。形式はチャンネル提供者ガイドを見てください。
         </p>
         <label>
           パッケージ（ZIP）
@@ -256,7 +256,7 @@ export function PublisherChannel() {
           <input value={regions} placeholder="xn7" onChange={(e) => setRegions(e.target.value)} />
         </label>
         <label>
-          運用者への説明（審査のときに読まれます）
+          運営への説明（審査のときに読まれます）
           <textarea rows={2} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
         <button disabled={!zip || !icon || !keyText || !passphrase || (progress !== undefined && !progress.startsWith('版'))}>署名して申請する</button>

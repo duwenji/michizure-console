@@ -89,11 +89,11 @@ export function ReviewPage() {
           <dl className="facts">
             <dt>状態</dt>
             <dd><span className={`tag ${s.state}`}>{STATE[s.state] ?? s.state}</span></dd>
-            <dt>配信元のアカウントID</dt>
+            <dt>チャンネル提供者のアカウントID</dt>
             <dd><code>{s.accountId}</code></dd>
             <dt>説明・タグ・地域</dt>
             <dd>{s.description ?? '—'} ／ {(s.tags ?? []).join('、') || '—'} ／ {(s.regions ?? []).join('、') || '—'}</dd>
-            <dt>運用者への説明</dt>
+            <dt>運営への説明</dt>
             <dd>{s.note ?? '—'}</dd>
             <dt>機械の確認</dt>
             <dd>{s.validation?.ok ? `合格（${s.validation.validatorVersion}）` : '—'}</dd>
@@ -105,7 +105,7 @@ export function ReviewPage() {
           )}
           {s.state === 'in_review' && (
             <button className="link" onClick={act(() => api.POST('/api/admin/channels/{channelId}/submissions/{submissionId}/release', { params: { path, header: ifMatch(s.rev) } }))}>
-              審査を戻す（ほかの運用者に任せる）
+              審査を戻す（ほかの担当者に任せる）
             </button>
           )}
           <PackageView channelId={channelId} submissionId={submissionId} />
@@ -173,7 +173,7 @@ function PackageView({ channelId, submissionId }: { channelId: string; submissio
       {files?.map(([name, text]) => (
         <details key={name} open={name === 'channel.json'}>
           <summary><code>{name}</code></summary>
-          <pre className="copy">{name === 'signature.json' ? '（配信元の署名。機械の確認で検証済み）' : text}</pre>
+          <pre className="copy">{name === 'signature.json' ? '（チャンネル提供者の署名。機械の確認で検証済み）' : text}</pre>
         </details>
       ))}
     </div>
@@ -291,7 +291,7 @@ function Decision({ sub, samplesIds, onDone }: { sub: Schemas['Submission']; sam
   return (
     <div className="action">
       <h3>判定</h3>
-      <p className="muted">差し戻し・却下には、審査基準の項目番号つきの理由を 1 つ以上入れます。理由と説明は配信元に見せます。{samplesIds.length > 0 && ` 残した見本 ${samplesIds.length} 件を判定に付けます。`}</p>
+      <p className="muted">差し戻し・却下には、審査基準の項目番号つきの理由を 1 つ以上入れます。理由と説明はチャンネル提供者に見せます。{samplesIds.length > 0 && ` 残した見本 ${samplesIds.length} 件を判定に付けます。`}</p>
       {findings.map((f, i) => (
         <div key={i} className="inline">
           <select value={f.item} onChange={(e) => setFindings((all) => all.map((x, j) => (j === i ? { ...x, item: e.target.value } : x)))}>
@@ -302,7 +302,7 @@ function Decision({ sub, samplesIds, onDone }: { sub: Schemas['Submission']; sam
       ))}
       <button className="link" onClick={() => setFindings((all) => [...all, { item: '2.1', detail: '' }])}>理由を足す</button>
       <label>
-        配信元への説明
+        チャンネル提供者への説明
         <textarea rows={2} maxLength={2000} value={message} onChange={(e) => setMessage(e.target.value)} />
       </label>
       <div className="inline">

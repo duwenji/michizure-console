@@ -53,10 +53,10 @@ export function PublisherCollections() {
         <div className="action">
           <p>
             素材集は、テキスト・画像・音声・映像の素材をまとめて審査に出し、チャンネルから使ってもらうためのものです（観光協会の音声ガイド、写真集など）。
-            チャンネルを作らなくても、素材だけを届けられます。使い方は利用ガイドの「制作元」を見てください。
+            チャンネルを作らなくても、素材だけを届けられます。使い方は利用ガイドの「素材提供者」を見てください。
           </p>
-          <p className="muted">最初の素材集の審査で、運用者が、名乗っている団体・個人であることと素材の権利を、登録した連絡先で確かめます。</p>
-          <button onClick={() => void start()}>制作元として始める</button>
+          <p className="muted">最初の素材集の審査で、運営が、名乗っている団体・個人であることと素材の権利を、登録した連絡先で確かめます。</p>
+          <button onClick={() => void start()}>素材提供者として始める</button>
         </div>
       )}
       {producer && (
@@ -151,7 +151,7 @@ export function PublisherCollection() {
             {c.latestApproved ? (
               <>
                 版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）、{c.latestApproved.media.join('・')}、タグ {c.latestApproved.tags.join('・') || '—'}、
-                利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} の配信元`}
+                利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} のチャンネル提供者`}
                 <div><StageNote appStage={c.latestApproved.appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>
               </>
             ) : '—'}
@@ -237,7 +237,7 @@ export function PublisherCollection() {
         <h3>新しい版を申請する</h3>
         <p className="muted">
           署名する前の ZIP（<code>collection.json</code> と <code>resources/</code>）を選びます。この画面があなたの鍵で署名し、<code>signature.json</code> を足して送ります。
-          大きな画像・音声・映像は外部の URL（HTTPS）に置き、<code>collection.json</code> に SHA-256 と大きさを書きます。形式は利用ガイドの「制作元」を見てください。
+          大きな画像・音声・映像は外部の URL（HTTPS）に置き、<code>collection.json</code> に SHA-256 と大きさを書きます。形式は利用ガイドの「素材提供者」を見てください。
         </p>
         <label>
           素材集（ZIP）
@@ -252,7 +252,7 @@ export function PublisherCollection() {
           <input type="password" required value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
         </label>
         <label>
-          運用者への説明（素材の権利・出どころなど。審査のときに読まれます）
+          運営への説明（素材の権利・出どころなど。審査のときに読まれます）
           <textarea rows={2} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
         <button disabled={!zip || !keyText || !passphrase || (progress !== undefined && !progress.startsWith('版'))}>署名して申請する</button>

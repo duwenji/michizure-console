@@ -81,7 +81,7 @@ function CollectionPackageView({ collectionId, submissionId }: { collectionId: s
         <>
           <p>{manifest.name} — {manifest.summary}</p>
           <p className="small">利用許諾: <code>{JSON.stringify(manifest.grants)}</code></p>
-          <p className="muted small">外部の素材を再生すると、あなたのブラウザが制作元の置き場所に直接つながります。</p>
+          <p className="muted small">外部の素材を再生すると、あなたのブラウザが素材提供者の置き場所に直接つながります。</p>
           {manifest.resources.map((r) => (
             <details key={r.id} open>
               <summary><code>{r.id}</code> {r.type}{r.tags?.length ? `（${r.tags.join('・')}）` : ''}</summary>
@@ -138,7 +138,7 @@ function CollectionDecision({ sub, account, onDone }: { sub: Schemas['Collection
     <div className="action">
       <h3>判定</h3>
       <div className="facts">
-        <dt>制作元</dt>
+        <dt>素材提供者</dt>
         <dd>{account ? <><Link to={`/publishers/${account.publisherId}`}>{account.displayName}</Link>（連絡先 {account.contact ?? '—'}）</> : '—'}</dd>
         <dt>身元の確認</dt>
         <dd>
@@ -153,7 +153,7 @@ function CollectionDecision({ sub, account, onDone }: { sub: Schemas['Collection
           <label>確認した内容<textarea rows={2} maxLength={2000} value={detail} onChange={(e) => setDetail(e.target.value)} /></label>
         </>
       )}
-      <p className="muted">差し戻し・却下には、審査基準の項目番号つきの理由を 1 つ以上入れます。理由と説明は制作元に見せます。</p>
+      <p className="muted">差し戻し・却下には、審査基準の項目番号つきの理由を 1 つ以上入れます。理由と説明は素材提供者に見せます。</p>
       {findings.map((f, i) => (
         <div key={i} className="inline">
           <select value={f.item} onChange={(e) => setFindings((all) => all.map((x, j) => (j === i ? { ...x, item: e.target.value } : x)))}>
@@ -164,7 +164,7 @@ function CollectionDecision({ sub, account, onDone }: { sub: Schemas['Collection
       ))}
       <button className="link" onClick={() => setFindings((all) => [...all, { item: '2.6', detail: '' }])}>理由を足す</button>
       <label>
-        制作元への説明
+        素材提供者への説明
         <textarea rows={2} maxLength={2000} value={message} onChange={(e) => setMessage(e.target.value)} />
       </label>
       <div className="inline">
@@ -204,9 +204,9 @@ export function CollectionReviewPage() {
           <dl className="facts">
             <dt>状態</dt>
             <dd><span className={`tag ${s.state}`}>{STATE[s.state] ?? s.state}</span></dd>
-            <dt>制作元のアカウントID</dt>
+            <dt>素材提供者のアカウントID</dt>
             <dd><code>{s.accountId}</code></dd>
-            <dt>運用者への説明</dt>
+            <dt>運営への説明</dt>
             <dd>{s.note ?? '—'}</dd>
             <dt>機械の確認</dt>
             <dd><ValidationView validation={s.validation} /></dd>
@@ -218,7 +218,7 @@ export function CollectionReviewPage() {
           )}
           {s.state === 'in_review' && (
             <button className="link" onClick={act(() => api.POST('/api/admin/collections/{collectionId}/submissions/{submissionId}/release', { params: { path, header: ifMatch(s.rev) } }))}>
-              審査を戻す（ほかの運用者に任せる）
+              審査を戻す（ほかの担当者に任せる）
             </button>
           )}
           <CollectionPackageView collectionId={collectionId} submissionId={submissionId} />
@@ -259,7 +259,7 @@ export function OperatorCollectionPage() {
   const c = col.data;
   return (
     <section>
-      <p>{c && <Link to={`/publishers/${c.publisherId}`}>← 制作元</Link>}</p>
+      <p>{c && <Link to={`/publishers/${c.publisherId}`}>← 素材提供者</Link>}</p>
       <h1>素材集 <code>{collectionId}</code> {c?.latestApproved?.name}</h1>
       <Status error={col.error} loading={col.loading} />
       {c && (
@@ -305,7 +305,7 @@ export function OperatorCollectionPage() {
             col.reload();
           }}
         >
-          <p className="muted">リストから外し、取り下げとして 7 日載せます。使っているチャンネルでは、その素材が出なくなり、それぞれの配信元に知らせます。理由は利用者にも見せます。</p>
+          <p className="muted">リストから外し、取り下げとして 7 日載せます。使っているチャンネルでは、その素材が出なくなり、それぞれのチャンネル提供者に知らせます。理由は散策者にも見せます。</p>
           <label>
             重さ
             <select value={severity} onChange={(e) => setSeverity(e.target.value as 'high' | 'low')}>

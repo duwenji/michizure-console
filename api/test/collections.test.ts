@@ -415,7 +415,7 @@ describe('channels using collections', () => {
     const me = await call(alice, 'GET', '/api/publisher');
     expect((await call(alice, 'DELETE', '/api/publisher', { body: { confirm: me.body.publisherId }, ifMatch: me.body.rev })).status).toBe(204);
     const col = await call(operator, 'GET', '/api/collections/kamakura-audio-guide');
-    expect(col.body).toMatchObject({ status: 'revoked', listed: false, revocations: [{ reason: '制作元が退会したため' }] });
+    expect(col.body).toMatchObject({ status: 'revoked', listed: false, revocations: [{ reason: '素材提供者が退会したため' }] });
     expect(published).toEqual(['revoke']);
     expect(notices.map((n) => [n.event, n.channelId])).toEqual([['collection.revoked_used', 'kamakura-history']]);
     const revoked = await deps.db.send(new QueryCommand({ TableName: deps.table, IndexName: 'GSI2', KeyConditionExpression: 'GSI2PK = :r', ExpressionAttributeValues: { ':r': 'REVOKED' } }));

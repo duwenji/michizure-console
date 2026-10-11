@@ -43,7 +43,7 @@ export function ChannelPage() {
             <dd>
               <span className={`tag ${c.status}`}>{c.status}</span> {c.listed ? 'リストに載っている' : 'リストに載っていない'}
             </dd>
-            <dt>配信元</dt>
+            <dt>チャンネル提供者</dt>
             <dd>
               <Link to={`/publishers/${c.publisherId}`}>{c.publisherId}</Link>
             </dd>
@@ -83,7 +83,7 @@ export function ChannelPage() {
               }}
             >
               <p className="muted">
-                リストから消え、利用者の端末にも理由とともに知らされます（リストの revoked に 7 日）。戻すには新しい版の承認が要ります。理由は利用者に見せます。
+                リストから消え、散策者の端末にも理由とともに知らされます（リストの revoked に 7 日）。戻すには新しい版の承認が要ります。理由は散策者に見せます。
               </p>
               <label>
                 重さ{' '}

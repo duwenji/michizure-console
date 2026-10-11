@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** ログインしているユーザー・役割・配信元 */
+        /** ログインしているユーザー・役割・チャンネル提供者 */
         get: operations["getMe"];
         put?: never;
         post?: never;
@@ -28,10 +28,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 自分の配信元 */
+        /** 自分のチャンネル提供者 */
         get: operations["getMyPublisher"];
         put?: never;
-        /** 配信元として登録（pending_key） */
+        /** チャンネル提供者として登録（pending_key） */
         post: operations["registerPublisher"];
         /** 退会（公開中のチャンネルはすべて取り下げる） */
         delete: operations["deleteMyPublisher"];
@@ -120,7 +120,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 自分の配信元・チャンネルの経緯 */
+        /** 自分のチャンネル提供者・チャンネルの経緯 */
         get: operations["listMyHistory"];
         put?: never;
         post?: never;
@@ -157,7 +157,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** チャンネル（配信元は自分のもの、運用者はすべて） */
+        /** チャンネル（チャンネル提供者は自分のもの、運営はすべて） */
         get: operations["getChannel"];
         put?: never;
         post?: never;
@@ -257,7 +257,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 制作元の役割を有効にする（1.1、C-15） */
+        /** 素材提供者の役割を有効にする（1.1、C-15） */
         post: operations["enableProducerRole"];
         delete?: never;
         options?: never;
@@ -292,7 +292,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** 素材集（制作元は自分のもの、運用者はすべて） */
+        /** 素材集（素材提供者は自分のもの、運営はすべて） */
         get: operations["getCollection"];
         put?: never;
         post?: never;
@@ -763,7 +763,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 配信元の一覧（新しい順） */
+        /** チャンネル提供者の一覧（新しい順） */
         get: operations["listPublishers"];
         put?: never;
         post?: never;
@@ -782,7 +782,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** 配信元 */
+        /** チャンネル提供者 */
         get: operations["getPublisher"];
         put?: never;
         post?: never;
@@ -801,7 +801,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** 配信元のチャンネル */
+        /** チャンネル提供者のチャンネル */
         get: operations["listPublisherChannels"];
         put?: never;
         post?: never;
@@ -841,7 +841,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 配信元を停止（公開中のチャンネルはそのまま） */
+        /** チャンネル提供者を停止（公開中のチャンネルはそのまま） */
         post: operations["suspendPublisher"];
         delete?: never;
         options?: never;
@@ -1088,16 +1088,16 @@ export interface components {
         Publisher: {
             publisherId: components["schemas"]["Ulid"];
             displayName: string;
-            /** @description 本人と運用者だけに返す */
+            /** @description 本人と運営だけに返す */
             contact?: string;
             status: components["schemas"]["PublisherStatus"];
             statusReason?: string;
             activeAccountId?: components["schemas"]["AccountId"] | null;
             /** @description アカウントの役割（1.1、M-16）。1.0 のアカウントは [publisher] */
             roles?: ("publisher" | "producer")[];
-            /** @description 制作元の身元が確かめられているか（1.1、C-17） */
+            /** @description 素材提供者の身元が確かめられているか（1.1、C-17） */
             producerVerified?: boolean;
-            /** @description 身元の確認の記録（運用者にだけ返す） */
+            /** @description 身元の確認の記録（運営にだけ返す） */
             producerVerification?: components["schemas"]["Verification"];
             limits: components["schemas"]["Limits"];
             usage: components["schemas"]["Usage"];
@@ -1227,7 +1227,7 @@ export interface components {
             description?: string;
             tags?: string[];
             regions?: string[];
-            /** @description 運用者への説明 */
+            /** @description 運営への説明 */
             note?: string;
         };
         Validation: {
@@ -1499,7 +1499,7 @@ export interface components {
         RevokeInput: {
             /** @description 省くとすべての版 */
             versions?: number[];
-            /** @description 利用者に見せる理由 */
+            /** @description 散策者に見せる理由 */
             reason: string;
             /** @enum {string} */
             severity: "high" | "low";
@@ -1551,7 +1551,7 @@ export interface components {
             eventId: components["schemas"]["Ulid"];
             /** Format: date-time */
             at: string;
-            /** @description 運用者にだけ返す */
+            /** @description 運営にだけ返す */
             actorSub?: string;
             /** @enum {string} */
             actorRole: "publisher" | "operator" | "system";
@@ -1571,7 +1571,7 @@ export interface components {
                 "application/problem+json": components["schemas"]["Problem"];
             };
         };
-        /** @description 配信元 */
+        /** @description チャンネル提供者 */
         Publisher: {
             headers: {
                 ETag: components["headers"]["ETag"];
@@ -2278,7 +2278,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description 運用者への説明 */
+                    /** @description 運営への説明 */
                     note?: string;
                 };
             };
@@ -2796,7 +2796,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 配信元 */
+            /** @description チャンネル提供者 */
             200: {
                 headers: {
                     [name: string]: unknown;

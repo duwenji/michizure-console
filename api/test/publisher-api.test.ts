@@ -258,7 +258,7 @@ describe('leaving (API-001 C-4)', () => {
     expect(deleted).toEqual(['sub-alice']);
     expect(published).toEqual(['revoke']);
     const ch = await call(operator, 'GET', '/api/channels/kamakura-history');
-    expect(ch.body).toMatchObject({ status: 'revoked', listed: false, revocations: [{ reason: '配信元が退会したため' }] });
+    expect(ch.body).toMatchObject({ status: 'revoked', listed: false, revocations: [{ reason: 'チャンネル提供者が退会したため' }] });
     const left = await deps.db.send(new GetCommand({ TableName: deps.table, Key: { PK: `PUB#${publisherId}`, SK: 'PUB' } }));
     expect(left.Item).toMatchObject({ status: 'deleted' });
     expect(left.Item?.contact).toBeUndefined();

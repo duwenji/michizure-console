@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-[ADR-001](../adr/ADR-001-aws-architecture.md) T-6 の 1 番目。承認済みチャンネル・リスト（SanpoGuide の API-002）を作って署名し、公開するところまでを作る。これで、配信元・運用者の画面がなくても、組み込みの提供元として署名済みのリストを出せる。
+[ADR-001](../adr/ADR-001-aws-architecture.md) T-6 の 1 番目。承認済みチャンネル・リスト（SanpoGuide の API-002）を作って署名し、公開するところまでを作る。これで、チャンネル提供者・運営の画面がなくても、組み込みの運営として署名済みのリストを出せる。
 
 ## 対応元ID（トレーサビリティ）
 
@@ -40,10 +40,10 @@
 
 | 場所 | 中身 |
 |---|---|
-| `packages/protocol` | API-002 の文書の作成と検証（署名付き文書、要約への署名、提供元ID・アカウントID、エラーコード）。公開の処理・CLI・準拠テストが共通に使う。`./testing` はテスト用の提供元 |
+| `packages/protocol` | API-002 の文書の作成と検証（署名付き文書、要約への署名、運営ID・アカウントID、エラーコード）。公開の処理・CLI・準拠テストが共通に使う。`./testing` はテスト用の運営 |
 | `api/src/publish` | 公開の処理。DB・S3・CloudFront・KMS は差し替え口（`ports.ts`）の後ろにあり、AWS の実装（`aws.ts`）と手元の実装（`local.ts`）がある |
 | `tools/root-key` | オフラインの端末で使うルート鍵の CLI（`generate`・`sign-keyset`・`verify-keyset`） |
-| `conformance` | 任意の提供元の URL に対する準拠テスト（ライブラリと CLI） |
+| `conformance` | 任意の運営の URL に対する準拠テスト（ライブラリと CLI） |
 | `infra` | CDK: DynamoDB（DM-001）、S3（公開用・記録用）、CloudFront（OAC）、KMS（Ed25519）、公開の Lambda、毎日の作り直し、警報 |
 
 ### 実装上の判断
@@ -66,7 +66,7 @@
 | 型の確認 | `tsc -b`（TypeScript 7.0）で誤りなし |
 | `cdk synth` | dev・prod とも成功。公開の Lambda は 13.4KB（AWS SDK は実行環境のもの） |
 | 手元での通し | `publish:local` → `serve` → `check` で V-01〜V-09・V-15・V-16 がすべて合格。要約は 251 バイト。HTTP は `--allow-local-http` なしでは V-09 で不合格 |
-| 準拠テストの異常系 | 提供元IDの不一致（V-01）、本体の差し替え（V-03）、期限切れ（V-04）、`seq` の巻き戻し（V-05）、パッケージの差し替え（V-07）、2MB 超え（V-08）、HTTP（V-09）を、それぞれその項目だけで不合格にする |
+| 準拠テストの異常系 | 運営IDの不一致（V-01）、本体の差し替え（V-03）、期限切れ（V-04）、`seq` の巻き戻し（V-05）、パッケージの差し替え（V-07）、2MB 超え（V-08）、HTTP（V-09）を、それぞれその項目だけで不合格にする |
 
 ## 未決事項・リスク
 
