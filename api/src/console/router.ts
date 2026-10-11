@@ -1,6 +1,7 @@
 import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import type { Deps } from './deps.js';
 import { ApiError, fail, json, problem, type Caller, type Request, type Response } from './http.js';
+import * as col from './collections.js';
 import * as op from './operator.js';
 import * as pub from './publisher.js';
 import * as review from './review.js';
@@ -33,6 +34,16 @@ const ROUTES: [string, string, Handler][] = [
   ['POST', '/api/publisher/key-transfers', transfer.requestKeyTransfer],
   ['GET', '/api/publisher/key-transfers', transfer.listMyKeyTransfers],
   ['POST', '/api/publisher/key-transfers/{transferId}/cancel', transfer.cancelKeyTransfer],
+  // The producer (API-001 1.1, DES-008).
+  ['POST', '/api/publisher/roles/producer', col.enableProducerRole],
+  ['POST', '/api/collections', col.registerCollection],
+  ['GET', '/api/collections', col.listMyCollections],
+  ['GET', '/api/collections/{collectionId}', col.getCollection],
+  ['GET', '/api/collections/{collectionId}/used-by', col.listCollectionUsers],
+  ['POST', '/api/collections/{collectionId}/submissions', col.createCollectionSubmission],
+  ['GET', '/api/collections/{collectionId}/submissions', col.listCollectionSubmissions],
+  ['GET', '/api/collections/{collectionId}/submissions/{submissionId}', col.getCollectionSubmission],
+  ['POST', '/api/collections/{collectionId}/submissions/{submissionId}/withdraw', col.withdrawCollectionSubmission],
   ['POST', '/api/channels', pub.registerChannel],
   ['GET', '/api/channels', pub.listMyChannels],
   ['GET', '/api/channels/{channelId}', pub.getChannel],
@@ -55,6 +66,16 @@ const ROUTES: [string, string, Handler][] = [
   ['POST', '/api/admin/channels/{channelId}/submissions/{submissionId}/approve', review.approveSubmission],
   ['POST', '/api/admin/channels/{channelId}/submissions/{submissionId}/return', review.returnSubmission],
   ['POST', '/api/admin/channels/{channelId}/submissions/{submissionId}/reject', review.rejectSubmission],
+  // Collections (DES-008).
+  ['GET', '/api/admin/collections/{collectionId}/submissions/{submissionId}/package', review.getCollectionSubmissionPackage],
+  ['GET', '/api/admin/collections/{collectionId}/submissions/{submissionId}/reviews', review.listCollectionReviews],
+  ['POST', '/api/admin/collections/{collectionId}/submissions/{submissionId}/start', review.startCollectionReview],
+  ['POST', '/api/admin/collections/{collectionId}/submissions/{submissionId}/release', review.releaseCollectionReview],
+  ['POST', '/api/admin/collections/{collectionId}/submissions/{submissionId}/approve', review.approveCollectionSubmission],
+  ['POST', '/api/admin/collections/{collectionId}/submissions/{submissionId}/return', review.returnCollectionSubmission],
+  ['POST', '/api/admin/collections/{collectionId}/submissions/{submissionId}/reject', review.rejectCollectionSubmission],
+  ['POST', '/api/admin/collections/{collectionId}/revoke', review.revokeCollection],
+  ['GET', '/api/admin/publishers/{publisherId}/collections', col.listPublisherCollections],
   ['GET', '/api/admin/publishers', op.listPublishers],
   ['GET', '/api/admin/publishers/{publisherId}', op.getPublisher],
   ['GET', '/api/admin/publishers/{publisherId}/channels', op.listPublisherChannels],
@@ -75,6 +96,7 @@ const ROUTES: [string, string, Handler][] = [
 
 const PARAM: Record<string, RegExp> = {
   channelId: /^[a-z0-9-]{3,40}$/,
+  collectionId: /^[a-z0-9-]{3,40}$/,
   publisherId: /^[0-9A-HJKMNP-TV-Z]{26}$/,
   submissionId: /^[0-9A-HJKMNP-TV-Z]{26}$/,
   transferId: /^[0-9A-HJKMNP-TV-Z]{26}$/,

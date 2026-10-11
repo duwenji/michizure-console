@@ -1,0 +1,284 @@
+import { PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { b64url, generateEd25519, signDocument, signEd25519, utf8 } from '@sanpo-console/protocol';
+import { makeTestProvider } from '@sanpo-console/protocol/testing';
+import { randomBytes } from 'node:crypto';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import type { Deps, Notice } from '../src/console/deps.js';
+import type { Caller } from '../src/console/http.js';
+import { route } from '../src/console/router.js';
+import { CursorCodec } from '../src/console/util.js';
+import type { Trigger } from '../src/publish/ports.js';
+import { freshTable, startDynamoLocal } from './dynamo-local.js';
+
+// DES-008 4b-1: the producer role, collections, their submissions and their review (API-001 1.1).
+
+const alice: Caller = { sub: 'sub-alice', roles: ['publisher'] };
+const bob: Caller = { sub: 'sub-bob', roles: ['publisher'] };
+const operator: Caller = { sub: 'op-1', roles: ['operator'] };
+const start = new Date('2026-10-11T03:00:00.000Z');
+
+let local: Awaited<ReturnType<typeof startDynamoLocal>>;
+let deps: Deps;
+let clock: number;
+let published: Trigger[];
+let notices: Notice[];
+let archived: string[];
+let copied: string[];
+/** Runs while an approval copies the package: between reading the records of use and writing. */
+let duringCopy: () => Promise<void>;
+
+beforeAll(async () => {
+  local = await startDynamoLocal();
+}, 120_000);
+afterAll(() => local?.stop());
+
+beforeEach(async () => {
+  const fresh = await freshTable(local.endpoint);
+  const provider = await makeTestProvider({ now: start });
+  clock = start.getTime();
+  published = [];
+  notices = [];
+  archived = [];
+  copied = [];
+  duringCopy = async () => {};
+  deps = {
+    db: fresh.db,
+    table: fresh.table,
+    now: () => new Date(clock++),
+    cursors: new CursorCodec(randomBytes(32)),
+    rootPublicKey: b64url.encode(provider.rootKey),
+    kmsPublicKey: async () => ({ keySpec: undefined, publicKey: new Uint8Array() }),
+    requestPublish: async (t) => void published.push(t),
+    presignUpload: async (key) => ({ url: 'https://intake.example/', fields: { key } }),
+    archiveUpload: async (key) => void archived.push(key),
+    deleteUser: async () => {},
+    publishTrial: async (_k, sha) => `https://provider.example/trial/${sha}.zip`,
+    packageUrl: (sha) => `https://provider.example/pkg/${sha}.zip`,
+    signDocument: (c) => signDocument(c, provider.signing),
+    readUpload: async () => new Uint8Array(),
+    presignDownload: async (key) => `https://intake.example/${key}?signed`,
+    readRecord: async () => undefined,
+    writeRecord: async () => {},
+    notify: async (n) => void notices.push(n),
+    publishApproved: async ({ packageSha256, iconSha256 }) => ({ packageUrl: `https://provider.example/pkg/${packageSha256}.zip`, iconUrl: `https://provider.example/icons/${iconSha256}.png` }),
+    publishCollection: async (key, sha) => {
+      copied.push(key);
+      await duringCopy();
+      return `https://provider.example/col/${sha}.zip`;
+    },
+    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
+  };
+});
+
+async function call(caller: Caller, method: string, path: string, options: { body?: unknown; ifMatch?: number } = {}) {
+  const res = await route(deps, {
+    method, path, query: {}, body: options.body, caller, requestId: 'req',
+    headers: options.ifMatch !== undefined ? { 'if-match': `"${options.ifMatch}"` } : {},
+  });
+  return { status: res.statusCode, body: res.body ? JSON.parse(res.body) : undefined };
+}
+
+/** An account with a key; with the producer role if [producer]. */
+async function account(caller: Caller, name: string, producer = true) {
+  await call(caller, 'POST', '/api/publisher', { body: { displayName: name, contact: `${caller.sub}@example.com` } });
+  const key = generateEd25519();
+  const challenge = await call(caller, 'POST', '/api/publisher/keys/challenge');
+  await call(caller, 'POST', '/api/publisher/keys', {
+    body: { nonce: challenge.body.nonce, publicKey: b64url.encode(key.publicKey), signature: b64url.encode(signEd25519(key.privateKey, utf8.encode(challenge.body.message))) },
+  });
+  if (producer) {
+    const me = await call(caller, 'GET', '/api/publisher');
+    await call(caller, 'POST', '/api/publisher/roles/producer', { ifMatch: me.body.rev });
+  }
+  return (await call(caller, 'GET', '/api/publisher')).body;
+}
+
+const LISTING = {
+  appStage: 2, name: '鎌倉音声ガイド', summary: '寺社の音声ガイド', media: ['audio', 'text'], resourcesSize: 2_481_000, tags: ['history'], regions: ['xn7'],
+  grants: { publishers: '*' }, resourceTypes: { intro: 'text', narration: 'audio' },
+  externalResources: [{ resourceId: 'narration', url: 'https://cdn.example.com/n.ogg', size: 2_480_000 }],
+};
+
+/** A collection submission the machine review passed, as DES-007 leaves it. */
+async function awaitingReview(version = 1, listing: object = LISTING) {
+  const created = await call(alice, 'POST', '/api/collections/kamakura-audio-guide/submissions', { body: { note: '観光協会の音声' } });
+  expect(created.status).toBe(201);
+  const sid = created.body.submission.submissionId as string;
+  await deps.db.send(
+    new UpdateCommand({
+      TableName: deps.table, Key: { PK: 'COL#kamakura-audio-guide', SK: `SUB#${sid}` },
+      UpdateExpression: 'SET #s = :s, version = :v, sha256 = :h, #size = :z, validation = :val, listing = :l, submittedAt = :t, GSI2PK = :q, GSI2SK = :o, rev = :r REMOVE #ttl',
+      ExpressionAttributeNames: { '#s': 'state', '#size': 'size', '#ttl': 'ttl' },
+      ExpressionAttributeValues: {
+        ':s': 'awaiting_review', ':v': version, ':h': 'ab'.repeat(32), ':z': 1000, ':val': { ok: true, errors: [], appStage: 2 }, ':l': listing,
+        ':t': new Date(clock).toISOString(), ':q': 'QUEUE#REVIEW', ':o': `${new Date(clock).toISOString()}#col:kamakura-audio-guide`, ':r': 2,
+      },
+    }),
+  );
+  return sid;
+}
+
+const admin = (sid: string) => `/api/admin/collections/kamakura-audio-guide/submissions/${sid}`;
+const verification = { method: '登録済みの連絡先への電話', detail: '観光協会の代表番号で本人と確認' };
+
+describe('the producer role', () => {
+  it('is turned on by the account itself, and needed for collections', async () => {
+    const plain = await account(alice, '鎌倉市観光協会', false);
+    expect(plain.roles).toEqual(['publisher']);
+    expect((await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } })).body.code).toBe('role_required');
+    expect((await call(alice, 'POST', '/api/publisher/roles/producer')).status).toBe(428);
+    const on = await call(alice, 'POST', '/api/publisher/roles/producer', { ifMatch: plain.rev });
+    expect(on.body).toMatchObject({ roles: ['publisher', 'producer'], producerVerified: false, usage: { collections: 0 }, limits: { collections: 5 } });
+    expect((await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } })).status).toBe(201);
+  });
+});
+
+describe('collections', () => {
+  it('have their own ids beside channels, and an upper limit', async () => {
+    const me = await account(alice, '鎌倉市観光協会');
+    await account(bob, '別の制作元');
+    await call(alice, 'POST', '/api/channels', { body: { channelId: 'kamakura' } });
+    // The same id as a channel is fine (another namespace); the same collection id twice is not.
+    expect((await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura' } })).status).toBe(201);
+    expect((await call(bob, 'POST', '/api/collections', { body: { collectionId: 'kamakura' } })).body.code).toBe('collection_id_taken');
+    // Others' collections are 404 (API-001 権限).
+    expect((await call(bob, 'GET', '/api/collections/kamakura')).status).toBe(404);
+    expect((await call(operator, 'GET', '/api/collections/kamakura')).status).toBe(200);
+    await call(operator, 'PUT', `/api/admin/publishers/${me.publisherId}/limits`, { body: { collections: 1, reason: '試験' }, ifMatch: (await call(operator, 'GET', `/api/admin/publishers/${me.publisherId}`)).body.rev });
+    expect((await call(alice, 'POST', '/api/collections', { body: { collectionId: 'second' } })).body.code).toBe('limit_reached');
+    expect((await call(alice, 'GET', '/api/collections')).body.items.map((c: { collectionId: string }) => c.collectionId)).toEqual(['kamakura']);
+    expect((await call(operator, 'GET', `/api/admin/publishers/${me.publisherId}/collections`)).body.items).toHaveLength(1);
+  });
+
+  it('count their uploads with the channels’, one pending submission each', async () => {
+    const me = await account(alice, '鎌倉市観光協会');
+    await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } });
+    const created = await call(alice, 'POST', '/api/collections/kamakura-audio-guide/submissions', { body: {} });
+    expect(created.body.submission).toMatchObject({ kind: 'collection', state: 'uploading', collectionId: 'kamakura-audio-guide' });
+    expect(created.body.uploads.package.fields.key).toBe(`intake-col/kamakura-audio-guide/${created.body.submission.submissionId}.zip`);
+    expect(created.body.uploads.icon).toBeUndefined();
+    expect((await call(alice, 'POST', '/api/collections/kamakura-audio-guide/submissions', { body: {} })).body.code).toBe('pending_submission_exists');
+    expect((await call(alice, 'GET', '/api/publisher')).body.usage.uploadsToday).toBe(1);
+    await call(operator, 'PUT', `/api/admin/publishers/${me.publisherId}/limits`, { body: { uploadsPerDay: 1, reason: '試験' }, ifMatch: (await call(operator, 'GET', `/api/admin/publishers/${me.publisherId}`)).body.rev });
+    await call(alice, 'POST', '/api/channels', { body: { channelId: 'kamakura-history' } });
+    expect((await call(alice, 'POST', '/api/channels/kamakura-history/submissions', { body: {} })).body.code).toBe('quota_exceeded');
+  });
+});
+
+describe('reviewing collections', () => {
+  beforeEach(async () => {
+    await account(alice, '鎌倉市観光協会');
+    await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } });
+  });
+
+  it('share the queue with channels, told apart by kind', async () => {
+    const sid = await awaitingReview();
+    const queue = await call(operator, 'GET', '/api/admin/review-queue');
+    expect(queue.body.items).toEqual([expect.objectContaining({ kind: 'collection', collectionId: 'kamakura-audio-guide', submissionId: sid })]);
+    expect((await call(operator, 'GET', `${admin(sid)}/package`)).body.packageUrl).toBe(`https://intake.example/intake-col/kamakura-audio-guide/${sid}.zip?signed`);
+  });
+
+  it('approve the first only with the identity checked, recording it and copying what the machine review found', async () => {
+    const sid = await awaitingReview();
+    await call(operator, 'POST', `${admin(sid)}/start`, { ifMatch: 2 });
+    expect((await call(operator, 'POST', `${admin(sid)}/approve`, { body: {}, ifMatch: 3 })).body.code).toBe('producer_not_verified');
+    const approved = await call(operator, 'POST', `${admin(sid)}/approve`, { body: { verification, message: '承認します' }, ifMatch: 3 });
+    expect(approved.body).toMatchObject({ publication: 'pending', submission: { state: 'approved' } });
+    expect(published).toEqual(['approve']);
+    expect(copied).toEqual([`intake-col/kamakura-audio-guide/${sid}.zip`]);
+    expect(notices.map((n) => [n.event, n.collectionId])).toEqual([['collection.approved', 'kamakura-audio-guide']]);
+
+    const collection = await call(alice, 'GET', '/api/collections/kamakura-audio-guide');
+    expect(collection.body).toMatchObject({
+      listed: true, pendingSubmissionId: null,
+      latestApproved: {
+        version: 1, name: '鎌倉音声ガイド', media: ['audio', 'text'], tags: ['history'], regions: ['xn7'], grants: { publishers: '*' },
+        package: { url: `https://provider.example/col/${'ab'.repeat(32)}.zip`, size: 1000, format: 1 }, appStage: 2, minAppVersion: 9999,
+      },
+    });
+    // The account knows it is checked; only operators see how.
+    const own = await call(alice, 'GET', '/api/publisher');
+    expect(own.body.producerVerified).toBe(true);
+    expect(own.body.producerVerification).toBeUndefined();
+    expect((await call(operator, 'GET', `/api/admin/publishers/${own.body.publisherId}`)).body.producerVerification).toMatchObject(verification);
+
+    // The next version needs no check; renaming the account asks for it again (D-20).
+    const second = await awaitingReview(2);
+    await call(operator, 'POST', `${admin(second)}/start`, { ifMatch: 2 });
+    expect((await call(operator, 'POST', `${admin(second)}/approve`, { body: {}, ifMatch: 3 })).body.submission.state).toBe('approved');
+    const renamed = await call(alice, 'PATCH', '/api/publisher', { body: { displayName: '鎌倉観光協会' }, ifMatch: (await call(alice, 'GET', '/api/publisher')).body.rev });
+    expect(renamed.body.producerVerified).toBe(false);
+  });
+
+  it('refuse a version that drops or retypes what a listed channel uses (D-8)', async () => {
+    const first = await awaitingReview(1);
+    await call(operator, 'POST', `${admin(first)}/start`, { ifMatch: 2 });
+    await call(operator, 'POST', `${admin(first)}/approve`, { body: { verification }, ifMatch: 3 });
+    await deps.db.send(new PutCommand({
+      TableName: deps.table,
+      Item: { PK: 'COL#kamakura-audio-guide', SK: 'USEDBY#kamakura-history', type: 'used-by', collectionId: 'kamakura-audio-guide', channelId: 'kamakura-history', publisherId: 'x', channelVersion: 3, resources: { narration: 'audio' }, rev: 1 },
+    }));
+    const dropped = await awaitingReview(2, { ...LISTING, resourceTypes: { intro: 'text' } });
+    await call(operator, 'POST', `${admin(dropped)}/start`, { ifMatch: 2 });
+    const refused = await call(operator, 'POST', `${admin(dropped)}/approve`, { body: {}, ifMatch: 3 });
+    expect(refused.body).toMatchObject({ code: 'resource_in_use', detail: 'kamakura-history uses narration' });
+    await call(operator, 'POST', `${admin(dropped)}/reject`, { body: { findings: [{ item: '2.1', detail: '使われている素材を消している' }] }, ifMatch: 3 });
+
+    const retyped = await awaitingReview(3, { ...LISTING, resourceTypes: { intro: 'text', narration: 'video' } });
+    await call(operator, 'POST', `${admin(retyped)}/start`, { ifMatch: 2 });
+    expect((await call(operator, 'POST', `${admin(retyped)}/approve`, { body: {}, ifMatch: 3 })).body.code).toBe('resource_in_use');
+  });
+
+  it('fail when a channel changes its record of use during the approval (DES-008 K-5)', async () => {
+    await deps.db.send(new PutCommand({
+      TableName: deps.table,
+      Item: { PK: 'COL#kamakura-audio-guide', SK: 'USEDBY#kamakura-history', type: 'used-by', collectionId: 'kamakura-audio-guide', channelId: 'kamakura-history', publisherId: 'x', channelVersion: 3, resources: {}, rev: 1 },
+    }));
+    const sid = await awaitingReview();
+    await call(operator, 'POST', `${admin(sid)}/start`, { ifMatch: 2 });
+    duringCopy = async () => {
+      await deps.db.send(new UpdateCommand({
+        TableName: deps.table, Key: { PK: 'COL#kamakura-audio-guide', SK: 'USEDBY#kamakura-history' },
+        UpdateExpression: 'SET resources = :r, rev = rev + :one', ExpressionAttributeValues: { ':r': { old: 'image' }, ':one': 1 },
+      }));
+    };
+    expect((await call(operator, 'POST', `${admin(sid)}/approve`, { body: { verification }, ifMatch: 3 })).status).toBe(412);
+    expect((await call(alice, 'GET', '/api/collections/kamakura-audio-guide')).body.listed).toBe(false);
+  });
+
+  it('return, withdraw and revoke like channels', async () => {
+    const sid = await awaitingReview();
+    await call(operator, 'POST', `${admin(sid)}/start`, { ifMatch: 2 });
+    const returned = await call(operator, 'POST', `${admin(sid)}/return`, { body: { findings: [{ item: '2.3', detail: '出典がない' }] }, ifMatch: 3 });
+    expect(returned.body.submission.state).toBe('returned');
+    expect(archived).toEqual([`intake-col/kamakura-audio-guide/${sid}.zip`]);
+    expect(notices.at(-1)).toMatchObject({ event: 'collection.returned', collectionId: 'kamakura-audio-guide' });
+    expect((await call(operator, 'GET', `${admin(sid)}/reviews`)).body.items.map((r: { action: string }) => r.action)).toEqual(['start', 'return']);
+
+    const again = await awaitingReview();
+    expect((await call(alice, 'POST', `/api/collections/kamakura-audio-guide/submissions/${again}/withdraw`, { ifMatch: 2 })).body.state).toBe('withdrawn');
+
+    const third = await awaitingReview();
+    await call(operator, 'POST', `${admin(third)}/start`, { ifMatch: 2 });
+    await call(operator, 'POST', `${admin(third)}/approve`, { body: { verification }, ifMatch: 3 });
+    const col = await call(operator, 'GET', '/api/collections/kamakura-audio-guide');
+    const revoked = await call(operator, 'POST', '/api/admin/collections/kamakura-audio-guide/revoke', { body: { reason: '権利者からの申し立て', severity: 'high' }, ifMatch: col.body.rev });
+    expect(revoked.body).toMatchObject({ status: 'revoked', listed: false, revocations: [{ reason: '権利者からの申し立て', severity: 'high' }] });
+    expect(published).toEqual(['approve', 'revoke']);
+    expect(notices.at(-1)).toMatchObject({ event: 'collection.revoked', message: '権利者からの申し立て' });
+  });
+
+  it('show the channels that use them, without names of revoked ones', async () => {
+    await deps.db.send(new PutCommand({
+      TableName: deps.table,
+      Item: { PK: 'CH#kamakura-history', SK: 'CH', type: 'channel', channelId: 'kamakura-history', publisherId: 'PUBX', status: 'active', latestApproved: { name: '鎌倉歴史散歩' }, rev: 1 },
+    }));
+    await deps.db.send(new PutCommand({ TableName: deps.table, Item: { PK: 'PUB#PUBX', SK: 'PUB', type: 'publisher', publisherId: 'PUBX', displayName: '鎌倉歴史散歩の会', status: 'active', rev: 1 } }));
+    await deps.db.send(new PutCommand({
+      TableName: deps.table,
+      Item: { PK: 'COL#kamakura-audio-guide', SK: 'USEDBY#kamakura-history', type: 'used-by', collectionId: 'kamakura-audio-guide', channelId: 'kamakura-history', publisherId: 'PUBX', channelVersion: 3, resources: { narration: 'audio' }, rev: 1 },
+    }));
+    const users = await call(alice, 'GET', '/api/collections/kamakura-audio-guide/used-by');
+    expect(users.body.items).toEqual([{ channelId: 'kamakura-history', channelName: '鎌倉歴史散歩', channelVersion: 3, publisherName: '鎌倉歴史散歩の会', resources: ['narration'] }]);
+  });
+});

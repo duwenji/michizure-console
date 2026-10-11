@@ -130,6 +130,8 @@ export async function updateMyPublisher(deps: Deps, req: Request): Promise<Respo
   if (pub.rev !== rev) fail('precondition_failed', `the publisher is at rev ${String(pub.rev)}`);
   if (pub.status === 'deleted') fail('invalid_state', 'the publisher has left');
   const sets = [...(displayName !== undefined ? ['displayName = :n'] : []), ...(contact !== undefined ? ['contact = :c'] : [])];
+  // A new name is checked again before the next collection is approved (DM-001 M-17, D-20).
+  const renamed = displayName !== undefined && displayName !== pub.displayName && pub.producerVerification !== undefined;
   await transact(
     deps,
     [
@@ -137,7 +139,7 @@ export async function updateMyPublisher(deps: Deps, req: Request): Promise<Respo
         Update: {
           TableName: deps.table,
           Key: { PK: `PUB#${String(pub.publisherId)}`, SK: 'PUB' },
-          UpdateExpression: `SET ${sets.join(', ')}, updatedAt = :now, rev = rev + :one`,
+          UpdateExpression: `SET ${sets.join(', ')}, updatedAt = :now, rev = rev + :one${renamed ? ' REMOVE producerVerification' : ''}`,
           ConditionExpression: 'rev = :rev',
           ExpressionAttributeValues: {
             ':now': deps.now().toISOString(), ':one': 1, ':rev': rev,

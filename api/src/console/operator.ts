@@ -24,7 +24,7 @@ export async function listPublishers(deps: Deps, req: Request): Promise<Response
 
 export async function getPublisher(deps: Deps, req: Request): Promise<Response> {
   requireOperator(req);
-  return withEtag(200, await publisherView(deps, await loadPublisher(deps, req.params.publisherId!)));
+  return withEtag(200, await publisherView(deps, await loadPublisher(deps, req.params.publisherId!), true));
 }
 
 export async function listPublisherChannels(deps: Deps, req: Request): Promise<Response> {
@@ -86,7 +86,7 @@ export async function setPublisherLimits(deps: Deps, req: Request): Promise<Resp
   const body = object(req.body);
   const reason = requiredText(body, 'reason', { max: 500 });
   const limits: Record<string, number> = {};
-  for (const key of ['channels', 'uploadsPerDay', 'ticketsPerDay'] as const) {
+  for (const key of ['channels', 'collections', 'uploadsPerDay', 'ticketsPerDay'] as const) {
     const value = body[key];
     if (value === undefined) continue;
     if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 1000) {

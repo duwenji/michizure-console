@@ -65,6 +65,8 @@ beforeEach(async () => {
     readRecord: async () => undefined,
     writeRecord: async () => {},
     notify: async (n) => void notices.push(n),
+    publishCollection: async (_key: string, sha: string) => `https://provider.example/col/${sha}.zip`,
+    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
     publishApproved: async ({ packageSha256, iconSha256 }) => ({ packageUrl: `https://provider.example/pkg/${packageSha256}.zip`, iconUrl: `https://provider.example/icons/${iconSha256}.png` }),
   };
 });
@@ -175,9 +177,9 @@ describe('publishers', () => {
   it('changes and clears limits', async () => {
     const id = await seedPublisher();
     const raised = await call('PUT', `/api/admin/publishers/${id}/limits`, { body: { channels: 10, reason: '観光協会' }, ifMatch: 1 });
-    expect(raised.body.limits).toEqual({ channels: 10, uploadsPerDay: 20, ticketsPerDay: 10 });
+    expect(raised.body.limits).toEqual({ channels: 10, collections: 5, uploadsPerDay: 20, ticketsPerDay: 10 });
     const cleared = await call('PUT', `/api/admin/publishers/${id}/limits`, { body: { reason: '戻す' }, ifMatch: 2 });
-    expect(cleared.body.limits).toEqual({ channels: 5, uploadsPerDay: 20, ticketsPerDay: 10 });
+    expect(cleared.body.limits).toEqual({ channels: 5, collections: 5, uploadsPerDay: 20, ticketsPerDay: 10 });
     expect((await call('PUT', `/api/admin/publishers/${id}/limits`, { body: { channels: -1, reason: 'x' }, ifMatch: 3 })).body.code).toBe('invalid_request');
   });
 

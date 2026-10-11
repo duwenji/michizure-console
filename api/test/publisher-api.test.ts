@@ -66,6 +66,8 @@ beforeEach(async () => {
     readRecord: async () => undefined,
     writeRecord: async () => {},
     notify: async (n) => void notices.push(n),
+    publishCollection: async (_key: string, sha: string) => `https://provider.example/col/${sha}.zip`,
+    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
     publishApproved: async ({ packageSha256, iconSha256 }) => ({ packageUrl: `https://provider.example/pkg/${packageSha256}.zip`, iconUrl: `https://provider.example/icons/${iconSha256}.png` }),
   };
 });
