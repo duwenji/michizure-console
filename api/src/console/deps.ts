@@ -46,8 +46,8 @@ export interface Deps {
   appStageVersions: Record<number, number>;
 }
 
-/** Until the app's first material stage ships, material needs a version no app has (DES-007 J-9). */
-export const DEFAULT_APP_STAGE_VERSIONS: Record<number, number> = { 0: 1, 1: 9999, 2: 9999, 3: 9999 };
+/** Each stage needs the first app version that shows it; stages no app shows yet need a version no app has (DES-007 J-9). */
+export const DEFAULT_APP_STAGE_VERSIONS: Record<number, number> = { 0: 1, 1: 2, 2: 9999, 3: 9999 };
 
 /** The minAppVersion for an app stage; an unknown stage needs a version no app has. */
 export function minAppVersionFor(deps: Pick<Deps, 'appStageVersions'>, stage: number): number {

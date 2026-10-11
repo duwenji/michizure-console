@@ -54,7 +54,8 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     signingKeyIds: ['k-2026-10'],
     // No sending domain in development: the notices are recorded, not sent (2026-10-04, the developer's decision).
     notify: { mode: 'log' },
-    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
+    // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
+    appStageVersions: { 0: 1, 1: 2, 2: 9999, 3: 9999 },
     // Development keeps cost to the minimum (2026-10-04, the developer's decision).
     cost: {
       waf: false,
@@ -71,7 +72,8 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     signingKeyIds: ['k-2026-10'],
     // Switch to { mode: 'ses', from: … } once the domain (T-7) and SES production access (T-8) are ready.
     notify: { mode: 'log' },
-    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
+    // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
+    appStageVersions: { 0: 1, 1: 2, 2: 9999, 3: 9999 },
     cost: { waf: true, pointInTimeRecovery: true, cursorKey: 'secret' },
   },
 };
