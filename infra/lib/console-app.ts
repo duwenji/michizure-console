@@ -157,6 +157,9 @@ export class ConsoleApp extends Construct {
         // Settled submissions are kept 90 days (DM-001 M-4); uploads that never got a result go after 30.
         { prefix: 'archive/', expiration: Duration.days(90) },
         { prefix: 'intake/', expiration: Duration.days(30) },
+        // Collections the same way, under their own prefixes (DM-001 1.3: their ids may equal a channel's).
+        { prefix: 'archive-col/', expiration: Duration.days(90) },
+        { prefix: 'intake-col/', expiration: Duration.days(30) },
         { abortIncompleteMultipartUploadAfter: Duration.days(1) },
       ],
     });
@@ -350,12 +353,14 @@ export class ConsoleApp extends Construct {
       handler: 'console.validator.Handler::handleRequest',
       code: lambda.Code.fromAsset(props.validatorZip),
       memorySize: 1536,
-      timeout: Duration.minutes(1),
+      // A collection's outside resources are read within 10 minutes (DES-007 J-5).
+      timeout: Duration.minutes(15),
       ...logGroupFor(this, 'MachineReviewLogs', config),
       environment: {
         TABLE_NAME: props.table.tableName,
         INTAKE_BUCKET: intakeBucket.bucketName,
         RECORDS_BUCKET: props.recordsBucket.bucketName,
+        PUBLIC_BUCKET: props.publicBucket.bucketName,
         JAVA_TOOL_OPTIONS: '-XX:+TieredCompilation -XX:TieredStopAtLevel=1',
       },
     });
@@ -365,6 +370,12 @@ export class ConsoleApp extends Construct {
     intakeBucket.grantPut(validator, 'archive/*');
     props.recordsBucket.grantPut(validator, 'samples/*');
     intakeBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.LambdaDestination(validator), { prefix: 'intake/' });
+    // Collections (DES-007 J-2・J-3): their packages, and the listed ones a channel's review resolves against.
+    intakeBucket.grantRead(validator, 'intake-col/*');
+    intakeBucket.grantDelete(validator, 'intake-col/*');
+    intakeBucket.grantPut(validator, 'archive-col/*');
+    props.publicBucket.grantRead(validator, 'col/*');
+    intakeBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.LambdaDestination(validator), { prefix: 'intake-col/' });
 
     // ---- the publishers' emails (ADR-001 A-19, API-001 C-14) ----
     const deadNotices = new sqs.Queue(this, 'NotifyDeadLetters', { retentionPeriod: Duration.days(14), enforceSSL: true });
