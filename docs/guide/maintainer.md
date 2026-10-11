@@ -57,7 +57,7 @@ flowchart LR
 | `conformance` | 任意の提供元に対する準拠テスト | DES-001 |
 | `infra` | AWS CDK。環境ごとの設定は `infra/lib/config.ts` | ADR-001 |
 
-機械審査の Lambda（`validator`）は、SanpoGuide の `station-format` を GitHub Packages（`com.example.sanpoguide:station-format`）から読み込みます。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew :station-format:publishToMavenLocal`）。
+機械審査の Lambda（`validator`）は、SanpoGuide の `station-format` を GitHub Packages（`io.github.duwenji.sanpoguide:station-format`）から読み込みます。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew :station-format:publishToMavenLocal`）。
 
 ## 2. 準備
 

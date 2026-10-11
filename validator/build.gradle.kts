@@ -16,7 +16,7 @@ kotlin {
 }
 
 dependencies {
-    implementation("com.example.sanpoguide:station-format:1.1.0")
+    implementation("io.github.duwenji.sanpoguide:station-format:2.0.0")
     // station-format leaves org.json to its users (Android ships one).
     implementation("org.json:json:20240303")
     implementation("com.amazonaws:aws-lambda-java-core:1.4.0")

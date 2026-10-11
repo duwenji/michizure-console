@@ -1,6 +1,6 @@
 package console.validator
 
-import com.example.sanpoguide.station.format.AccountIds
+import io.github.duwenji.sanpoguide.station.format.AccountIds
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -76,7 +76,7 @@ class MachineReviewTest {
         outcome as Outcome.Passed
         assertEquals(3, outcome.version)
         val samples = JSONObject(outcome.samplePrompts)
-        assertEquals("station-format 1.1.0", samples.getString("generatedBy"))
+        assertEquals("station-format 2.0.0", samples.getString("generatedBy"))
         // The review policy's scenes (2.7), as the app would render them; this channel doesn't talk on rest.
         val ids = (0 until samples.getJSONArray("scenarios").length()).map { samples.getJSONArray("scenarios").getJSONObject(it).getString("id") }
         assertEquals(8, ids.size)

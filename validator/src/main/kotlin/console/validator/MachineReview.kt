@@ -1,9 +1,9 @@
 package console.validator
 
-import com.example.sanpoguide.prompt.ReviewSamples
-import com.example.sanpoguide.station.format.JcaEd25519
-import com.example.sanpoguide.station.format.StationCheck
-import com.example.sanpoguide.station.format.StationValidator
+import io.github.duwenji.sanpoguide.prompt.ReviewSamples
+import io.github.duwenji.sanpoguide.station.format.JcaEd25519
+import io.github.duwenji.sanpoguide.station.format.StationCheck
+import io.github.duwenji.sanpoguide.station.format.StationValidator
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
@@ -40,7 +40,7 @@ sealed interface Outcome {
  * before) and the icon. Pure: the Lambda reads and writes, this decides.
  */
 object MachineReview {
-    const val VALIDATOR = "station-format 1.1.0"
+    const val VALIDATOR = "station-format 2.0.0"
     const val MAX_PACKAGE = 2 * 1024 * 1024
     const val MAX_ICON = 100 * 1024
     const val MAX_ICON_SIDE = 256
