@@ -61,7 +61,9 @@ export interface Notice {
   event:
     | 'submission.approved' | 'submission.returned' | 'submission.rejected' | 'channel.revoked' | 'transfer.approved' | 'transfer.rejected'
     // To the producer (API-001 C-20).
-    | 'collection.approved' | 'collection.returned' | 'collection.rejected' | 'collection.revoked';
+    | 'collection.approved' | 'collection.returned' | 'collection.rejected' | 'collection.revoked'
+    // To the publishers of the channels that use the collection (API-001 C-20, D-18).
+    | 'collection.updated' | 'collection.revoked_used' | 'collection.grants_narrowed';
   publisherId: string;
   channelId?: string;
   collectionId?: string;

@@ -33,6 +33,7 @@ const FOOTER = '\n\n—\nSanpoGuide チャンネル管理システム\nこのメ
 
 export function render(notice: Notice, consoleUrl: string): { subject: string; body: string } {
   const channel = notice.channelId ? `チャンネル ${notice.channelId} ` : notice.collectionId ? `素材集 ${notice.collectionId} ` : '';
+  const used = notice.collectionId ? `素材集 ${notice.collectionId} ` : '';
   const what = notice.version !== undefined ? `${channel}の版 ${notice.version} ` : channel;
   const link = notice.channelId ? `${consoleUrl}/channels/${notice.channelId}` : notice.collectionId ? `${consoleUrl}/collections/${notice.collectionId}` : `${consoleUrl}/`;
   const message = notice.message ? `\n\n運用者からのメッセージ:\n${notice.message}` : '';
@@ -60,6 +61,15 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
         return [`${what}を却下しました`, `${what}を却下しました。${findings}${message}`];
       case 'collection.revoked':
         return [`${channel}を取り下げました`, `運用者が${channel}を公開のリストから取り下げました。この素材集を使うチャンネルでは、その素材が出なくなります。${message}`];
+      case 'collection.updated':
+        return [
+          `${channel}が使う${used}が更新されました`,
+          `${channel}が使う${used}の新しい版${notice.version !== undefined ? ` ${notice.version}` : ''}が承認されました。参照している素材は残っています。中身が変わっていないか、画面で確かめてください。${message}`,
+        ];
+      case 'collection.revoked_used':
+        return [`${channel}が使う${used}が取り下げられました`, `${channel}が使う${used}が公開のリストから取り下げられました。その素材は出なくなり、次の候補（AI の解説など）に代わります。${message}`];
+      case 'collection.grants_narrowed':
+        return [`${channel}は${used}を使えなくなりました`, `${used}の利用許諾が変わり、${channel}は使えなくなりました。その素材は出なくなり、次の候補に代わります。${message}`];
       case 'transfer.rejected':
         return ['鍵の移し替えを認めませんでした', `鍵の移し替えの申し出を認めませんでした。新しい鍵の紐づけは外しました。${message}`];
     }
