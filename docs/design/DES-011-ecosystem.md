@@ -11,8 +11,8 @@
 | 作成日 | 2026-10-12 |
 | 作成者 | Claude（開発者との検討） |
 | 承認者 | 開発者（1.0: 2026-10-12。未決事項 No.1・2 は案のとおり。実装は PR でレビュー） |
-| ステータス | 承認済（実装中） |
-| 版 | 1.0 |
+| ステータス | 実装済（開発用への配備と通しの確認は未） |
+| 版 | 1.1 |
 
 ## 目的・背景
 
@@ -67,6 +67,17 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 | 準拠テスト | 手元で公開したリストで V-27 と `minAppVersions` の形が通り、壊した例で落ちる |
 | SanpoGuide との通し | 開発用の環境で、format 2 のチャンネル（`walk`・`cycle`）と `cycle` だけのチャンネルを承認して公開し、SanpoGuide（エミュレータ）で前者だけが出ることを確かめる |
 
+## 実装の記録
+
+| 段 | 結果 |
+|---|---|
+| a | validator を `core-format` 1.2.0・`prompts` 1.1.0 に（`validatorVersion` は `core-format 1.2.0, prompts 1.1.0`）。機械審査が `activities`・`genres`・`requires` を記録、期限を過ぎた format 1 は `format_retired`（`FORMAT1_ACCEPT_UNTIL`、未設定）、`walk` のないチャンネルは見本なしで `noRepresentativeApp` を記録、素材集の `grants.apps` を記録。承認が `minAppVersions` と SanpoGuide の `minAppVersion`（合わなければ 9999）を付け、パッケージの `format` を載せる。公開は DES-011 より前の承認を format 1 の読み方で載せる。テスト: validator 14 → 18、API の承認 4 件 |
+| a（整理） | N-4 の「登録したアプリ」は、アプリの名前・過ごし方・機能を `packages/protocol` の `KNOWN_APPS` に、段ごとの版だけを設定 `appStageVersions`（アプリの ID ごと。環境変数 `APP_STAGE_VERSIONS`）に分けた。画面と API の両方で同じ `appsFor` を使うため |
+| b | API の申請に `activities`・`genres`・`requires`・`offeredIn`、チャンネルに `offeredIn`。OpenAPI・型を更新。運営の審査とチャンネル提供者のチャンネルに過ごし方・ジャンル・必要な機能と「このチャンネルが出るアプリ」、代表のアプリがないチャンネルでは見本の代わりに案内、素材集に「使ってよいアプリ」。利用ガイド（チャンネル提供者・素材提供者） |
+| c | 準拠テストに V-27（`activities`・`genres`・`requires`・`package.format` がパッケージと一致）と V-29（`minAppVersions` の形）。V-25 の `grants` を集合で比べるように直した。通しのテスト 3 件。アプリのテスト用の文書（`app-vectors.ts`）への format 2 のチャンネルの追加は見送った（SanpoGuide 側は `EcosystemSyncTest` で format 2 のリストを確かめている） |
+
+確認: `npx tsc -b`、GitHub Actions の CI（API・CDK・準拠テスト・validator）が通る。この PC は Node 20・Docker なしのため、API のテストは CI でだけ流した。**開発用の環境への配備と、SanpoGuide（エミュレータ）との通しの確認（検証の計画の最後の行）はまだ**。
+
 ## 未決事項・リスク
 
 | No. | 内容 | 対応 |
@@ -87,3 +98,4 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 |---|---|---|---|
 | 2026-10-12 | 0.1 | 草案 | Claude |
 | 2026-10-12 | 1.0 | 承認 | Claude（承認: 開発者） |
+| 2026-10-12 | 1.1 | 実装の記録。N-4 の設定を KNOWN_APPS と appStageVersions に分けた | Claude |
