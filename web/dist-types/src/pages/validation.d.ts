@@ -22,3 +22,20 @@ export declare function EcosystemNote({ activities, genres, requires, offeredIn 
     requires?: string[] | undefined;
     offeredIn?: string[] | undefined;
 }): import("react").JSX.Element | null;
+/** The declaration on a submission form (DES-012 R-1, R-6). */
+export declare function PromotionalField({ checked, onChange, what }: {
+    checked: boolean;
+    onChange: (v: boolean) => void;
+    what: string;
+}): import("react").JSX.Element;
+/** Whether a submission or version declares promotion (DES-012 R-6). */
+export declare function PromotionalNote({ declared }: {
+    declared: boolean | undefined;
+}): import("react").JSX.Element;
+/**
+ * The declared collections that are promotional now, which mark the channel too (DES-012 R-4, R-6).
+ * Nothing when none is.
+ */
+export declare function PromotedCollections({ ids }: {
+    ids: string[];
+}): import("react").JSX.Element | null;
