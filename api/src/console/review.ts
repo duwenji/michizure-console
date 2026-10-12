@@ -323,6 +323,8 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
     package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: manifest.format ?? 1 },
     activities, genres, requires, minAppVersions,
     minAppVersion: legacyMinAppVersion(minAppVersions), approvedAt: at,
+    // This version's declaration (DES-012 R-3); the publisher adds its collections' (R-4).
+    ...(sub.promotional === true ? { promotional: true } : {}),
     // What the publisher adds up each time it lists the channel (DM-001 M-24).
     appStage: listing.appStage, collections: listing.collections, ownPrefetchBytes: listing.ownPrefetchBytes, ownMedia: listing.ownMedia,
   };
@@ -460,7 +462,7 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
   const collection = await loadCollection(deps, collectionId);
   const account = await loadPublisher(deps, String(sub.publisherId));
   if (!account.producerVerification && !given) fail('producer_not_verified', 'the account’s identity has not been checked: give verification');
-  const previous = collection.latestApproved as { submissionId?: string; version?: number } | undefined;
+  const previous = collection.latestApproved as { submissionId?: string; version?: number; promotional?: boolean } | undefined;
   if (previous?.version !== undefined && Number(sub.version) <= previous.version) fail('version_not_newer', `version ${String(sub.version)} is not after the approved ${previous.version}`);
   const listing = sub.listing as CollectionListing | undefined;
   if (!listing) return fail('invalid_state', 'the submission has no record from the machine review');
@@ -484,6 +486,7 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
     package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: 1 },
     resourceTypes: listing.resourceTypes, externalResources: listing.externalResources,
     appStage: listing.appStage, minAppVersions, minAppVersion: legacyMinAppVersion(minAppVersions), approvedAt: at,
+    ...(sub.promotional === true ? { promotional: true } : {}),
   };
   const decision = { action: 'approve', at, ...(message ? { message } : {}) };
   // The first version with a transferred key starts the 90 days the list shows the change (API-002 P-13, as P-9).
@@ -551,7 +554,9 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
     const still: Item[] = [];
     const lost: Item[] = [];
     for (const u of uses) (granted(listing.grants, await accountIdsOf(deps, String(u.publisherId))) ? still : lost).push(u);
-    await notifyUsers(deps, still, 'collection.updated', collectionId, { version: Number(sub.version) });
+    // Their channels now show「宣伝を含む」too (DES-012 R-7).
+    const becamePromotional = sub.promotional === true && previous.promotional !== true;
+    await notifyUsers(deps, still, 'collection.updated', collectionId, { version: Number(sub.version), ...(becamePromotional ? { becamePromotional } : {}) });
     await notifyUsers(deps, lost, 'collection.grants_narrowed', collectionId, { version: Number(sub.version) });
   }
   const updated = collectionSubmissionView(await loadCollectionSubmission(deps, collectionId, String(sub.submissionId)));

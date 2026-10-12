@@ -1,4 +1,6 @@
 import type { Schemas } from '@sanpo-console/api-types';
+import { useSession } from '../main';
+import { useLoad } from './common';
 
 /**
  * The machine review's outcome as API-001 1.1 C-19 gives it, for producers and operators alike:
@@ -70,4 +72,37 @@ export function EcosystemNote({ activities, genres, requires, offeredIn }: {
       </div>
     </span>
   );
+}
+
+/** Where the review policy says what promotion may be (SanpoGuide 審査基準 2.4). */
+const PROMOTION_POLICY = 'https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md#24-宣伝';
+
+/** The declaration on a submission form (DES-012 R-1, R-6). */
+export function PromotionalField({ checked, onChange, what }: { checked: boolean; onChange: (v: boolean) => void; what: string }) {
+  return (
+    <label className="check">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      宣伝を含む（店舗・企業・施設・商品の紹介が主な目的の{what}）。宣伝は素材の中だけで、期限つきの割引やキャンペーンは入れられません（<a href={PROMOTION_POLICY} target="_blank" rel="noreferrer">審査基準 2.4</a>）。
+      アプリでは「宣伝を含む」と示され、散策者は設定で宣伝の素材を止められます
+    </label>
+  );
+}
+
+/** Whether a submission or version declares promotion (DES-012 R-6). */
+export function PromotionalNote({ declared }: { declared: boolean | undefined }) {
+  return declared ? <strong>宣伝を含む（申告あり）</strong> : <span className="muted">申告なし</span>;
+}
+
+/**
+ * The declared collections that are promotional now, which mark the channel too (DES-012 R-4, R-6).
+ * Nothing when none is.
+ */
+export function PromotedCollections({ ids }: { ids: string[] }) {
+  const { api } = useSession();
+  const promoted = useLoad(async () => {
+    const found = await Promise.all(ids.map(async (collectionId) => (await api.GET('/api/collections/{collectionId}', { params: { path: { collectionId } } })).data));
+    return found.filter((c) => c?.listed && c.latestApproved?.promotional).map((c) => c!.collectionId);
+  }, [api, ids.join(' ')]);
+  if (!promoted.data?.length) return null;
+  return <div>宣伝の素材集を使っています: {promoted.data.join('・')}（リストでは「宣伝を含む」と示されます）</div>;
 }

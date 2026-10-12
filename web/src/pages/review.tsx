@@ -6,7 +6,7 @@ import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { AI_SERVICES, listModels, reply, type AiService } from '../ai';
 import { Empty, Status, Time, useLoad } from './common';
-import { EcosystemNote } from './validation';
+import { EcosystemNote, PromotedCollections, PromotionalNote } from './validation';
 
 /** The review policy's items (SanpoGuide docs/channel-review-policy.md), for findings. */
 export const ITEMS: [string, string][] = [
@@ -96,6 +96,12 @@ export function ReviewPage() {
             <dd>{s.description ?? '—'} ／ {(s.tags ?? []).join('、') || '—'} ／ {(s.regions ?? []).join('、') || '—'}</dd>
             <dt>運営への説明</dt>
             <dd>{s.note ?? '—'}</dd>
+            <dt>宣伝</dt>
+            <dd>
+              <PromotionalNote declared={s.promotional} />
+              <span className="small muted">（宣伝なのに申告がなければ、審査基準 2.4 で差し戻す）</span>
+              <PromotedCollections ids={(s.validation?.collections ?? []).map((c) => c.collectionId)} />
+            </dd>
             <dt>機械の確認</dt>
             <dd>{s.validation?.ok ? `合格（${s.validation.validatorVersion}）` : '—'}</dd>
             <dt>アプリ</dt>

@@ -16,7 +16,7 @@ import {
 import { unzipSync } from 'fflate';
 
 /** The checks of API-002 「確認観点」 that a provider is responsible for. */
-export type CheckId = 'V-01' | 'V-02' | 'V-03' | 'V-04' | 'V-05' | 'V-06' | 'V-07' | 'V-08' | 'V-09' | 'V-15' | 'V-16' | 'V-19' | 'V-20' | 'V-21' | 'V-25' | 'V-27' | 'V-29';
+export type CheckId = 'V-01' | 'V-02' | 'V-03' | 'V-04' | 'V-05' | 'V-06' | 'V-07' | 'V-08' | 'V-09' | 'V-15' | 'V-16' | 'V-19' | 'V-20' | 'V-21' | 'V-25' | 'V-27' | 'V-29' | 'C-P1';
 
 export interface CheckResult {
   id: CheckId;
@@ -53,6 +53,8 @@ const TITLES: Record<CheckId, string> = {
   'V-25': 'collections’ tags, regions and grants match their packages',
   'V-27': 'channels’ activities, genres and requires match their packages (API-002 1.4)',
   'V-29': 'minAppVersions name app ids with positive versions (API-002 1.4)',
+  // The console's own check (DES-012 R-8): API-002 P-16 has no number for it.
+  'C-P1': 'promotional is a boolean, and a channel declaring a promotional collection is promotional (API-002 1.3 P-16)',
 };
 
 const MEDIA = new Set(['text', 'image', 'audio', 'video']);
@@ -240,9 +242,14 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
         if (!col) set('V-20', 'fail', `${channelId}: ${use.id} is not listed`);
         else if (col.version < use.minVersion) set('V-20', 'fail', `${channelId}: ${use.id}@${col.version} is older than ${use.minVersion}`);
         else if (grants !== '*' && !ids.some((id) => grants?.includes(id))) set('V-20', 'fail', `${channelId}: ${use.id} is not granted to ${channel.publisher}`);
+        if (col?.promotional === true && channel.promotional !== true) set('C-P1', 'fail', `${channelId} declares the promotional ${use.id} but is not promotional`);
       }
     }
     set('V-20', 'pass', `${channelPackages.size} channels`);
+    const notBoolean = [...list.channels, ...collections].find((e) => e.promotional !== undefined && typeof e.promotional !== 'boolean');
+    if (notBoolean) set('C-P1', 'fail', `${notBoolean.id}: promotional ${JSON.stringify(notBoolean.promotional)}`);
+    const promoted = [...list.channels, ...collections].filter((e) => e.promotional === true).length;
+    set('C-P1', 'pass', `${promoted} promotional entries`);
 
     // V-21: the forms only; the values need the outside resources' sizes, which the list doesn't give (DES-009 M-10).
     for (const entry of [...list.channels, ...collections] as { id: string; media?: string[]; resourcesSize?: number }[]) {

@@ -25,6 +25,8 @@ const config: ProviderConfig = {
   ...(optional('REVIEW_POLICY_URL') ? { reviewPolicyUrl: optional('REVIEW_POLICY_URL')! } : {}),
   ...(optional('TERMS_URL') ? { termsUrl: optional('TERMS_URL')! } : {}),
   ...(optional('CONTACT') ? { contact: optional('CONTACT')! } : {}),
+  // DES-012 R-5: by app id; unset or {} until an app labels promotion.
+  promotionalMinAppVersions: JSON.parse(optional('PROMOTIONAL_MIN_APP_VERSIONS') ?? '{}') as Record<string, number>,
 };
 
 const store = new DynamoStore(env('TABLE_NAME'));

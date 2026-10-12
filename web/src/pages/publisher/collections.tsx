@@ -4,7 +4,7 @@ import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';
 import { openKeyFile, signCollectionPackage } from '../../publisher-crypto';
 import { Empty, Status, Time, useLoad } from '../common';
-import { StageNote, ValidationView } from '../validation';
+import { PromotionalField, PromotionalNote, StageNote, ValidationView } from '../validation';
 
 // The producer's pages (DES-010 N-1〜N-3): collections, their submissions, and who uses them.
 
@@ -108,6 +108,7 @@ export function PublisherCollection() {
   const [keyText, setKeyText] = useState('');
   const [passphrase, setPassphrase] = useState('');
   const [note, setNote] = useState('');
+  const [promotional, setPromotional] = useState(false);
   const [progress, setProgress] = useState<string>();
   const [error, setError] = useState<string>();
 
@@ -122,7 +123,7 @@ export function PublisherCollection() {
       const signed = await signCollectionPackage(new Uint8Array(await zip.arrayBuffer()), key, { collection: collectionId });
       if (signed.zip.length > 2 * 1024 * 1024) throw new Error('署名したパッケージが 2MB を超えています（大きな素材は外部の URL に置いてください）');
       setProgress('申請を作っています…');
-      const { data } = await api.POST('/api/collections/{collectionId}/submissions', { params: { path }, body: note ? { note } : {} });
+      const { data } = await api.POST('/api/collections/{collectionId}/submissions', { params: { path }, body: { ...(note ? { note } : {}), ...(promotional ? { promotional } : {}) } });
       if (!data) throw new Error('申請を作れませんでした');
       setProgress('パッケージを送っています…');
       await upload(data.uploads.package, new Blob([new Uint8Array(signed.zip)], { type: 'application/zip' }));
@@ -152,7 +153,7 @@ export function PublisherCollection() {
               <>
                 版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）、{c.latestApproved.media.join('・')}、タグ {c.latestApproved.tags.join('・') || '—'}、
                 利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} のチャンネル提供者`}、
-                使ってよいアプリ {c.latestApproved.grants.apps?.join('・') ?? 'すべてのアプリ'}
+                使ってよいアプリ {c.latestApproved.grants.apps?.join('・') ?? 'すべてのアプリ'}、宣伝 <PromotionalNote declared={c.latestApproved.promotional} />
                 <div><StageNote appStage={c.latestApproved.appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>
               </>
             ) : '—'}
@@ -256,6 +257,7 @@ export function PublisherCollection() {
           運営への説明（素材の権利・出どころなど。審査のときに読まれます）
           <textarea rows={2} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
+        <PromotionalField checked={promotional} onChange={setPromotional} what="素材集" />
         <button disabled={!zip || !keyText || !passphrase || (progress !== undefined && !progress.startsWith('版'))}>署名して申請する</button>
         {progress && <p role="status">{progress}</p>}
         {error && <p className="error" role="alert">{error}</p>}

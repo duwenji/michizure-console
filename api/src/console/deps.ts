@@ -108,6 +108,8 @@ export interface Notice {
   /** The operator's message or reason, shown to the publisher. */
   message?: string;
   findings?: { item: string; detail: string }[];
+  /** `collection.updated`: the new version is promotional and the last was not (DES-012 R-7). */
+  becamePromotional?: boolean;
   /** Pending submissions a transfer returned. */
   returned?: number;
 }

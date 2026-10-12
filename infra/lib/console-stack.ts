@@ -130,6 +130,7 @@ export class ConsoleStack extends Stack {
         ...(config.reviewPolicyUrl ? { REVIEW_POLICY_URL: config.reviewPolicyUrl } : {}),
         ...(config.termsUrl ? { TERMS_URL: config.termsUrl } : {}),
         ...(config.contact ? { CONTACT: config.contact } : {}),
+        PROMOTIONAL_MIN_APP_VERSIONS: JSON.stringify(config.promotionalMinAppVersions),
         NODE_OPTIONS: '--enable-source-maps',
       },
     });

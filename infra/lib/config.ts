@@ -34,6 +34,12 @@ export interface EnvConfig {
    * the day SanpoGuide with format 2 is on Google Play, plus 90 days. Unset: no end yet.
    */
   format1AcceptUntil?: string;
+  /**
+   * By app id: the version (versionCode) that first labels promotion (DES-012 R-5, SanpoGuide
+   * ADR-002 D-36). Promotional channels and collections need at least it; an app without one gets a
+   * version no app has. Set when the app with ADR-002 T-14 is on Google Play.
+   */
+  promotionalMinAppVersions: Record<string, number>;
   /** What this environment pays for (see docs/operations/cost.md). Production keeps every protection. */
   cost: {
     /** AWS WAF on the user pool (ADR-001 A-18): about 7 USD a month. */
@@ -62,6 +68,8 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     notify: { mode: 'log' },
     // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
     appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
+    // No app labels promotion yet (SanpoGuide ADR-002 T-14).
+    promotionalMinAppVersions: {},
     // Development keeps cost to the minimum (2026-10-04, the developer's decision).
     cost: {
       waf: false,
@@ -80,6 +88,7 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     notify: { mode: 'log' },
     // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
     appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
+    promotionalMinAppVersions: {},
     cost: { waf: true, pointInTimeRecovery: true, cursorKey: 'secret' },
   },
 };
