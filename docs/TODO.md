@@ -2,12 +2,11 @@
 
 ## 次にやること（2026-10-12 時点）
 
-1. エコシステムへの対応の残り（SanpoGuide ADR-003 T-7）: ADR-001・DM-001・API-001 の改訂（DES-011 N-3〜N-7・N-11 と DES-012 R-1・R-5・R-9 の項目。OpenAPI は更新済み）と、`michizure-console` への改名（ADR-003 E-22）
-2. 試用チケットで、素材集・基準を使うチャンネルをアプリで通しで確かめる（SanpoGuide 側。チャンネル提供者の鍵ファイルが届いてから）
-3. ルート鍵・署名鍵の手順書（T-5）、独自ドメイン（T-7）、SES のサンドボックスの解除（T-8）。そのあと本番の `notify` を `ses` にする（DES-006 J-12・J-13）
-4. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.6）
+1. 試用チケットで、素材集・基準を使うチャンネルをアプリで通しで確かめる（SanpoGuide 側。チャンネル提供者の鍵ファイルが届いてから）
+2. ルート鍵・署名鍵の手順書（T-5）、独自ドメイン（T-7）、SES のサンドボックスの解除（T-8）。そのあと本番の `notify` を `ses` にする（DES-006 J-12・J-13）
+3. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.6）
 
-済んだこと: 宣伝を含むチャンネル・素材集（[DES-012](design/DES-012-promotional.md)、SanpoGuide ADR-002 T-13、2026-10-12。開発用に配備し通しの確認済み。`promotionalMinAppVersions` は SanpoGuide の T-14 の版が出たら設定する）。エコシステムへの対応（DES-011、PR #27、2026-10-12。開発用に配備し、format 2 のチャンネルで SanpoGuide（エミュレータ）との通しの確認済み）。アプリ側の第三者のチャンネルの取り込みと試用チケットの読み込み（SanpoGuide ADR-001 T-5、2026-10-04）。審査基準の承認（SanpoGuide channel-review-policy.md 1.0、2026-10-11）。アプリの第 1 段（文字・画像）への対応（`appStageVersions` の段 1 を 2 に、PR #23、2026-10-11）
+済んだこと: エコシステムへの対応（SanpoGuide ADR-003 T-7）のすべて。ADR-001 1.3・DM-001 1.4・API-001 1.2 の改訂（2026-10-13 承認、PR #33）と、`michizure-console` への改名（ADR-001 T-9、2026-10-12、PR #34）を含む。宣伝を含むチャンネル・素材集（[DES-012](design/DES-012-promotional.md)、SanpoGuide ADR-002 T-13、2026-10-12。開発用に配備し通しの確認済み。`promotionalMinAppVersions` は SanpoGuide の T-14 の版が出たら設定する）。エコシステムへの対応（DES-011、PR #27、2026-10-12。開発用に配備し、format 2 のチャンネルで SanpoGuide（エミュレータ）との通しの確認済み）。アプリ側の第三者のチャンネルの取り込みと試用チケットの読み込み（SanpoGuide ADR-001 T-5、2026-10-04）。審査基準の承認（SanpoGuide channel-review-policy.md 1.0、2026-10-11）。アプリの第 1 段（文字・画像）への対応（`appStageVersions` の段 1 を 2 に、PR #23、2026-10-11）
 
 ## 実装の順番（ADR-001 T-6）
 
