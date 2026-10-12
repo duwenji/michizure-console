@@ -304,7 +304,7 @@ export class ConsoleApp extends Construct {
     consoleFn.addEnvironment('PUBLIC_BUCKET', props.publicBucket.bucketName);
     consoleFn.addEnvironment('PROVIDER_URL', props.providerUrl);
     consoleFn.addEnvironment('RECORDS_BUCKET', props.recordsBucket.bucketName);
-    consoleFn.addEnvironment('APPS', JSON.stringify(config.apps));
+    consoleFn.addEnvironment('APP_STAGE_VERSIONS', JSON.stringify(config.appStageVersions));
     // Review (stage 3c): read the samples' prompts, keep the samples, publish approved files.
     props.recordsBucket.grantRead(consoleFn, 'samples/*');
     props.recordsBucket.grantReadWrite(consoleFn, 'reviews/*');

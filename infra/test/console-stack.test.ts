@@ -172,9 +172,9 @@ describe('ConsoleStack', () => {
       Timeout: 360,
       Environment: { Variables: Match.objectLike({ NOTIFY_QUEUE_URL: Match.anyValue(), DISTRIBUTION_ID: Match.anyValue() }) },
     });
-    // The API copies approved collections to col/ and knows the app version of each stage (DES-008 K-4・K-6).
+    // The API copies approved collections to col/ and knows each app's version of each stage (DES-008 K-4・K-6, DES-011 N-4).
     prod.hasResourceProperties('AWS::Lambda::Function', {
-      Environment: { Variables: Match.objectLike({ APP_STAGE_VERSIONS: '{"0":1,"1":2,"2":9999,"3":9999}' }) },
+      Environment: { Variables: Match.objectLike({ APP_STAGE_VERSIONS: '{"sanpoguide":{"0":1,"1":2,"2":9999,"3":9999}}' }) },
     });
     // Reading a collection's outside resources takes up to 10 minutes (J-5); it resolves against the listed ones (J-2).
     prod.hasResourceProperties('AWS::Lambda::Function', {

@@ -10,8 +10,28 @@ export const FEATURES = [
   'present:speak', 'present:card', 'present:notify', 'present:sheet', 'present:play', 'present:ambient', 'present:fullscreen',
 ] as const;
 
-/** The apps of the ecosystem, by the id `minAppVersions` and `grants.apps` use (API-002 P-20, API-004 I-11). */
-export const APP_IDS = ['sanpoguide'] as const;
+/** An app of the ecosystem: what it is for and what it implements (SanpoGuide ADR-003 E-6 ①). */
+export interface KnownApp {
+  name: string;
+  activity: string;
+  features: readonly string[];
+}
+
+/**
+ * The apps of the ecosystem, by the id `minAppVersions` and `grants.apps` use (API-002 P-20,
+ * API-004 I-11), as `core-format`'s `AppIds` and each app's profile have them (DES-011 N-4).
+ */
+export const KNOWN_APPS: Record<string, KnownApp> = {
+  // SanpoGuide's SanpoProfile: walking, every feature but recorded sound (its app stage 2).
+  sanpoguide: { name: '散策ガイド', activity: 'walk', features: FEATURES.filter((f) => f !== 'present:play' && f !== 'present:ambient') },
+};
+
+/** The apps a channel is offered in: for one of its activities, implementing all it requires (API-003 G-4). */
+export function appsFor(activities: readonly string[], requires: readonly string[], apps: Record<string, KnownApp> = KNOWN_APPS): string[] {
+  return Object.entries(apps)
+    .filter(([, app]) => activities.includes(app.activity) && requires.every((f) => app.features.includes(f)))
+    .map(([id]) => id);
+}
 
 /** What a channel written in format 1 is (API-003 G-6). */
 export const FORMAT1_ECOSYSTEM = { activities: ['walk'], genres: [] as string[], requires: [] as string[] };

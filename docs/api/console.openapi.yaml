@@ -1506,8 +1506,20 @@ components:
             url: { type: string, format: uri }
             sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
         package: { $ref: '#/components/schemas/ListedPackage' }
-        minAppVersion: { type: integer }
+        minAppVersion: { type: integer, description: SanpoGuide の版（DES-011 N-6） }
+        minAppVersions: { $ref: '#/components/schemas/MinAppVersions' }
+        activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities（format 1 は walk） }
+        genres: { type: array, items: { type: string } }
+        requires: { type: array, items: { type: string }, description: パッケージの requires.features }
         approvedAt: { type: string, format: date-time }
+    MinAppVersions:
+      type: object
+      description: DES-011 N-5。アプリの ID → 必要な versionCode（SanpoGuide API-002 P-20）
+      additionalProperties: { type: integer }
+    OfferedIn:
+      type: array
+      description: DES-011 N-9。このチャンネルが出るアプリの名前（過ごし方と必要な機能から）。空ならどのアプリにも出ない
+      items: { type: string }
     Channel:
       type: object
       required: [channelId, publisherId, status, rev, createdAt, updatedAt]
@@ -1524,6 +1536,7 @@ components:
             - { $ref: '#/components/schemas/LatestApproved' }
             - { type: 'null' }
         listed: { type: boolean, description: 今のリストに載っているか }
+        offeredIn: { $ref: '#/components/schemas/OfferedIn' }
         publisherChange:
           type: [object, 'null']
           properties:
@@ -1646,6 +1659,10 @@ components:
         description: { type: string }
         tags: { type: array, items: { type: string } }
         regions: { type: array, items: { type: string } }
+        activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities（format 1 は walk） }
+        genres: { type: array, items: { type: string } }
+        requires: { type: array, items: { type: string }, description: パッケージの requires.features }
+        offeredIn: { $ref: '#/components/schemas/OfferedIn' }
         note: { type: string }
         sha256: { type: [string, 'null'] }
         size: { type: [integer, 'null'] }
@@ -1755,9 +1772,11 @@ components:
               oneOf:
                 - { type: string, const: '*' }
                 - { type: array, items: { $ref: '#/components/schemas/AccountId' } }
+            apps: { type: array, items: { type: string }, description: DES-011 N-7。使ってよいアプリの ID（ないときはすべてのアプリ） }
         package: { $ref: '#/components/schemas/ListedPackage' }
         appStage: { type: integer }
-        minAppVersion: { type: integer }
+        minAppVersion: { type: integer, description: SanpoGuide の版（DES-011 N-6） }
+        minAppVersions: { $ref: '#/components/schemas/MinAppVersions' }
         approvedAt: { type: string, format: date-time }
     CollectionSubmission:
       type: object
@@ -1837,7 +1856,11 @@ components:
       type: object
       required: [generatedBy, scenarios]
       properties:
-        generatedBy: { type: string, description: 組み立てた station-format の版 }
+        generatedBy: { type: string, description: 組み立てた core-format とプロンプト・パックの版 }
+        noRepresentativeApp:
+          type: array
+          items: { type: string }
+          description: DES-011 N-8。代表のアプリがまだない過ごし方（このときは scenarios が空。語り手の文章を読んで確かめる）
         scenarios:
           type: array
           items:

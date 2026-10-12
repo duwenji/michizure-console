@@ -23,12 +23,12 @@ export interface EnvConfig {
    */
   notify: { mode: 'log' } | { mode: 'ses'; from: string; configurationSet?: string };
   /**
-   * The apps of the ecosystem (DES-011 N-4), by app id: what each is for and implements, and the
-   * version (versionCode) that first shows each app stage of material (API-001 C-21, DES-008 K-6):
-   * 0 no material, 1 text and images, 2 audio, 3 video. Changed here, through a pull request, as
-   * apps and their versions ship; until then material needs a version no app has.
+   * By app id (`KNOWN_APPS` in packages/protocol; DES-011 N-4): the version (versionCode) that first
+   * shows each app stage of material (API-001 C-21, DES-008 K-6): 0 no material, 1 text and
+   * images, 2 audio, 3 video. Changed here, through a pull request, as app versions ship; until
+   * then material needs a version no app has.
    */
-  apps: Record<string, { name: string; activity: string; features: string[]; stageVersions: Record<number, number> }>;
+  appStageVersions: Record<string, Record<number, number>>;
   /**
    * The last moment format 1 channel packages are taken (SanpoGuide API-003 2.0 G-6, DES-011 N-2):
    * the day SanpoGuide with format 2 is on Google Play, plus 90 days. Unset: no end yet.
@@ -52,17 +52,6 @@ export interface EnvConfig {
   };
 }
 
-/** SanpoGuide: walking, every feature but recorded sound (app stage 2); stage 1 from versionCode 2. */
-const SANPOGUIDE = {
-  name: '散策ガイド',
-  activity: 'walk',
-  features: [
-    'slot:guide', 'slot:companion', 'trigger:spot', 'trigger:point', 'trigger:event',
-    'present:speak', 'present:card', 'present:notify', 'present:sheet', 'present:fullscreen',
-  ],
-  stageVersions: { 0: 1, 1: 2, 2: 9999, 3: 9999 },
-};
-
 export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>> = {
   dev: {
     name: 'dev',
@@ -72,7 +61,7 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     // No sending domain in development: the notices are recorded, not sent (2026-10-04, the developer's decision).
     notify: { mode: 'log' },
     // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
-    apps: { sanpoguide: SANPOGUIDE },
+    appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
     // Development keeps cost to the minimum (2026-10-04, the developer's decision).
     cost: {
       waf: false,
@@ -90,7 +79,7 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     // Switch to { mode: 'ses', from: … } once the domain (T-7) and SES production access (T-8) are ready.
     notify: { mode: 'log' },
     // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
-    apps: { sanpoguide: SANPOGUIDE },
+    appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
     cost: { waf: true, pointInTimeRecovery: true, cursorKey: 'secret' },
   },
 };

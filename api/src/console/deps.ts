@@ -1,6 +1,6 @@
 import { ConditionalCheckFailedException, TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { FEATURES, NO_APP_VERSION, type SignedDocument } from '@sanpo-console/protocol';
+import { appsFor, KNOWN_APPS, NO_APP_VERSION, type KnownApp, type SignedDocument } from '@sanpo-console/protocol';
 import type { Trigger } from '../publish/ports.js';
 import { fail, type Caller } from './http.js';
 import { ulid, type CursorCodec } from './util.js';
@@ -47,25 +47,22 @@ export interface Deps {
 }
 
 /**
- * An app of the ecosystem (DES-011 N-4): what it is for, what it implements (SanpoGuide ADR-003
- * E-6), and the version (versionCode) that first shows each app stage of material (API-001 C-21).
+ * An app of the ecosystem (DES-011 N-4): what it is (`KNOWN_APPS`), and the version (versionCode)
+ * that first shows each app stage of material (API-001 C-21), from the configuration.
  */
-export interface AppEntry {
-  name: string;
-  activity: string;
-  features: string[];
+export interface AppEntry extends KnownApp {
   stageVersions: Record<number, number>;
 }
 
-/** SanpoGuide: walking, everything but recorded sound; stage 1 (text and images) from versionCode 2. */
-export const DEFAULT_APPS: Record<string, AppEntry> = {
-  sanpoguide: {
-    name: '散策ガイド',
-    activity: 'walk',
-    features: FEATURES.filter((f) => f !== 'present:play' && f !== 'present:ambient'),
-    stageVersions: { 0: 1, 1: 2, 2: NO_APP_VERSION, 3: NO_APP_VERSION },
-  },
-};
+/** The versions until configured: SanpoGuide shows stage 1 (text and images) from versionCode 2. */
+export const DEFAULT_STAGE_VERSIONS: Record<string, Record<number, number>> = { sanpoguide: { 0: 1, 1: 2, 2: NO_APP_VERSION, 3: NO_APP_VERSION } };
+
+/** The known apps with their configured versions; an app without them shows no material yet. */
+export function appsWith(stageVersions: Record<string, Record<number, number>>): Record<string, AppEntry> {
+  return Object.fromEntries(Object.entries(KNOWN_APPS).map(([id, app]) => [id, { ...app, stageVersions: stageVersions[id] ?? { 0: 1 } }]));
+}
+
+export const DEFAULT_APPS: Record<string, AppEntry> = appsWith(DEFAULT_STAGE_VERSIONS);
 
 /** The version [app] needs for an app stage; a stage it doesn't show yet needs a version no app has. */
 function stageVersion(app: AppEntry, stage: number): number {
@@ -77,9 +74,7 @@ function stageVersion(app: AppEntry, stage: number): number {
  * what it requires, each with the version its stage needs.
  */
 export function channelMinVersions(deps: Pick<Deps, 'apps'>, stage: number, activities: string[], requires: string[]): Record<string, number> {
-  return Object.fromEntries(Object.entries(deps.apps)
-    .filter(([, app]) => activities.includes(app.activity) && requires.every((f) => app.features.includes(f)))
-    .map(([id, app]) => [id, stageVersion(app, stage)]));
+  return Object.fromEntries(appsFor(activities, requires, deps.apps).map((id) => [id, stageVersion(deps.apps[id]!, stage)]));
 }
 
 /** `minAppVersions` of a collection (DES-011 N-5): the apps its `grants.apps` names, or every app. */

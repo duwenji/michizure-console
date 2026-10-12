@@ -49,3 +49,25 @@ export function StageNote({ appStage, minAppVersion }: { appStage?: number | und
     </span>
   );
 }
+
+const ACTIVITY: Record<string, string> = { walk: '散歩', cycle: 'サイクリング' };
+const GENRE: Record<string, string> = { general: '話題を絞らない', history: '歴史', nature: '自然', food: '食', shopping: '買い物' };
+
+/**
+ * What a channel is for and needs, and the apps it is offered in (DES-011 N-9). Nothing before
+ * the machine review has read the package.
+ */
+export function EcosystemNote({ activities, genres, requires, offeredIn }: {
+  activities?: string[] | undefined; genres?: string[] | undefined; requires?: string[] | undefined; offeredIn?: string[] | undefined;
+}) {
+  if (!activities) return null;
+  return (
+    <span>
+      過ごし方 {activities.map((a) => ACTIVITY[a] ?? a).join('・')}、ジャンル {(genres ?? []).map((g) => GENRE[g] ?? g).join('・') || '—'}、
+      必要な機能 {(requires ?? []).length ? <code>{requires!.join(' ')}</code> : '—'}
+      <div>
+        このチャンネルが出るアプリ: {offeredIn?.length ? offeredIn.join('・') : <span className="muted">今はどのアプリにも出ません（過ごし方か必要な機能が、どのアプリにも合いません）</span>}
+      </div>
+    </span>
+  );
+}

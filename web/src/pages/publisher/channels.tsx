@@ -6,7 +6,7 @@ import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';
 import { openKeyFile, signPackage } from '../../publisher-crypto';
 import { Empty, Status, Time, useLoad } from '../common';
-import { StageNote, ValidationView } from '../validation';
+import { EcosystemNote, StageNote, ValidationView } from '../validation';
 
 const STATE: Record<string, string> = {
   uploading: 'アップロード待ち', validating: '機械の確認中', validation_failed: '機械の確認で不合格', awaiting_review: '審査待ち',
@@ -154,6 +154,11 @@ export function PublisherChannel() {
           <dd>
             {c.latestApproved ? <>版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）</> : '—'}
             {c.latestApproved && <div className="small"><StageNote appStage={(c.latestApproved as { appStage?: number }).appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>}
+            {c.latestApproved && (
+              <div className="small">
+                <EcosystemNote activities={c.latestApproved.activities ?? ['walk']} genres={c.latestApproved.genres} requires={c.latestApproved.requires} offeredIn={c.offeredIn} />
+              </div>
+            )}
           </dd>
           {c.revocations?.map((r) => (
             <Fragment key={r.revokedAt}>

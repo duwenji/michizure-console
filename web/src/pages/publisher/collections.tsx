@@ -151,7 +151,8 @@ export function PublisherCollection() {
             {c.latestApproved ? (
               <>
                 版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）、{c.latestApproved.media.join('・')}、タグ {c.latestApproved.tags.join('・') || '—'}、
-                利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} のチャンネル提供者`}
+                利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} のチャンネル提供者`}、
+                使ってよいアプリ {c.latestApproved.grants.apps?.join('・') ?? 'すべてのアプリ'}
                 <div><StageNote appStage={c.latestApproved.appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>
               </>
             ) : '—'}

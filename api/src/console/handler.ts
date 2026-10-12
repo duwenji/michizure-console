@@ -13,7 +13,7 @@ import { kmsSigner } from '../publish/aws.js';
 import type { SigningKeyRecord } from '../publish/ports.js';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { createHash } from 'node:crypto';
-import { DEFAULT_APPS, type AppEntry, type Deps } from './deps.js';
+import { appsWith, DEFAULT_STAGE_VERSIONS, type AppEntry, type Deps } from './deps.js';
 import { ApiError, problem } from './http.js';
 import { callerFrom, route } from './router.js';
 import { CursorCodec } from './util.js';
@@ -154,14 +154,14 @@ async function load(): Promise<Deps> {
   };
 }
 
-/** The apps of the ecosystem, from the CDK configuration (DES-011 N-4); SanpoGuide's defaults until set. */
+/** The known apps with the versions each app stage needs, from the CDK configuration (DES-011 N-4). */
 function apps(): Record<string, AppEntry> {
-  const raw = process.env.APPS;
-  if (!raw) return DEFAULT_APPS;
-  const parsed = JSON.parse(raw) as Record<string, AppEntry>;
-  return Object.fromEntries(Object.entries(parsed).map(([id, app]) => [
-    id, { ...app, stageVersions: Object.fromEntries(Object.entries(app.stageVersions).map(([k, v]) => [Number(k), Number(v)])) },
-  ]));
+  const raw = process.env.APP_STAGE_VERSIONS;
+  if (!raw) return appsWith(DEFAULT_STAGE_VERSIONS);
+  const parsed = JSON.parse(raw) as Record<string, Record<string, number>>;
+  return appsWith(Object.fromEntries(Object.entries(parsed).map(([id, byStage]) => [
+    id, Object.fromEntries(Object.entries(byStage).map(([k, v]) => [Number(k), Number(v)])),
+  ])));
 }
 
 const MAX_BODY = 1024 * 1024;

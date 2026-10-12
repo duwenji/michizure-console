@@ -12,3 +12,13 @@ export declare function StageNote({ appStage, minAppVersion }: {
     appStage?: number | undefined;
     minAppVersion?: number | undefined;
 }): import("react").JSX.Element | null;
+/**
+ * What a channel is for and needs, and the apps it is offered in (DES-011 N-9). Nothing before
+ * the machine review has read the package.
+ */
+export declare function EcosystemNote({ activities, genres, requires, offeredIn }: {
+    activities?: string[] | undefined;
+    genres?: string[] | undefined;
+    requires?: string[] | undefined;
+    offeredIn?: string[] | undefined;
+}): import("react").JSX.Element | null;

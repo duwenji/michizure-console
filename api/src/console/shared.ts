@@ -1,5 +1,6 @@
 import { GetCommand, QueryCommand, type QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import type { Schemas } from '@sanpo-console/api-types';
+import { appsFor, FORMAT1_ECOSYSTEM, KNOWN_APPS } from '@sanpo-console/protocol';
 import type { Deps } from './deps.js';
 import { fail, limit, type Request } from './http.js';
 import { jstDate } from './util.js';
@@ -72,6 +73,7 @@ export async function channelView(deps: Deps, item: Item): Promise<Schemas['Chan
     pendingSubmissionId: (item.pendingSubmissionId as string | undefined) ?? null,
     latestApproved: (item.latestApproved as Schemas['LatestApproved'] | undefined) ?? null,
     listed: item.GSI2PK === 'LISTED',
+    ...(item.latestApproved ? { offeredIn: offeredIn(item.latestApproved as { activities?: string[]; requires?: string[] }) } : {}),
     publisherChange: (item.publisherChange as Schemas['Channel']['publisherChange']) ?? null,
     revocations: (revocations.Items ?? []).map((r) => ({
       ...(r.versions ? { versions: r.versions as number[] } : {}),
@@ -148,4 +150,12 @@ export function collectionSubmissionView(item: Item): Schemas['CollectionSubmiss
 export async function loadCollectionSubmission(deps: Deps, collectionId: string, submissionId: string): Promise<Item> {
   const item = await get(deps, `COL#${collectionId}`, `SUB#${submissionId}`);
   return item?.type === 'submission' ? item : fail('not_found', `no submission ${submissionId}`);
+}
+
+/**
+ * The names of the apps a channel is offered in (DES-011 N-9): for one of its activities, with what
+ * it requires. A review or approval from before DES-011 is format 1's: walking, nothing required.
+ */
+export function offeredIn(values: { activities?: string[]; requires?: string[] }): string[] {
+  return appsFor(values.activities ?? FORMAT1_ECOSYSTEM.activities, values.requires ?? FORMAT1_ECOSYSTEM.requires).map((id) => KNOWN_APPS[id]!.name);
 }

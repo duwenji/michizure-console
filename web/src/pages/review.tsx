@@ -6,6 +6,7 @@ import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { AI_SERVICES, listModels, reply, type AiService } from '../ai';
 import { Empty, Status, Time, useLoad } from './common';
+import { EcosystemNote } from './validation';
 
 /** The review policy's items (SanpoGuide docs/channel-review-policy.md), for findings. */
 export const ITEMS: [string, string][] = [
@@ -97,6 +98,8 @@ export function ReviewPage() {
             <dd>{s.note ?? '—'}</dd>
             <dt>機械の確認</dt>
             <dd>{s.validation?.ok ? `合格（${s.validation.validatorVersion}）` : '—'}</dd>
+            <dt>アプリ</dt>
+            <dd><EcosystemNote activities={s.activities} genres={s.genres} requires={s.requires} offeredIn={s.offeredIn} /></dd>
             <dt>パッケージ</dt>
             <dd><code title={s.sha256 ?? ''}>{s.sha256?.slice(0, 12)}…</code> {s.size} バイト</dd>
           </dl>
@@ -198,6 +201,11 @@ function Samples({ channelId, submissionId, onSaved }: { channelId: string; subm
     try {
       const { data } = await api.GET('/api/admin/channels/{channelId}/submissions/{submissionId}/sample-prompts', { params: { path: { channelId, submissionId } } });
       if (!data) return;
+      // No representative app for its activities yet (DES-011 N-8): nothing to have the AI speak.
+      if (data.noRepresentativeApp?.length) {
+        setError(`${data.noRepresentativeApp.join('・')} の代表のアプリがまだないため、見本はありません。語り手の文章（パッケージの prompts）を読んで確かめてください`);
+        return;
+      }
       const out: Sample[] = [];
       for (const [i, scene] of data.scenarios.entries()) {
         setProgress(`${i + 1} / ${data.scenarios.length}: ${scene.label}`);
