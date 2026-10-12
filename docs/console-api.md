@@ -10,9 +10,9 @@
 | 関連Skill | 020_api-contract-design |
 | 作成日 | 2026-10-03 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | 開発者（1.0: 2026-10-03、1.1: 2026-10-11） |
-| ステータス | 承認済 |
-| 版 | 1.1 |
+| 承認者 | 開発者（1.0: 2026-10-03、1.1: 2026-10-11）。1.2 は未承認 |
+| ステータス | 改訂案（1.2） |
+| 版 | 1.2（草案） |
 
 入出力の正本は [api/console.openapi.yaml](api/console.openapi.yaml)。本書は方針・状態・エラー・権限を説明し、食い違いがあれば本書に合わせて OpenAPI を直す。
 
@@ -86,6 +86,18 @@
 | C-20 | 通知（C-14 に追加） | 素材集の判定・取り下げ、外部の素材の確認で見つかった不具合（M-21）を素材提供者に知らせる。素材集の取り下げ・新しい版の承認・利用許諾の縮小を、利用の記録にあるチャンネル提供者に知らせる（D-18）。宛先と送り方は C-14 と同じ |
 | C-21 | 段と版の対応表（DM-001 未決事項 No.5） | CDK のコンテキスト（環境ごとの設定ファイル）に置き、変えるときは PR を通して配備する。運営の画面からは変えない。アプリの素材の第 1 段の版が決まるまでは、どの段も仮の大きな値にする |
 | C-22 | 退会（C-4 に追加） | 退会では、公開中の素材集もすべて取り下げる（理由は「素材提供者が退会したため」）。素材集の審査待ちの申請も取り消す |
+
+### エコシステムと宣伝の決定（1.2 草案、2026-10-12。DES-011・DES-012 の実装に合わせて Claude が提案）
+
+[OpenAPI](api/console.openapi.yaml) は DES-011・DES-012 の実装で更新済み。本節は本文をそれに合わせるもの。
+
+| No. | 論点 | 決定 |
+|---|---|---|
+| C-23 | 宣伝の申告（DES-012 R-1・R-2、DM-001 M-30） | チャンネル・素材集の申請の要求に `promotional`（真偽値、省略は偽）。真偽値でなければ `400 invalid_request`。運営の操作で書き換える手段は作らない（宣伝なのに申告がなければ差し戻す） |
+| C-24 | 申請・チャンネル・素材集の表示（DES-011 N-9、DES-012 R-6） | 申請（`Submission`）に `activities`・`genres`・`requires`（機械審査の後）・`offeredIn`（このチャンネルが出るアプリの ID）・`promotional`。チャンネルに `offeredIn`。`latestApproved` に `activities`・`genres`・`requires`・`minAppVersions`・`promotional`。素材集の申請に `promotional`、素材集の `latestApproved` に `grants.apps`・`minAppVersions`・`promotional` |
+| C-25 | 機械審査（DES-011 N-2・N-8） | 期限（DM-001 M-29）を過ぎた format 1 の申請は、`validation.errors` に `format_retired`。`walk` を含まないチャンネルは見本を作らず、`sample-prompts` の応答の `scenarios` が空で `noRepresentativeApp`（チャンネルの `activities`）が付く |
+| C-26 | 通知（C-20 に追加。DES-012 R-7） | 宣伝でなかった素材集が宣伝の版で承認されたとき、使うチャンネル提供者への `collection.updated` に「チャンネルもリストで『宣伝を含む』と示される」ことを書き添える |
+| C-27 | 設定（C-21 の改訂。DM-001 M-27・M-29・M-31） | CDK の環境ごとの設定に、アプリの ID ごとの `appStageVersions`、`promotionalMinAppVersions`、`format1AcceptUntil` を置く。変えるときは PR を通して配備する。運営の画面からは変えない |
 
 ### 全体の流れ
 
@@ -236,7 +248,7 @@ sequenceDiagram
 
 ```json
 // 要求
-{ "description": "…", "tags": ["history"], "regions": ["xn7"], "note": "運営への説明" }
+{ "description": "…", "tags": ["history"], "regions": ["xn7"], "note": "運営への説明", "promotional": false }
 // 応答 201
 {
   "submission": { "submissionId": "01J…", "state": "uploading", "rev": 1, … },
@@ -257,7 +269,7 @@ sequenceDiagram
 
 ```json
 // 要求
-{ "note": "運営への説明" }
+{ "note": "運営への説明", "promotional": false }
 // 応答 201
 {
   "submission": { "kind": "collection", "submissionId": "01J…", "collectionId": "kamakura-audio-guide", "state": "uploading", "rev": 1, … },
@@ -486,3 +498,4 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | 2026-10-03 | 0.2 | C-14（SES でメールの通知）を追加し、未決事項 No.2 を解消。CV-13、DM-001 への影響 No.8 を追加 | Claude |
 | 2026-10-03 | 1.0 | C-5〜C-14 を承認。DM-001 1.1・ADR-001 1.1 と同時に承認 | Claude（承認: 開発者） |
 | 2026-10-11 | 1.1 | 素材の素材提供者（SanpoGuide ADR-002、DM-001 1.3）に合わせて改訂: C-15〜C-22、素材提供者の役割と素材集の操作（11 件）、運営の素材集の操作（9 件）、機械審査の結果の `collections`・`external`・`inUse`・`warnings`、エラー `role_required`・`collection_id_taken`・`producer_not_verified`・`resource_in_use`、CV-14〜CV-20 | Claude（承認: 開発者） |
+| 2026-10-12 | 1.2（草案） | エコシステム（SanpoGuide ADR-003、DES-011）と宣伝（ADR-002 1.2、DES-012）に合わせて改訂: C-23〜C-27、申請の要求の `promotional` | Claude |

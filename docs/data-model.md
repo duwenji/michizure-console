@@ -10,9 +10,9 @@
 | 関連Skill | 020_data-model-design-unified |
 | 作成日 | 2026-10-03 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | 開発者（1.0〜1.1: 2026-10-03、1.2: 2026-10-04、1.3: 2026-10-11） |
-| ステータス | 承認済 |
-| 版 | 1.3 |
+| 承認者 | 開発者（1.0〜1.1: 2026-10-03、1.2: 2026-10-04、1.3: 2026-10-11）。1.4 は未承認 |
+| ステータス | 改訂案（1.4） |
+| 版 | 1.4（草案） |
 
 ## 目的・背景
 
@@ -85,9 +85,22 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 | M-20 | 外部の素材の確認（申請時） | 機械審査で外部の素材を流し読みし、大きさと SHA-256 を確かめる。中身は保存しない。審査する人は元の URL で見る・聴く |
 | M-21 | 外部の素材の確認（毎日、D-22） | 毎日の公開の処理で、公開中の素材集とチャンネルの外部の素材の URL に HEAD を送り、取得できるかと大きさだけを確かめる。結果は項目の `externalCheck` に残し、新しく見つかった不具合は持ち主にメールで知らせる。ハッシュを確かめ直すのは申請時だけ |
 | M-22 | 依存の記録（D-8・D-18） | チャンネルの承認時に、使う素材集ごとに「利用の記録」（`COL#{collectionId}` / `USEDBY#{channelId}`）を書く。中身は参照している素材の ID とその種類。チャンネルの新しい版の承認で書き直し、取り下げ・退会で消す。素材集の申請では、機械審査と承認の 2 回、利用の記録にある素材の ID が残り、種類が変わっていないことを確かめる（D-8）。基準（`selectors`）で選ぶ使い方は記録しない（ID を指さないため） |
-| M-23 | 必要なアプリの版 | アプリの段（1〜3）とアプリの版（`versionCode`）の対応表を設定に置き、段から `minAppVersion` を決める。チャンネルの段は、承認時にリストに載っている素材集の中身まで数える（station-format の `MediaStage` と `CollectionReferences`）。素材集の段は、素材の種類から決める |
+| M-23 | 必要なアプリの版 | （1.4 で M-27 に改訂）アプリの段（1〜3）とアプリの版（`versionCode`）の対応表を設定に置き、段から `minAppVersion` を決める。チャンネルの段は、承認時にリストに載っている素材集の中身まで数える（station-format の `MediaStage` と `CollectionReferences`）。素材集の段は、素材の種類から決める |
 | M-24 | リストに載せる値の計算 | 素材集の `tags`・`regions`・`media`・`resourcesSize`・`grants` は承認時に計算して写す（M-8 と同じ）。チャンネルの `resourcesSize` は、素材集の版で変わるので、公開のたびに「チャンネル自身の分」と「宣言した素材集の `resourcesSize`」を足して出す。チャンネルの `media` も同じく公開のたびに合わせる |
 | M-25 | 取り下げ・退会・停止 | 素材集の取り下げはリストの `revokedCollections` に 7 日載せる（M-9 と同じ）。退会すると、公開中の素材集も自動で取り下げる（D-19）。停止中は素材集の申請も止める。公開中の素材集はそのまま（M-10 と同じ）。素材集の取り下げ・更新・利用許諾の縮小は、利用の記録にあるチャンネル提供者にメールで知らせる（D-18） |
+
+### エコシステムと宣伝の決定（1.4 草案、2026-10-12。DES-011・DES-012 の実装に合わせて Claude が提案）
+
+SanpoGuide ADR-003（付き添いアプリのエコシステム）と ADR-002 1.2（宣伝を表示つきで認める）による。実装は [DES-011](design/DES-011-ecosystem.md)・[DES-012](design/DES-012-promotional.md) で済んでおり、本節はそれをデータモデルに書き戻すもの。
+
+| No. | 論点 | 決定 |
+|---|---|---|
+| M-26 | 絞り込みの情報（DES-011 N-3・N-11） | 機械審査が、パッケージの `activities`・`genres`・`requires.features` を申請の `listing` に書かれたとおりに記録し（format 1 は `["walk"]`・`[]`・`[]`）、承認が `latestApproved` に写す。DES-011 より前の項目（これらがない）は format 1 の読み方で扱い、移行はしない |
+| M-27 | アプリごとの版（DES-011 N-4〜N-6。M-23 の改訂） | 段と版の対応表を、アプリの ID ごとの設定 `appStageVersions`（`{ sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } }`）にする。アプリの名前・過ごし方・機能は `packages/protocol` の `KNOWN_APPS`。承認は `latestApproved.minAppVersions`（アプリの ID → 版）を計算する: チャンネルは過ごし方と必要な機能が合うアプリだけ、素材集は `grants.apps` が含むアプリ（ないときはすべて）。`minAppVersion` は `minAppVersions.sanpoguide`、なければ 9999（古い SanpoGuide のため。API-002 P-21） |
+| M-28 | 素材集の利用アプリ（DES-011 N-7） | 機械審査が `grants.apps` を読み、承認が `latestApproved.grants.apps` に写す。チャンネルが素材集を参照するときの確かめでは、アプリを見ない |
+| M-29 | format 1 の受け付けの期限（DES-011 N-2） | 設定 `format1AcceptUntil`（日時。未設定は期限なし）。過ぎてからの format 1 の申請は、機械審査が `format_retired` で落とす。公開中の format 1 のチャンネルはそのまま |
+| M-30 | 宣伝の申告（DES-012 R-1・R-3・R-9） | 申請（チャンネル・素材集）の `promotional`（真のときだけ書く）。承認が真のときだけ `latestApproved.promotional` に写す。版ごとに申告し、前の版から引き継がない。運営は書き換えない（R-2） |
+| M-31 | 宣伝の印と版の引き上げ（DES-012 R-4・R-5） | テーブルには持たず、公開のときに決める: チャンネルは自分の申告か、`collections` で宣言した素材集のうち今リストにある宣伝のものがあれば `promotional`。宣伝のものは、設定 `promotionalMinAppVersions`（アプリの ID → 版。ないアプリは 9999）まで `minAppVersions` を上げ、`minAppVersion` も追従させる |
 
 ## 概念モデル（ERD）
 
@@ -309,6 +322,9 @@ stateDiagram-v2
 | `appStage` | （1.3）承認時に、リストに載っていた素材集の中身まで数えたアプリの段 |
 | `collections` | （1.3）宣言した素材集 `[{ as, id, minVersion }]`。公開のたびに `resourcesSize`・`media` を足し合わせるのに使う（M-24） |
 | `ownPrefetchBytes`・`ownMedia` | （1.3）チャンネル自身の素材の前もっての取得の大きさと種類（M-24） |
+| `activities`・`genres`・`requires` | （1.4）パッケージの値（M-26）。ない項目は format 1 の読み方 |
+| `minAppVersions` | （1.4）アプリの ID → 必要な版（M-27）。`minAppVersion` は SanpoGuide の値 |
+| `promotional` | （1.4）承認した版の申告。真のときだけ（M-30） |
 
 ### 素材集（COL、1.3）
 
@@ -330,11 +346,13 @@ stateDiagram-v2
 | `submissionId`・`version` | 承認した申請と版の番号 |
 | `producer` | 署名したアカウントID |
 | `name`・`summary` | `collection.json` から |
-| `media`・`resourcesSize`・`tags`・`regions`・`grants` | 承認時にパッケージから計算する（`regions` は station-format の `Regions.of`。API-002 P-15） |
+| `media`・`resourcesSize`・`tags`・`regions`・`grants` | 承認時にパッケージから計算する（`regions` は station-format の `Regions.of`。API-002 P-15）。1.4: `grants.apps` を含む（M-28） |
 | `package` | `{ url, sha256, size, format }`（公開用のバケットの `/col/{sha256}.zip`） |
 | `resourceTypes` | 素材の ID と種類の対応。次の版の D-8 の確認と、チャンネルの段の計算に使う |
 | `externalResources` | 外部の素材の `[{ resourceId, url, size }]`（M-21 の確認の対象） |
 | `minAppVersion`・`appStage` | 素材の種類から決めた段と、その版（M-23） |
+| `minAppVersions` | （1.4）`grants.apps` が含むアプリ（ないときはすべて）の ID → 必要な版（M-27） |
+| `promotional` | （1.4）承認した版の申告。真のときだけ（M-30） |
 | `approvedAt` | 承認した日時 |
 
 ### 利用の記録（USEDBY、1.3）
@@ -361,6 +379,8 @@ stateDiagram-v2
 | `sha256`・`size` | S・N | — | 届いたパッケージ（機械審査で計算） |
 | `validation` | M | — | `{ ok, errors: [{ code, detail }], appStage, checkedAt, validatorVersion }`。`code` は API-003 のエラーコード |
 | `note` | S | — | チャンネル提供者から運営への説明 |
+| `listing` | M | — | 機械審査が記録したリストに載せる値（DES-007〜DES-009）。1.4: `activities`・`genres`・`requires`（M-26）、素材集では `grants.apps`（M-28） |
+| `promotional` | BOOL | — | （1.4）「宣伝を含む」の申告。真のときだけ（M-30） |
 | `submittedAt` | S | — | 機械審査に合格した日時（審査待ちの順番） |
 | `decidedAt` | S | — | 承認・差し戻し・却下・取り消しの日時 |
 | `ttl` | N | — | `uploading` のあいだだけ（1 時間）。届けば消す |
@@ -492,6 +512,7 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 - 新しいシステムなので、移行するデータはない
 - 項目に属性を足すのは互換性のある変更。読むときの検証は、知らない属性を無視する
 - キーの形（PK・SK・GSI）を変えるときは、新しい形で書き、古い形の項目を一括で書き直すスクリプトを用意する。運営の担当者が 1 人で件数が少ないうちは、メンテナンス時間を取って行ってよい
+- 1.4: 1.3 までの申請・`latestApproved` には `activities`・`genres`・`requires`・`minAppVersions`・`promotional` がない。読むときに format 1 の読み方・`minAppVersion` だけ・宣伝なしとして扱い、書き直しはしない（M-26・M-27・M-30）
 - 1.3: 1.2 までのチャンネル提供者の項目には `roles` がない。読むときに `["publisher"]` として扱い、次に書くときに `roles` を書く（一括の書き直しは要らない）
 - 複数メンバーのチャンネル提供者（M-1 の将来）は、`PUB#{publisherId}` / `MEMBER#{sub}` の項目を足し、ユーザーの項目を「どのチャンネル提供者のメンバーか」に変えて対応する。今の `ownerSub` は最初のメンバーになる
 
@@ -553,6 +574,7 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 
 | 日付 | 版 | 変更内容 | 変更者 |
 |---|---|---|---|
+| 2026-10-12 | 1.4（草案） | エコシステム（SanpoGuide ADR-003、DES-011）と宣伝（ADR-002 1.2、DES-012）に合わせて改訂: M-26〜M-31、M-23 を M-27 に改訂、`latestApproved` の `activities`・`genres`・`requires`・`minAppVersions`・`promotional`、素材集の `grants.apps`・`minAppVersions`・`promotional`、申請の `listing`・`promotional`、移行のメモ | Claude |
 | 2026-10-11 | 1.3 | 素材の素材提供者（SanpoGuide ADR-002）に合わせて改訂: M-16〜M-25、AP-23〜AP-29、素材集・素材集の申請・審査の記録・取り下げ・利用の記録の項目、アカウントの `roles`・`collectionCount`・`producerVerification`、チャンネルの `appStage`・`collections`・`ownPrefetchBytes`・`ownMedia`、トランザクション、S3 の置き場所、DV-14〜DV-21 | Claude（承認: 開発者） |
 | 2026-10-04 | 1.2 | 実装 3d（DES-006）に合わせた補足: 鍵の移し替えに GSI1 `TRANSFERS`（過去の申し出の一覧）、送ったメールの印 `NOTICE`、`publisherChange.until` を新しい鍵の最初の版の承認から数える | Claude（承認: 開発者） |
 | 2026-10-03 | 0.1 | 草案（M-1〜M-4 は開発者の決定、M-5〜M-13 は提案） | Claude |
