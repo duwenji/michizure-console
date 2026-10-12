@@ -119,12 +119,15 @@ const channelJson = {
 const channelZip = (await signPackage(zipSync({ 'channel.json': enc.encode(JSON.stringify(channelJson)) }), publisher, { channel: channelId })).zip;
 const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0));
 
+// --promotional: the collection is declared promotional; the channel isn't, and the list marks both (DES-012 R-4, R-5).
+const promotional = process.argv.includes('--promotional');
+
 const seeded = [
   { PK: `USER#${producerSub}`, SK: 'USER', type: 'user', publisherId: producerId },
   { PK: `PUB#${producerId}`, SK: 'PUB', type: 'publisher', publisherId: producerId, displayName: '通しの確認の制作元', status: 'active', roles: ['publisher', 'producer'], activeAccountId: producer.accountId, channelCount: 0, collectionCount: 1, rev: 2, createdAt: now, updatedAt: now },
   { PK: `PUB#${producerId}`, SK: `KEY#${producer.accountId}`, type: 'publisher-key', accountId: producer.accountId, status: 'active', boundAt: now },
   { PK: `COL#${collectionId}`, SK: 'COL', type: 'collection', kind: 'collection', collectionId, publisherId: producerId, status: 'active', rev: 1, pendingSubmissionId: colSid, createdAt: now, updatedAt: now, GSI1PK: `PUB#${producerId}`, GSI1SK: `COL#${collectionId}` },
-  { PK: `COL#${collectionId}`, SK: `SUB#${colSid}`, type: 'submission', kind: 'collection', submissionId: colSid, collectionId, publisherId: producerId, accountId: producer.accountId, state: 'uploading', intakeKey: `intake-col/${collectionId}/${colSid}.zip`, rev: 1, createdAt: now, updatedAt: now },
+  { PK: `COL#${collectionId}`, SK: `SUB#${colSid}`, type: 'submission', kind: 'collection', submissionId: colSid, collectionId, publisherId: producerId, accountId: producer.accountId, state: 'uploading', intakeKey: `intake-col/${collectionId}/${colSid}.zip`, ...(promotional ? { promotional: true } : {}), rev: 1, createdAt: now, updatedAt: now },
   { PK: `USER#${publisherSub}`, SK: 'USER', type: 'user', publisherId },
   { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, displayName: '通しの確認の配信元', status: 'active', activeAccountId: publisher.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
   { PK: `PUB#${publisherId}`, SK: `KEY#${publisher.accountId}`, type: 'publisher-key', accountId: publisher.accountId, status: 'active', boundAt: now },
@@ -184,6 +187,15 @@ try {
   console.log('used-by (producer):', JSON.stringify(await invoke(producerSub, '[publisher]', 'GET', `/api/collections/${collectionId}/used-by`)));
   const listedCh = await waitFor('the channel on the list', async () => (await listBody()).channels.find((c) => c.id === channelId));
   console.log('channels[] entry:', JSON.stringify(listedCh));
+  if (promotional) {
+    // No app labels promotion on dev yet (promotionalMinAppVersions is empty): a version no app has.
+    const marked = (await listBody()).collections?.find((c) => c.id === collectionId);
+    for (const [what, e] of [['collection', marked], ['channel', listedCh]] as const) {
+      const ok = e?.promotional === true && e.minAppVersion === 9999 && Object.values((e.minAppVersions as Record<string, number> | undefined) ?? {}).every((v) => v === 9999);
+      if (!ok) process.exitCode = 1;
+      console.log(`  ${ok ? 'PASS' : 'FAIL'} ${what} promotional=${String(e?.promotional)} minAppVersion=${String(e?.minAppVersion)} minAppVersions=${JSON.stringify(e?.minAppVersions)}`);
+    }
+  }
 
   // 5. Conformance, now with a collection and a channel using it.
   step('5. conformance');

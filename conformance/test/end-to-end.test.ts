@@ -103,6 +103,16 @@ describe('the checks catch a broken provider (API-002 1.2)', () => {
     expect(failed(await statuses())).toEqual(['V-20']);
   });
 
+  it('C-P1: a channel that declares a promotional collection but is not promotional (DES-012 R-8)', async () => {
+    listCollection(collectionJson(), { promotional: true });
+    await republish();
+    expect(failed(await statuses())).toEqual([]);
+    // The publisher wasn't told the channel uses it, so it can't mark the channel.
+    store.channels[0]!.material = { ownPrefetchBytes: 0, ownMedia: [], collections: [] };
+    await republish();
+    expect(failed(await statuses())).toEqual(['C-P1']);
+  });
+
   it('V-21: media of an unknown kind', async () => {
     listCollection(collectionJson(), { media: ['hologram'] });
     await republish();
