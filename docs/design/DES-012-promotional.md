@@ -10,9 +10,9 @@
 | 関連Skill | feature-implementation-unified |
 | 作成日 | 2026-10-12 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | （未承認） |
-| ステータス | 草案 |
-| 版 | 0.1 |
+| 承認者 | 開発者（1.0: 2026-10-12。未決事項は案のとおり。実装は PR でレビュー） |
+| ステータス | 実装済（開発用に配備し、通しの確認済み） |
+| 版 | 1.1 |
 
 ## 目的・背景
 
@@ -64,6 +64,16 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 | 準拠テスト | `C-P1` が手元で公開したリストで通り、壊した例で落ちる |
 | 通しの確認 | 開発用で、宣伝の素材集とそれを宣言するチャンネル（申告なし）を承認し、リストで両方が `promotional: true`・`minAppVersion: 9999` になる |
 
+## 実装の記録
+
+| 段 | 結果 |
+|---|---|
+| a | 申請（チャンネル・素材集）に `promotional`（真偽値でなければ 400）。承認が真のときだけ `latestApproved.promotional` に写す。公開の `withPromotion`（宣言した素材集のうち今リストにある宣伝のもの）と `promotedVersions`（`minAppVersions` の各アプリを `promotionalMinAppVersions` まで上げ、ないアプリは 9999、下げない。DES-011 より前の承認は `minAppVersion` だけ）。設定 `promotionalMinAppVersions`（dev・prod とも空）を公開の Lambda の `PROMOTIONAL_MIN_APP_VERSIONS` に。素材集が宣伝の版になったときの `collection.updated` に `becamePromotional` とメールの一文。OpenAPI・型。テスト: API 89 件（追加 5 件）、全体 149 件 |
+| b | 申請の画面に「宣伝を含む」（審査基準 2.4 への案内つき）。運営の審査の画面（チャンネル・素材集）に申告の有無、チャンネルでは宣言した素材集のうち宣伝のもの。チャンネル提供者のチャンネルの画面と素材提供者の素材集の画面に宣伝の状態。利用ガイド（チャンネル提供者 3.4・4、素材提供者 4） |
+| c | 準拠テストに `C-P1`（`promotional` が真偽値、宣伝の素材集を宣言するチャンネルが `promotional: true`）。`tools/e2e/collections.ts --promotional` |
+
+確認（2026-10-12）: `npx tsc -b`、`npx vitest run`（150 件。Docker の DynamoDB Local で API のテストも手元で流した）、infra のテスト 13 件。開発用に配備し、`collections.ts --promotional` で、宣伝の素材集と、それを宣言するチャンネル（申告なし）の両方が `promotional: true`・`minAppVersion: 9999`・`minAppVersions: { sanpoguide: 9999 }` になり、準拠テスト（`C-P1` を含む）に合格した。既存の通しの確認 5 本も通った。
+
 ## 未決事項・リスク
 
 | No. | 内容 | 案 |
@@ -83,3 +93,5 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 | 日付 | 版 | 変更内容 | 変更者 |
 |---|---|---|---|
 | 2026-10-12 | 0.1 | 草案 | Claude |
+| 2026-10-12 | 1.0 | 承認（PR #30 のマージ） | Claude（承認: 開発者） |
+| 2026-10-12 | 1.1 | 実装の記録 | Claude |
