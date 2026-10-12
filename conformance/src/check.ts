@@ -269,6 +269,8 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
     // A package in format 1 is a walking channel with no genre and no requirement (API-003 G-6).
     for (const [id, bytes] of channelPackages) {
       const entry = list.channels.find((c) => c.id === id)!;
+      // A package that isn't the one listed is V-07's to report.
+      if (sha256Hex(bytes) !== entry.package.sha256) continue;
       const manifest = jsonIn(bytes, 'channel.json');
       if (!manifest) { set('V-27', 'fail', `${id}: no channel.json`); continue; }
       const format = (manifest.format as number | undefined) ?? 1;
