@@ -68,8 +68,9 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     notify: { mode: 'log' },
     // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
     appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
-    // No app labels promotion yet (SanpoGuide ADR-002 T-14).
-    promotionalMinAppVersions: {},
+    // SanpoGuide versionCode 3 labels promotion (ADR-002 T-14). Development only, to try it before
+    // Google Play; production waits for the release (DES-012 未決事項 No.2, the developer's decision 2026-10-12).
+    promotionalMinAppVersions: { sanpoguide: 3 },
     // Development keeps cost to the minimum (2026-10-04, the developer's decision).
     cost: {
       waf: false,
