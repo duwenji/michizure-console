@@ -1,6 +1,6 @@
 import { ConditionalCheckFailedException, TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import type { SignedDocument } from '@sanpo-console/protocol';
+import { FEATURES, NO_APP_VERSION, type SignedDocument } from '@sanpo-console/protocol';
 import type { Trigger } from '../publish/ports.js';
 import { fail, type Caller } from './http.js';
 import { ulid, type CursorCodec } from './util.js';
@@ -42,16 +42,56 @@ export interface Deps {
   notify: (notice: Notice) => Promise<void>;
   /** Copies an approved collection package to the public `col/{sha256}.zip` and returns its URL (DES-008 K-4). */
   publishCollection: (packageKey: string, sha256: string) => Promise<string>;
-  /** The app version (versionCode) each app stage needs (API-001 C-21, DES-008 K-6). */
-  appStageVersions: Record<number, number>;
+  /** The apps of the ecosystem the console knows (DES-011 N-4), by app id. */
+  apps: Record<string, AppEntry>;
 }
 
-/** Each stage needs the first app version that shows it; stages no app shows yet need a version no app has (DES-007 J-9). */
-export const DEFAULT_APP_STAGE_VERSIONS: Record<number, number> = { 0: 1, 1: 2, 2: 9999, 3: 9999 };
+/**
+ * An app of the ecosystem (DES-011 N-4): what it is for, what it implements (SanpoGuide ADR-003
+ * E-6), and the version (versionCode) that first shows each app stage of material (API-001 C-21).
+ */
+export interface AppEntry {
+  name: string;
+  activity: string;
+  features: string[];
+  stageVersions: Record<number, number>;
+}
 
-/** The minAppVersion for an app stage; an unknown stage needs a version no app has. */
-export function minAppVersionFor(deps: Pick<Deps, 'appStageVersions'>, stage: number): number {
-  return deps.appStageVersions[stage] ?? 9999;
+/** SanpoGuide: walking, everything but recorded sound; stage 1 (text and images) from versionCode 2. */
+export const DEFAULT_APPS: Record<string, AppEntry> = {
+  sanpoguide: {
+    name: '散策ガイド',
+    activity: 'walk',
+    features: FEATURES.filter((f) => f !== 'present:play' && f !== 'present:ambient'),
+    stageVersions: { 0: 1, 1: 2, 2: NO_APP_VERSION, 3: NO_APP_VERSION },
+  },
+};
+
+/** The version [app] needs for an app stage; a stage it doesn't show yet needs a version no app has. */
+function stageVersion(app: AppEntry, stage: number): number {
+  return app.stageVersions[stage] ?? NO_APP_VERSION;
+}
+
+/**
+ * `minAppVersions` of a channel (DES-011 N-5): the apps it is for (its activities) that implement
+ * what it requires, each with the version its stage needs.
+ */
+export function channelMinVersions(deps: Pick<Deps, 'apps'>, stage: number, activities: string[], requires: string[]): Record<string, number> {
+  return Object.fromEntries(Object.entries(deps.apps)
+    .filter(([, app]) => activities.includes(app.activity) && requires.every((f) => app.features.includes(f)))
+    .map(([id, app]) => [id, stageVersion(app, stage)]));
+}
+
+/** `minAppVersions` of a collection (DES-011 N-5): the apps its `grants.apps` names, or every app. */
+export function collectionMinVersions(deps: Pick<Deps, 'apps'>, stage: number, apps: string[] | undefined): Record<string, number> {
+  return Object.fromEntries(Object.entries(deps.apps)
+    .filter(([id]) => apps === undefined || apps.includes(id))
+    .map(([id, app]) => [id, stageVersion(app, stage)]));
+}
+
+/** `minAppVersion` for the SanpoGuide that predates `minAppVersions` (DES-011 N-6, API-002 P-21). */
+export function legacyMinAppVersion(minAppVersions: Record<string, number>): number {
+  return minAppVersions.sanpoguide ?? NO_APP_VERSION;
 }
 
 /** What happened, for the publisher's email (API-001 C-14). No samples, operator ids or tokens. */

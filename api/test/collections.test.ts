@@ -4,7 +4,7 @@ import { zipSync } from 'fflate';
 import { makeTestProvider, type TestProvider } from '@sanpo-console/protocol/testing';
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import type { Deps, Notice } from '../src/console/deps.js';
+import { DEFAULT_APPS, type Deps, type Notice } from '../src/console/deps.js';
 import type { Caller } from '../src/console/http.js';
 import { route } from '../src/console/router.js';
 import { CursorCodec } from '../src/console/util.js';
@@ -80,7 +80,7 @@ beforeEach(async () => {
       await duringCopy();
       return `https://provider.example/col/${sha}.zip`;
     },
-    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
+    apps: { sanpoguide: { ...DEFAULT_APPS.sanpoguide!, stageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 } } },
   };
 });
 
@@ -308,6 +308,18 @@ describe('channels using collections', () => {
     await call(operator, 'POST', `${admin(sid)}/start`, { ifMatch: 2 });
     expect((await call(operator, 'POST', `${admin(sid)}/approve`, { body: { verification }, ifMatch: 3 })).status).toBe(200);
   }
+
+  it('gives a version to the apps a collection is granted to (DES-011 N-5, N-6)', async () => {
+    await approvedCollection({ ...LISTING, appStage: 0, grants: { publishers: '*', apps: ['sanpoguide'] } });
+    const forSanpo = (await call(alice, 'GET', '/api/collections/kamakura-audio-guide')).body.latestApproved;
+    expect(forSanpo).toMatchObject({ grants: { publishers: '*', apps: ['sanpoguide'] }, minAppVersions: { sanpoguide: 1 }, minAppVersion: 1 });
+  });
+
+  it('gives the older SanpoGuide a version no app has when the collection isn’t granted to it (API-002 P-21)', async () => {
+    await approvedCollection({ ...LISTING, appStage: 0, grants: { publishers: '*', apps: ['boat'] } });
+    const elsewhere = (await call(alice, 'GET', '/api/collections/kamakura-audio-guide')).body.latestApproved;
+    expect(elsewhere).toMatchObject({ minAppVersions: {}, minAppVersion: 9999 });
+  });
 
   const CHANNEL_LISTING = {
     appStage: 2, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 1 }], ownPrefetchBytes: 0, ownMedia: [],

@@ -304,7 +304,7 @@ export class ConsoleApp extends Construct {
     consoleFn.addEnvironment('PUBLIC_BUCKET', props.publicBucket.bucketName);
     consoleFn.addEnvironment('PROVIDER_URL', props.providerUrl);
     consoleFn.addEnvironment('RECORDS_BUCKET', props.recordsBucket.bucketName);
-    consoleFn.addEnvironment('APP_STAGE_VERSIONS', JSON.stringify(config.appStageVersions));
+    consoleFn.addEnvironment('APPS', JSON.stringify(config.apps));
     // Review (stage 3c): read the samples' prompts, keep the samples, publish approved files.
     props.recordsBucket.grantRead(consoleFn, 'samples/*');
     props.recordsBucket.grantReadWrite(consoleFn, 'reviews/*');
@@ -372,6 +372,8 @@ export class ConsoleApp extends Construct {
         RECORDS_BUCKET: props.recordsBucket.bucketName,
         PUBLIC_BUCKET: props.publicBucket.bucketName,
         JAVA_TOOL_OPTIONS: '-XX:+TieredCompilation -XX:TieredStopAtLevel=1',
+        // Format 1 packages are taken until then (DES-011 N-2); unset, without an end.
+        ...(config.format1AcceptUntil ? { FORMAT1_ACCEPT_UNTIL: config.format1AcceptUntil } : {}),
       },
     });
     props.table.grantReadWriteData(validator);

@@ -1,5 +1,6 @@
 package console.validator
 
+import io.github.duwenji.michizure.core.format.Activity
 import io.github.duwenji.michizure.core.format.material.CollectionCheck
 import io.github.duwenji.michizure.core.format.material.CollectionListedAs
 import io.github.duwenji.michizure.core.format.material.CollectionPackage
@@ -36,6 +37,8 @@ data class Upload(
     val latestApprovedVersion: Int?,
     /** The account's ids before it moved to a new key: a collection granted to one still counts (API-004 W-13). */
     val formerAccountIds: Set<String> = emptySet(),
+    /** Format 1 packages are no longer taken (DES-011 N-2). */
+    val format1Retired: Boolean = false,
 )
 
 /** One reason a submission failed, with API-003's code where there is one (API-001 `Validation`). */
@@ -70,6 +73,10 @@ data class ChannelListing(
     val ownPrefetchBytes: Long,
     val ownMedia: List<String>,
     val uses: Map<String, Map<String, String>>,
+    /** As the package writes them; format 1's are walk, none, none (DES-011 N-3, API-003 G-6). */
+    val activities: List<String> = listOf(Activity.WALK.json),
+    val genres: List<String> = emptyList(),
+    val requires: List<String> = emptyList(),
 )
 
 sealed interface Outcome {
@@ -149,7 +156,7 @@ sealed interface CollectionOutcome {
  * icon. Pure: the Lambda reads and writes, this decides.
  */
 object MachineReview {
-    const val VALIDATOR = "core-format 1.0.0, prompts 1.0.0"
+    const val VALIDATOR = "core-format 1.2.0, prompts 1.1.0"
     const val MAX_PACKAGE = 2 * 1024 * 1024
     const val MAX_ICON = 100 * 1024
     const val MAX_ICON_SIDE = 256
@@ -178,6 +185,9 @@ object MachineReview {
                     }
                     upload.latestApprovedVersion?.let { latest ->
                         if (manifest.version <= latest) findings += Finding("version_not_newer", "version ${manifest.version} is not after the approved $latest")
+                    }
+                    if (manifest.format == 1 && upload.format1Retired) {
+                        findings += Finding("format_retired", "format 1 packages are no longer taken: write format 2 (API-003 2.0)")
                     }
                     val resolved = resolveCollections(upload, result, catalog)
                     collections = resolved.results
@@ -218,12 +228,17 @@ object MachineReview {
             val pkg = (resolution.statuses[use.alias] as? CollectionStatus.Usable)?.pkg
             use.id to named[use.id].orEmpty().associateWith { id -> pkg?.resources?.get(id)?.type?.json ?: "" }
         }
+        val manifest = ok.station.manifest
         val listing = ChannelListing(
             appStage = MediaStage.required(media, resolution::types),
             collections = media.collections.map { Triple(it.alias, it.id, it.minVersion) },
             ownPrefetchBytes = media.resources.prefetchBytes,
             ownMedia = media.resources.items.map { it.type.json }.distinct().sorted(),
             uses = uses,
+            // Review reads with every value known (Strictness.REVIEW), so these are as written.
+            activities = manifest.activities.map { it.json },
+            genres = manifest.genres.map { it.json },
+            requires = manifest.requires.map { it.json },
         )
         return Resolved(results, rejection, listing)
     }
@@ -342,12 +357,22 @@ object MachineReview {
         else listOf(Finding("bad_icon", "${width}×$height (max ${MAX_ICON_SIDE}×$MAX_ICON_SIDE)"))
     }
 
+    /**
+     * The scenes the AI is asked to speak, with SanpoGuide's prompts: the representative app of
+     * walking (SanpoGuide ADR-003 E-26). A channel not for walking has none until its activity
+     * has a representative app (DES-011 N-8); the operator reads its slots instead.
+     */
     private fun samplePrompts(ok: StationCheck.Ok): String {
         val scenarios = JSONArray()
-        for (s in ReviewSamples.build(ok.station)) {
-            scenarios.put(JSONObject().put("id", s.id).put("label", s.label).put("system", s.system).put("user", s.user))
+        val walking = Activity.WALK in ok.station.manifest.activities
+        if (walking) {
+            for (s in ReviewSamples.build(ok.station)) {
+                scenarios.put(JSONObject().put("id", s.id).put("label", s.label).put("system", s.system).put("user", s.user))
+            }
         }
-        return JSONObject().put("generatedBy", VALIDATOR).put("scenarios", scenarios).toString()
+        return JSONObject().put("generatedBy", VALIDATOR).put("scenarios", scenarios)
+            .apply { if (!walking) put("noRepresentativeApp", JSONArray(ok.station.manifest.activities.map { it.json })) }
+            .toString()
     }
 
     fun sha256Hex(bytes: ByteArray): String =
