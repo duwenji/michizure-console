@@ -3,7 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, utf8 } from '@sanpo-console/protocol';
+import { b64url, utf8 } from '@michizure-console/protocol';
 import { zipSync } from 'fflate';
 import { ulid } from '../../api/src/console/util.js';
 import { checkProvider } from '../../conformance/src/check.js';
@@ -20,7 +20,7 @@ import { createKey, sha256, sign, signPackage, type PublisherKey } from '../../w
  * Then everything this run made is removed and the list rebuilt.
  */
 const region = 'ap-northeast-1';
-const stack = 'SanpoChannelConsole-dev';
+const stack = 'MichizureConsole-dev';
 const cfn = new CloudFormationClient({ region });
 const outputs = new Map(((await cfn.send(new DescribeStacksCommand({ StackName: stack }))).Stacks?.[0]?.Outputs ?? []).map((o) => [o.OutputKey!, o.OutputValue!]));
 const resources = (await cfn.send(new DescribeStackResourcesCommand({ StackName: stack }))).StackResources ?? [];

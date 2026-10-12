@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 対象 | sanpo-channel-console（SanpoGuide の第三者のチャンネルを審査して公開するシステム） |
+| 対象 | michizure-console（SanpoGuide の第三者のチャンネルを審査して公開するシステム） |
 | 版 | 1.1（2026-10-12） |
 | 前提の版 | 実装の順番 4（素材集と素材提供者）まで。[DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) |
 
@@ -45,7 +45,7 @@ flowchart LR
 
 | 環境 | 運営の画面 | 公開 URL（アプリが取得する） | 状態 |
 |---|---|---|---|
-| 開発用（dev） | https://d3gvjt5e1ced74.cloudfront.net | https://d1vs7kc4zgmwrz.cloudfront.net | 稼働中。アプリには内蔵しない |
+| 開発用（dev） | https://d21uyuovpio5a.cloudfront.net | https://dp0n4y2yro06i.cloudfront.net | 稼働中。アプリには内蔵しない |
 | 本番（prod） | — | — | 🚧 予定（本番用のアカウント、本番のルート鍵、独自ドメインがそろってから） |
 
 ## 用語集

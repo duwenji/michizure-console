@@ -1,4 +1,4 @@
-import type { Schemas } from '@sanpo-console/api-types';
+import type { Schemas } from '@michizure-console/api-types';
 import { type Api } from './api';
 import { type Auth, type ConsoleConfig } from './auth';
 import './style.css';

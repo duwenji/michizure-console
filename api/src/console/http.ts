@@ -1,4 +1,4 @@
-import type { ProblemCode } from '@sanpo-console/api-types';
+import type { ProblemCode } from '@michizure-console/api-types';
 
 /** Who is calling, from the JWT the API Gateway authorizer already verified. */
 export interface Caller {

@@ -1,7 +1,7 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import { QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
-import type { ProblemCode, Schemas } from '@sanpo-console/api-types';
-import { CHANNEL_ID, FORMAT1_ECOSYSTEM, accountId, b64url, providerId, utf8, verifyEd25519 } from '@sanpo-console/protocol';
+import type { ProblemCode, Schemas } from '@michizure-console/api-types';
+import { CHANNEL_ID, FORMAT1_ECOSYSTEM, accountId, b64url, providerId, utf8, verifyEd25519 } from '@michizure-console/protocol';
 import { auditItem, type Deps } from './deps.js';
 import { fail, flag, ifMatch, json, noContent, object, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { DEFAULT_LIMITS, channelView, get, loadChannel, loadPublisher, offeredIn, page, publisherView, type Item } from './shared.js';
@@ -347,7 +347,7 @@ export async function createKeyChallenge(deps: Deps, req: Request): Promise<Resp
   if (pub.status !== 'pending_key' && pub.status !== 'active') fail('publisher_not_active', `the publisher is ${String(pub.status)}`);
   const nonce = ulid(deps.now().getTime());
   const expiresAt = new Date(deps.now().getTime() + CHALLENGE_MS);
-  const message = `sanpo-channel-console:bind-key:${nonce}:${String(pub.publisherId)}`;
+  const message = `michizure-console:bind-key:${nonce}:${String(pub.publisherId)}`;
   await deps.db.send(
     new TransactWriteCommand({
       TransactItems: [

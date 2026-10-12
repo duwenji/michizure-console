@@ -1,4 +1,4 @@
-import type { ChannelEntry, CollectionEntry, Keyset, RevokedEntry, Signer, SignedDocument } from '@sanpo-console/protocol';
+import type { ChannelEntry, CollectionEntry, Keyset, RevokedEntry, Signer, SignedDocument } from '@michizure-console/protocol';
 
 /** What started a publication (DM-001 PUBLICATION.trigger). */
 export type Trigger = 'approve' | 'revoke' | 'transfer' | 'keyset' | 'daily' | 'manual';

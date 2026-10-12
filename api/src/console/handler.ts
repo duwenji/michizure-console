@@ -8,7 +8,7 @@ import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, NoSuchKey, Pu
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, providerId, signDocument, verifyDiscovery, type SignedDocument } from '@sanpo-console/protocol';
+import { b64url, providerId, signDocument, verifyDiscovery, type SignedDocument } from '@michizure-console/protocol';
 import { kmsSigner } from '../publish/aws.js';
 import type { SigningKeyRecord } from '../publish/ports.js';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2 } from 'aws-lambda';

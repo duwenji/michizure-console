@@ -8,16 +8,16 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 |---|---|
 | AWS アカウント | 140023390410（SSO プロファイル `sanpo-dev`） |
 | リージョン | ap-northeast-1 |
-| スタック | `SanpoChannelConsole-dev` |
+| スタック | `MichizureConsole-dev` |
 | リストID | `sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv` |
 | ルート鍵の公開鍵 | `YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagFVjECEI` |
-| 公開 URL | https://d1vs7kc4zgmwrz.cloudfront.net |
-| 初回の配備 | 2026-10-03（準拠テスト合格。チャンネルはまだない） |
-| 運営の画面 | https://d3gvjt5e1ced74.cloudfront.net（2026-10-04 配備） |
-| ログイン | https://sanpo-channel-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_wfKw6aCwX`） |
+| 公開 URL | https://dp0n4y2yro06i.cloudfront.net |
+| 初回の配備 | 2026-10-03（準拠テスト合格）。2026-10-12 に `michizure-console` への改名（ADR-001 T-9）で、スタック `MichizureConsole-dev` を作り直した（ルート鍵は同じなのでリストIDは変わらない。URL・ユーザープールは新しくなった） |
+| 運営の画面 | https://d21uyuovpio5a.cloudfront.net（2026-10-12 作り直し） |
+| ログイン | https://michizure-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_9kOvLsKwS`） |
 | 運営 | tofumiyoshi@gmail.com（`operator` グループ） |
 
-開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.sanpo-channel-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
+開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.michizure-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
 
 ### 手順
 
@@ -33,10 +33,10 @@ npx cdk deploy -c env=dev -c rootPublicKey=YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagF
 cd ..
 
 # 2. 署名鍵と鍵セットを登録し、1 回公開する（済んでいる手順は飛ばす）
-npm run provision -w tools/provision -- --env dev --root-key ~/.sanpo-channel-console/dev
+npm run provision -w tools/provision -- --env dev --root-key ~/.michizure-console/dev
 
 # 3. 準拠テスト
-npm run check -w conformance -- https://d1vs7kc4zgmwrz.cloudfront.net --provider sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv
+npm run check -w conformance -- https://dp0n4y2yro06i.cloudfront.net --provider sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv
 ```
 
 - `tools/provision` は、スタックの出力から KMS の署名鍵を読み、KMS から公開鍵を取り出して `SIGNKEY` に登録する。鍵セットに載っていない鍵があれば、ルート鍵で新しい鍵セット（`seq` + 1、署名鍵の有効期間 180 日）に署名して `KEYSET` に登録する。最後に公開の Lambda を 1 回呼ぶ
@@ -48,8 +48,8 @@ npm run check -w conformance -- https://d1vs7kc4zgmwrz.cloudfront.net --provider
 運営の担当者は登録の画面からはなれない。管理者が作り、`operator` グループに入れる（ADR-001 A-4）。
 
 ```sh
-aws cognito-idp admin-create-user --user-pool-id ap-northeast-1_wfKw6aCwX --username <メール>   --user-attributes Name=email,Value=<メール> Name=email_verified,Value=true --desired-delivery-mediums EMAIL
-aws cognito-idp admin-add-user-to-group --user-pool-id ap-northeast-1_wfKw6aCwX --username <メール> --group-name operator
+aws cognito-idp admin-create-user --user-pool-id ap-northeast-1_9kOvLsKwS --username <メール>   --user-attributes Name=email,Value=<メール> Name=email_verified,Value=true --desired-delivery-mediums EMAIL
+aws cognito-idp admin-add-user-to-group --user-pool-id ap-northeast-1_9kOvLsKwS --username <メール> --group-name operator
 ```
 
 仮のパスワードがメールで届く。最初のログインでパスワードを変え、認証アプリで MFA（TOTP）を登録する。
@@ -57,7 +57,7 @@ aws cognito-idp admin-add-user-to-group --user-pool-id ap-northeast-1_wfKw6aCwX 
 ### 手元で SPA を動かす
 
 ```sh
-CONSOLE_URL=https://d3gvjt5e1ced74.cloudfront.net npm run dev -w web   # http://localhost:5173
+CONSOLE_URL=https://d21uyuovpio5a.cloudfront.net npm run dev -w web   # http://localhost:5173
 ```
 
 開発用のユーザープールは `http://localhost:5173/callback` を許しているので、そのままログインできる（本番は許さない）。

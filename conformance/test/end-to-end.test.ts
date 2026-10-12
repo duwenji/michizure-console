@@ -1,6 +1,6 @@
-import { MemoryStorage, MemoryStore, noCdn, publish, LIST_PATH } from '@sanpo-console/api/publish';
-import { b64url, sha256Hex, utf8 } from '@sanpo-console/protocol';
-import { makeTestProvider, sampleChannel, type TestProvider } from '@sanpo-console/protocol/testing';
+import { MemoryStorage, MemoryStore, noCdn, publish, LIST_PATH } from '@michizure-console/api/publish';
+import { b64url, sha256Hex, utf8 } from '@michizure-console/protocol';
+import { makeTestProvider, sampleChannel, type TestProvider } from '@michizure-console/protocol/testing';
 import { zipSync } from 'fflate';
 import type { Server } from 'node:http';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

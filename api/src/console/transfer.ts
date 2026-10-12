@@ -1,6 +1,6 @@
 import { QueryCommand, type TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
-import type { Schemas } from '@sanpo-console/api-types';
-import { b64url } from '@sanpo-console/protocol';
+import type { Schemas } from '@michizure-console/api-types';
+import { b64url } from '@michizure-console/protocol';
 import { auditItem, notifyAfter, type Deps } from './deps.js';
 import { fail, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { myPublisher, provenKey, transact } from './publisher.js';

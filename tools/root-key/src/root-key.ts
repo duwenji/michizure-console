@@ -11,7 +11,7 @@ import {
   type Keyset,
   type SignedDocument,
   type SigningKeyEntry,
-} from '@sanpo-console/protocol';
+} from '@michizure-console/protocol';
 import { createPublicKey } from 'node:crypto';
 
 /** The passphrase guards the root key at rest; the machine is offline, but files get copied. */

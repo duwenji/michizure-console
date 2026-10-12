@@ -11,7 +11,7 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { FORMAT1_ECOSYSTEM, type ChannelEntry, type CollectionEntry, type RevokedEntry, type Signer, type SignedDocument } from '@sanpo-console/protocol';
+import { FORMAT1_ECOSYSTEM, type ChannelEntry, type CollectionEntry, type RevokedEntry, type Signer, type SignedDocument } from '@michizure-console/protocol';
 import type { ExternalFailure, ExternalTarget } from './external.js';
 import {
   SeqConflictError,

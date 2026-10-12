@@ -1,4 +1,4 @@
-import type { Schemas } from '@sanpo-console/api-types';
+import type { Schemas } from '@michizure-console/api-types';
 /**
  * The machine review's outcome as API-001 1.1 C-19 gives it, for producers and operators alike:
  * the errors, how each declared collection resolved (channels), each outside resource, the

@@ -1,4 +1,4 @@
-import type { Schemas } from '@sanpo-console/api-types';
+import type { Schemas } from '@michizure-console/api-types';
 import { useSession } from '../main';
 import { useLoad } from './common';
 

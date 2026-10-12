@@ -1,7 +1,7 @@
 import type { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, generateEd25519, sha256Hex, signDocument, signEd25519, utf8, verifyChannelList, verifyDiscovery } from '@sanpo-console/protocol';
-import { makeTestProvider, type TestProvider } from '@sanpo-console/protocol/testing';
+import { b64url, generateEd25519, sha256Hex, signDocument, signEd25519, utf8, verifyChannelList, verifyDiscovery } from '@michizure-console/protocol';
+import { makeTestProvider, type TestProvider } from '@michizure-console/protocol/testing';
 import { zipSync } from 'fflate';
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

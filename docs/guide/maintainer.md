@@ -71,8 +71,8 @@ flowchart LR
 | GitHub CLI | PR と CI の確認 |
 
 ```sh
-git clone https://github.com/duwenji/sanpo-channel-console.git
-cd sanpo-channel-console
+git clone https://github.com/duwenji/michizure-console.git
+cd michizure-console
 npm ci
 ```
 
@@ -109,7 +109,7 @@ npm run check -w conformance -- http://127.0.0.1:8787 --allow-local-http --provi
 **画面を手元で動かす**（開発用の API とログインを使う）:
 
 ```sh
-CONSOLE_URL=https://d3gvjt5e1ced74.cloudfront.net npm run dev -w web   # http://localhost:5173
+CONSOLE_URL=https://d21uyuovpio5a.cloudfront.net npm run dev -w web   # http://localhost:5173
 ```
 
 **管理 API を変えるとき**: 先に `docs/api/console.openapi.yaml` と `docs/console-api.md` を直し、`npm run generate -w packages/api-types` で型を作り直します。
@@ -148,11 +148,11 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
    ROOT_KEY_PASSPHRASE=… npm run root-key -w tools/root-key -- generate --out <フォルダ>
    ```
 
-   表示された `rootKey` を `cdk deploy -c rootPublicKey=…` に使い、`provider`（リストID）を控えます。合言葉は 16 文字以上。秘密鍵の写しを複数の場所に置きます。開発用の鍵は `~/.sanpo-channel-console/dev/` にあります（合言葉も同じ場所。開発用だけの扱い）
+   表示された `rootKey` を `cdk deploy -c rootPublicKey=…` に使い、`provider`（リストID）を控えます。合言葉は 16 文字以上。秘密鍵の写しを複数の場所に置きます。開発用の鍵は `~/.michizure-console/dev/` にあります（合言葉も同じ場所。開発用だけの扱い）
 2. **署名鍵と鍵セットを登録して公開する**: 運営の画面（[運営ガイド 5.2](operator.md#52-鍵セットを登録する)）で行うか、`tools/provision` で一度に行います
 
    ```sh
-   npm run provision -w tools/provision -- --env dev --root-key ~/.sanpo-channel-console/dev
+   npm run provision -w tools/provision -- --env dev --root-key ~/.michizure-console/dev
    ```
 
    `provision` は、スタックの出力から KMS の鍵を読んで登録し、ルート鍵で鍵セット（署名鍵の有効期間 180 日）に署名して登録し、公開の処理を 1 回呼びます。済んでいる手順は飛ばします
@@ -167,7 +167,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
 運営は、登録の画面からはなれません（ADR-001 A-4）。管理者が作って `operator` グループに入れます。
 
 ```sh
-P=<ユーザープールID>   # 開発用は ap-northeast-1_wfKw6aCwX
+P=<ユーザープールID>   # 開発用は ap-northeast-1_9kOvLsKwS
 aws cognito-idp admin-create-user --user-pool-id $P --username <メール> \
   --user-attributes Name=email,Value=<メール> Name=email_verified,Value=true --desired-delivery-mediums EMAIL
 aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール> --group-name operator
@@ -199,7 +199,7 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 | 警報の宛先 | **未設定**（`cdk deploy -c alarmEmail=…` か `config.ts` で設定する） | 配備前に設定する |
 | ログ | Lambda のログは 14 日 | 消さない |
 
-- 予算はタグ `project=sanpo-channel-console` の費用だけを数えます。請求の画面でコスト配分タグ `project` を一度有効にしてください（[費用](../operations/cost.md#一度だけ要る操作)）
+- 予算はタグ `project=michizure-console` の費用だけを数えます。請求の画面でコスト配分タグ `project` を一度有効にしてください（[費用](../operations/cost.md#一度だけ要る操作)）
 - 同じ AWS アカウントにほかのプロジェクトがあるので、請求の画面ではタグ `project` で絞り込みます
 
 ## 10. 障害の対応

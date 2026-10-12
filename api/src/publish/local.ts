@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import type { ChannelEntry, CollectionEntry, RevokedEntry, SignedDocument } from '@sanpo-console/protocol';
+import type { ChannelEntry, CollectionEntry, RevokedEntry, SignedDocument } from '@michizure-console/protocol';
 import {
   SeqConflictError,
   type Cdn,
