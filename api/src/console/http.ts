@@ -138,6 +138,13 @@ export function text(o: Record<string, unknown>, key: string, opts: { min?: numb
   return value;
 }
 
+/** A true/false field; absent is false. */
+export function flag(o: Record<string, unknown>, key: string): boolean {
+  const value = o[key];
+  if (value === undefined) return false;
+  return typeof value === 'boolean' ? value : fail('invalid_request', `${key} must be true or false`, [{ path: `/${key}`, message: 'must be a boolean' }]);
+}
+
 export function requiredText(o: Record<string, unknown>, key: string, opts: { min?: number; max: number; pattern?: RegExp }): string {
   return text(o, key, opts) as string;
 }
