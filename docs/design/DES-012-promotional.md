@@ -74,12 +74,14 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 
 確認（2026-10-12）: `npx tsc -b`、`npx vitest run`（150 件。Docker の DynamoDB Local で API のテストも手元で流した）、infra のテスト 13 件。開発用に配備し、`collections.ts --promotional` で、宣伝の素材集と、それを宣言するチャンネル（申告なし）の両方が `promotional: true`・`minAppVersion: 9999`・`minAppVersions: { sanpoguide: 9999 }` になり、準拠テスト（`C-P1` を含む）に合格した。既存の通しの確認 5 本も通った。
 
+エミュレータでの確認（2026-10-12）: 開発用の `promotionalMinAppVersions` を `{ sanpoguide: 3 }` にして配備し、`tools/e2e/promotional.ts --keep` で文字だけの宣伝の素材集と、選んだときにそれを見せるチャンネル（申告なし）を公開した（両方 `promotional: true`・`minAppVersion: 3`、準拠テスト合格）。SanpoGuide versionCode 3（ADR-002 T-14）をエミュレータに入れ、チャンネル・リストの行の「宣伝を含む」、選ぶ画面と設定の「小町通りの買い物（宣伝を含む）」、選んだときのカードの「宣伝: 小町通り商店会」を確かめた。設定「宣伝の素材を出さない」をオンにすると、選び直してもカードが出ず、オフに戻すと出た。
+
 ## 未決事項・リスク
 
 | No. | 内容 | 案 |
 |---|---|---|
 | 1 | 申告がないのに宣伝だと分かった公開中のチャンネルをどうするか | 今の取り下げ（理由つき）で足りる（D-31）。運営が `promotional` を後から付ける操作は作らない |
-| 2 | `promotionalMinAppVersions` の SanpoGuide の値をいつ入れるか | T-14 の版（versionCode）を Google Play に出したときに、運営が設定に書いて配備する |
+| 2 | `promotionalMinAppVersions` の SanpoGuide の値をいつ入れるか | 本番は、T-14 の版（versionCode 3）を Google Play に出したときに、運営が設定に書いて配備する。開発用は、エミュレータで試すために先に `{ sanpoguide: 3 }` にした（2026-10-12、開発者の判断。`tools/e2e/promotional.ts`） |
 
 ## 関連ドキュメント・参照リンク
 
