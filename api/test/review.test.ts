@@ -5,7 +5,7 @@ import { makeTestProvider, type TestProvider } from '@sanpo-console/protocol/tes
 import { zipSync } from 'fflate';
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import type { Deps, Notice } from '../src/console/deps.js';
+import { DEFAULT_APPS, type Deps, type Notice } from '../src/console/deps.js';
 import type { Caller } from '../src/console/http.js';
 import { route } from '../src/console/router.js';
 import { CursorCodec } from '../src/console/util.js';
@@ -64,7 +64,7 @@ beforeEach(async () => {
     writeRecord: async (key, body) => void records.set(key, body),
     notify: async (n) => void notices.push(n),
     publishCollection: async (_key: string, sha: string) => `https://provider.example/col/${sha}.zip`,
-    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
+    apps: { sanpoguide: { ...DEFAULT_APPS.sanpoguide!, stageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 } } },
     publishApproved: async ({ packageSha256, iconSha256 }) => ({
       packageUrl: `https://provider.example/pkg/${packageSha256}.zip`,
       iconUrl: `https://provider.example/icons/${iconSha256}.png`,
@@ -81,7 +81,7 @@ async function call(caller: Caller, method: string, path: string, options: { bod
 }
 
 /** A publisher with a channel and a submission the machine review passed, as stages 3a and 3b leave it. */
-async function awaitingReview(version = 1) {
+async function awaitingReview(version = 1, listing?: Record<string, unknown>) {
   const reg = await call(alice, 'POST', '/api/publisher', { body: { displayName: '鎌倉歴史散歩の会', contact: 'k@example.com' } }).catch(() => undefined);
   if (reg?.status === 201) {
     const key = generateEd25519();
@@ -99,11 +99,12 @@ async function awaitingReview(version = 1) {
   await deps.db.send(
     new UpdateCommand({
       TableName: deps.table, Key: { PK: 'CH#kamakura-history', SK: `SUB#${sid}` },
-      UpdateExpression: 'SET #s = :s, version = :v, sha256 = :h, #size = :z, iconSha256 = :i, validation = :val, samplesKey = :k, submittedAt = :t, GSI2PK = :q, GSI2SK = :o, rev = :r REMOVE #ttl',
+      UpdateExpression: `SET #s = :s, version = :v, sha256 = :h, #size = :z, iconSha256 = :i, validation = :val, samplesKey = :k, submittedAt = :t, GSI2PK = :q, GSI2SK = :o, rev = :r${listing ? ', listing = :l' : ''} REMOVE #ttl`,
       ExpressionAttributeNames: { '#s': 'state', '#size': 'size', '#ttl': 'ttl' },
       ExpressionAttributeValues: {
         ':s': 'awaiting_review', ':v': version, ':h': sha256Hex(zip), ':z': zip.length, ':i': 'cd'.repeat(32), ':val': { ok: true, errors: [] },
         ':k': `samples/${sid}/prompts.json`, ':t': new Date(clock).toISOString(), ':q': 'QUEUE#REVIEW', ':o': `${new Date(clock).toISOString()}#kamakura-history`, ':r': 2,
+        ...(listing ? { ':l': listing } : {}),
       },
     }),
   );
@@ -164,6 +165,8 @@ describe('deciding', () => {
       listed: true, pendingSubmissionId: null,
       latestApproved: { version: 1, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: ['ja'], description: '鎌倉の寺社', tags: ['history'], minAppVersion: 1 },
     });
+    // Reviewed before DES-011: a format 1 walking channel, for SanpoGuide (N-3, N-5).
+    expect(channel.body.latestApproved).toMatchObject({ activities: ['walk'], genres: [], requires: [], minAppVersions: { sanpoguide: 1 }, package: { format: 1 } });
     expect((await call(operator, 'GET', '/api/admin/review-queue')).body.items).toEqual([]);
 
     const second = await awaitingReview(2);
@@ -222,6 +225,34 @@ describe('deciding', () => {
     const list = verifyChannelList(JSON.parse(utf8.decode(storage.public.get(LIST_PATH)!)), discovery.keyset, { now: new Date(clock) }).body;
     expect(list.channels).toHaveLength(1);
     expect(list.channels[0]).toMatchObject({ id: 'kamakura-history', version: 1, publisherName: '鎌倉歴史散歩の会', name: '鎌倉歴史散歩' });
+  });
+});
+
+describe('the ecosystem (DES-011)', () => {
+  const listing = (activities: string[], requires: string[] = []) => ({
+    appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {}, activities, genres: ['history'], requires,
+  });
+
+  it("gives a version to each app the channel is for, and SanpoGuide's as minAppVersion (N-5, N-6)", async () => {
+    const sid = await awaitingReview(1, listing(['walk', 'cycle'], ['slot:guide']));
+    await call(operator, 'POST', `${base(sid)}/start`, { ifMatch: 2 });
+    await call(operator, 'POST', `${base(sid)}/approve`, { body: {}, ifMatch: 3 });
+    const channel = await call(alice, 'GET', '/api/channels/kamakura-history');
+    expect(channel.body.latestApproved).toMatchObject({
+      activities: ['walk', 'cycle'], genres: ['history'], requires: ['slot:guide'], minAppVersions: { sanpoguide: 1 }, minAppVersion: 1,
+    });
+  });
+
+  it("gives no app a version when none can use the channel, and SanpoGuide one it doesn't have (P-21)", async () => {
+    const sid = await awaitingReview(1, listing(['cycle']));
+    await call(operator, 'POST', `${base(sid)}/start`, { ifMatch: 2 });
+    await call(operator, 'POST', `${base(sid)}/approve`, { body: {}, ifMatch: 3 });
+    const channel = await call(alice, 'GET', '/api/channels/kamakura-history');
+    expect(channel.body.latestApproved).toMatchObject({ activities: ['cycle'], minAppVersions: {}, minAppVersion: 9999 });
+    const needsSound = await awaitingReview(2, listing(['walk'], ['present:play']));
+    await call(operator, 'POST', `${base(needsSound)}/start`, { ifMatch: 2 });
+    await call(operator, 'POST', `${base(needsSound)}/approve`, { body: {}, ifMatch: 3 });
+    expect((await call(alice, 'GET', '/api/channels/kamakura-history')).body.latestApproved).toMatchObject({ minAppVersions: {}, minAppVersion: 9999 });
   });
 });
 

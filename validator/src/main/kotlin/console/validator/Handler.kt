@@ -50,6 +50,8 @@ class Handler(
     private val intakeBucket: String = env("INTAKE_BUCKET"),
     private val recordsBucket: String = env("RECORDS_BUCKET"),
     private val publicBucket: String = env("PUBLIC_BUCKET"),
+    /** DES-011 N-2: format 1 packages are taken until then; null, without an end. */
+    private val format1AcceptUntil: java.time.Instant? = System.getenv("FORMAT1_ACCEPT_UNTIL")?.let(java.time.Instant::parse),
     private val fetcher: ExternalFetcher = HttpsFetcher(),
     private val clock: () -> Instant = Instant::now,
 ) : RequestHandler<S3Event, String> {
@@ -86,7 +88,8 @@ class Handler(
         val latest = channel?.get("latestApproved")?.m()?.get("version")?.n()?.toInt()
         val accountId = sub.str("accountId").orEmpty()
         val former = channel?.str("publisherId")?.let(::accountIdsOf)?.minus(accountId).orEmpty()
-        val upload = Upload(channelId, submissionId, accountId, latest, former)
+        val retired = format1AcceptUntil?.let { clock().isAfter(it) } ?: false
+        val upload = Upload(channelId, submissionId, accountId, latest, former, format1Retired = retired)
         val outcome = MachineReview.review(upload, zip, icon, DynamoCatalog())
         val now = iso(clock())
         return try {
@@ -112,6 +115,9 @@ class Handler(
             "ownPrefetchBytes" to l.ownPrefetchBytes,
             "ownMedia" to l.ownMedia,
             "uses" to l.uses,
+            "activities" to l.activities,
+            "genres" to l.genres,
+            "requires" to l.requires,
         )
         transact(
             update(
@@ -251,7 +257,8 @@ class Handler(
         "warnings" to av(warnings.map { mapOf("code" to it.code, "detail" to it.detail.take(500)) }),
     )
 
-    private fun grants(g: Grants): Map<String, Any> = mapOf("publishers" to (g.publishers?.sorted() ?: "*"))
+    private fun grants(g: Grants): Map<String, Any> =
+        mapOf("publishers" to (g.publishers?.sorted() ?: "*")) + (g.apps?.let { mapOf("apps" to it.sorted()) } ?: emptyMap())
 
     /**
      * The collections listed now (DES-007 J-2): an `active` collection with an approved version,

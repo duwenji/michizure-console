@@ -76,7 +76,7 @@ class MachineReviewTest {
         outcome as Outcome.Passed
         assertEquals(3, outcome.version)
         val samples = JSONObject(outcome.samplePrompts)
-        assertEquals("core-format 1.0.0, prompts 1.0.0", samples.getString("generatedBy"))
+        assertEquals("core-format 1.2.0, prompts 1.1.0", samples.getString("generatedBy"))
         // The review policy's scenes (2.7), as the app would render them; this channel doesn't talk on rest.
         val ids = (0 until samples.getJSONArray("scenarios").length()).map { samples.getJSONArray("scenarios").getJSONObject(it).getString("id") }
         assertEquals(8, ids.size)
@@ -112,5 +112,48 @@ class MachineReviewTest {
     fun `timestamps and ids match the console API's form`() {
         assertEquals("2026-10-04T03:00:00.000Z", Handler.iso(java.time.Instant.parse("2026-10-04T03:00:00Z")))
         assertTrue(Handler.ulid(java.time.Instant.now()).matches(Regex("[0-9A-HJKMNP-TV-Z]{26}")))
+    }
+
+    // ---- the ecosystem (DES-011) ----
+
+    private fun format2(vararg activities: String) = manifest().apply {
+        put("format", 2)
+        put("activities", org.json.JSONArray(activities.toList()))
+        put("genres", org.json.JSONArray(listOf("history")))
+        put("requires", JSONObject().put("features", org.json.JSONArray(listOf("slot:guide"))))
+    }
+
+    @Test
+    fun `a format 2 package records what the list copies for the apps (N-3)`() {
+        val outcome = MachineReview.review(upload, pkg(format2("walk", "cycle")), png()) as Outcome.Passed
+        assertEquals(listOf("walk", "cycle"), outcome.listing.activities)
+        assertEquals(listOf("history"), outcome.listing.genres)
+        assertEquals(listOf("slot:guide"), outcome.listing.requires)
+        assertTrue(JSONObject(outcome.samplePrompts).getJSONArray("scenarios").length() > 0)
+        // Format 1 is a walking channel with no genre and no requirement (API-003 G-6).
+        val old = MachineReview.review(upload, pkg(), png()) as Outcome.Passed
+        assertEquals(listOf("walk"), old.listing.activities)
+        assertEquals(emptyList<String>(), old.listing.genres + old.listing.requires)
+    }
+
+    @Test
+    fun `values outside the ecosystem's lists are turned away (API-003 V-24)`() {
+        assertEquals(listOf("bad_value"), codes(MachineReview.review(upload, pkg(format2("drive")), png())))
+        assertEquals(listOf("bad_manifest"), codes(MachineReview.review(upload, pkg(manifest().put("format", 2)), png())))
+    }
+
+    @Test
+    fun `a channel not for walking has no samples until its activity has a representative app (N-8)`() {
+        val outcome = MachineReview.review(upload, pkg(format2("cycle")), png()) as Outcome.Passed
+        val samples = JSONObject(outcome.samplePrompts)
+        assertEquals(0, samples.getJSONArray("scenarios").length())
+        assertEquals("cycle", samples.getJSONArray("noRepresentativeApp").getString(0))
+    }
+
+    @Test
+    fun `format 1 is turned away once retired (N-2)`() {
+        val retired = upload.copy(format1Retired = true)
+        assertEquals(listOf("format_retired"), codes(MachineReview.review(retired, pkg(), png())))
+        assertTrue(MachineReview.review(retired, pkg(format2("walk")), png()) is Outcome.Passed)
     }
 }

@@ -1,10 +1,10 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import { QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import type { ProblemCode, Schemas } from '@sanpo-console/api-types';
-import { CHANNEL_ID, accountId, b64url, providerId, utf8, verifyEd25519 } from '@sanpo-console/protocol';
+import { CHANNEL_ID, FORMAT1_ECOSYSTEM, accountId, b64url, providerId, utf8, verifyEd25519 } from '@sanpo-console/protocol';
 import { auditItem, type Deps } from './deps.js';
 import { fail, ifMatch, json, noContent, object, requiredText, text, withEtag, type Request, type Response } from './http.js';
-import { DEFAULT_LIMITS, channelView, get, loadChannel, loadPublisher, page, publisherView, type Item } from './shared.js';
+import { DEFAULT_LIMITS, channelView, get, loadChannel, loadPublisher, offeredIn, page, publisherView, type Item } from './shared.js';
 import { deleteUses, notifyUsers, usesOfChannel, usesOfCollection } from './uses.js';
 import { jstDate, ulid } from './util.js';
 
@@ -70,6 +70,8 @@ export function submissionView(item: Item): Schemas['Submission'] {
     ...(item.description !== undefined ? { description: String(item.description) } : {}),
     ...(item.tags ? { tags: item.tags as string[] } : {}),
     ...(item.regions ? { regions: item.regions as string[] } : {}),
+    // What the machine review read from the package (DES-011 N-3, N-9); nothing before it ran.
+    ...ecosystemOf(item.listing as { activities?: string[]; genres?: string[]; requires?: string[] } | undefined),
     ...(item.note !== undefined ? { note: String(item.note) } : {}),
     sha256: (item.sha256 as string | undefined) ?? null,
     size: (item.size as number | undefined) ?? null,
@@ -81,6 +83,13 @@ export function submissionView(item: Item): Schemas['Submission'] {
     createdAt: String(item.createdAt),
     updatedAt: String(item.updatedAt),
   };
+}
+
+function ecosystemOf(listing: { activities?: string[]; genres?: string[]; requires?: string[] } | undefined) {
+  if (!listing) return {};
+  const activities = listing.activities ?? FORMAT1_ECOSYSTEM.activities;
+  const requires = listing.requires ?? FORMAT1_ECOSYSTEM.requires;
+  return { activities, genres: listing.genres ?? FORMAT1_ECOSYSTEM.genres, requires, offeredIn: offeredIn({ activities, requires }) };
 }
 
 function textList(o: Record<string, unknown>, key: string, max: number, pattern: RegExp): string[] | undefined {

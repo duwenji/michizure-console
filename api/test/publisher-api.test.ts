@@ -3,7 +3,7 @@ import { accountId, b64url, generateEd25519, signDocument, signEd25519, utf8, ve
 import { makeTestProvider, type TestProvider } from '@sanpo-console/protocol/testing';
 import { randomBytes, type KeyObject } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import type { Deps, Notice } from '../src/console/deps.js';
+import { DEFAULT_APPS, type Deps, type Notice } from '../src/console/deps.js';
 import type { Caller } from '../src/console/http.js';
 import { route } from '../src/console/router.js';
 import { CursorCodec } from '../src/console/util.js';
@@ -67,7 +67,7 @@ beforeEach(async () => {
     writeRecord: async () => {},
     notify: async (n) => void notices.push(n),
     publishCollection: async (_key: string, sha: string) => `https://provider.example/col/${sha}.zip`,
-    appStageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 },
+    apps: { sanpoguide: { ...DEFAULT_APPS.sanpoguide!, stageVersions: { 0: 1, 1: 9999, 2: 9999, 3: 9999 } } },
     publishApproved: async ({ packageSha256, iconSha256 }) => ({ packageUrl: `https://provider.example/pkg/${packageSha256}.zip`, iconUrl: `https://provider.example/icons/${iconSha256}.png` }),
   };
 });

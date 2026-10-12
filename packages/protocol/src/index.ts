@@ -1,4 +1,5 @@
 export * from './encoding.js';
+export * from './ecosystem.js';
 export * from './ed25519.js';
 export * from './geo.js';
 export * from './limits.js';

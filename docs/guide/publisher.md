@@ -43,7 +43,7 @@ flowchart LR
 
 ## 3. パッケージを作る
 
-パッケージは、1 つのチャンネルの中身を入れた ZIP（無圧縮か Deflate）です。正式な形式は SanpoGuide の [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md) です。アプリと管理システムは、同じ確認のプログラム（station-format）で確かめます。
+パッケージは、1 つのチャンネルの中身を入れた ZIP（無圧縮か Deflate）です。正式な形式は SanpoGuide の [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md) です。アプリと管理システムは、同じ確認のプログラム（SanpoGuide の core-format）で確かめます。
 
 ### 3.1 ファイルの構成
 
@@ -72,13 +72,16 @@ prompts/
 
 ```json
 {
-  "format": 1,
+  "format": 2,
   "id": "kamakura-history",
   "version": 3,
   "publisher": "sg1…（あなたのアカウントID）",
   "name": "鎌倉歴史散歩",
   "summary": "鎌倉の寺社と武士の歴史を、語り部の口調で",
   "lang": "ja",
+  "activities": ["walk", "cycle"],
+  "genres": ["history"],
+  "requires": { "features": ["slot:guide"] },
   "greeting": "ここからは、鎌倉の歴史をたどりながら歩きましょう。",
   "talk": { "level": "normal", "events": { "spot": true, "revisit": true, "milestone": true, "rest": false, "start": true, "finish": true } },
   "spots": { "prefer": ["temple", "shrine", "historic", "museum"], "skip": ["artwork"] },
@@ -89,6 +92,10 @@ prompts/
 
 | 項目 | 決まり |
 |---|---|
+| `format` | `2`（2026-10-12 から）。`1` は、format 2 に対応した散策ガイドの公開から 90 日まで受け付けます（その後は `format_retired` で通りません。公開中の format 1 のチャンネルは、更新するまでそのまま届きます） |
+| `activities` | このチャンネルが合う過ごし方: `walk`（散歩）・`cycle`（サイクリング）から 1〜4 個。語り手の文章がその過ごし方に合っているかは、人の審査で確かめます。チャンネルは、過ごし方が合うアプリにだけ届きます（今あるのは散歩の「散策ガイド」だけ） |
+| `genres` | 散策者が探すときの分類: `general`・`history`・`nature`・`food`・`shopping` から 0〜3 個 |
+| `requires.features` | これがないアプリでは成り立たない機能（`slot:guide`、`trigger:point`、`present:fullscreen` など。[API-003「機能」](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)）。書いた機能を持たないアプリには届きません。書かない機能は、持たないアプリでは使われないだけです |
 | `id`・`version` | 登録したチャンネル ID。版は、最後に承認された版より大きく |
 | `publisher` | 紐づけたアカウントID |
 | `name`・`summary`・`greeting` | 1〜20 字・1〜60 字・1〜60 字（`greeting` は切り替えたときにそのまま読み上げる） |

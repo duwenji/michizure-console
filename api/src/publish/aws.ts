@@ -11,7 +11,7 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import type { ChannelEntry, CollectionEntry, RevokedEntry, Signer, SignedDocument } from '@sanpo-console/protocol';
+import { FORMAT1_ECOSYSTEM, type ChannelEntry, type CollectionEntry, type RevokedEntry, type Signer, type SignedDocument } from '@sanpo-console/protocol';
 import type { ExternalFailure, ExternalTarget } from './external.js';
 import {
   SeqConflictError,
@@ -95,6 +95,8 @@ export class DynamoStore implements PublicationStore {
         const change = shownChange(i.publisherChange, approved.publisher, now);
         const entry = {
           id: i.channelId,
+          // Approved before DES-011: what a format 1 channel is (API-003 G-6, DES-011 N-3).
+          ...FORMAT1_ECOSYSTEM,
           ...approved,
           publisherName: names.get(i.publisherId) ?? '',
           ...(change ? { publisherChange: change } : {}),

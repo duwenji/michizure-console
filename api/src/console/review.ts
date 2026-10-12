@@ -1,8 +1,8 @@
 import { QueryCommand, type TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import type { Schemas } from '@sanpo-console/api-types';
-import { sha256Hex, utf8 } from '@sanpo-console/protocol';
+import { FORMAT1_ECOSYSTEM, sha256Hex, utf8 } from '@sanpo-console/protocol';
 import { unzipSync } from 'fflate';
-import { auditItem, minAppVersionFor, notifyAfter, type Deps, type Notice } from './deps.js';
+import { auditItem, channelMinVersions, collectionMinVersions, legacyMinAppVersion, notifyAfter, type Deps, type Notice } from './deps.js';
 import { fail, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { loadSubmission, submissionView, transact } from './publisher.js';
 import { collectionSubmissionView, collectionView, get, loadChannel, loadCollection, loadCollectionSubmission, loadPublisher, page, type Item } from './shared.js';
@@ -217,7 +217,10 @@ interface ChannelListing {
   ownPrefetchBytes: number;
   ownMedia: string[];
   /** By collection id: the resources the channel names in it, with their types. */
-  uses: Record<string, Record<string, string>>;
+  uses: Record<string, Record<string, string>>;  /** As the package writes them (DES-011 N-3); absent in reviews from before it. */
+  activities?: string[];
+  genres?: string[];
+  requires?: string[];
 }
 
 /**
@@ -298,7 +301,14 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
   // A submission the machine review passed before DES-007 has no listing: no material, stage 0.
   const listing = (sub.listing as ChannelListing | undefined) ?? { appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {} };
   const used = await recheckCollections(deps, String(sub.publisherId), listing);
-  const manifest = JSON.parse(utf8.decode(unzipSync(zip, { filter: (f) => f.name === 'channel.json' })['channel.json']!)) as { name: string; summary: string; lang: string };
+  const manifest = JSON.parse(utf8.decode(unzipSync(zip, { filter: (f) => f.name === 'channel.json' })['channel.json']!)) as {
+    format?: number; name: string; summary: string; lang: string;
+  };
+  // What the list copies for the apps to choose by (API-002 P-19); a review from before DES-011 is format 1's (API-003 G-6).
+  const activities = listing.activities ?? FORMAT1_ECOSYSTEM.activities;
+  const genres = listing.genres ?? FORMAT1_ECOSYSTEM.genres;
+  const requires = listing.requires ?? FORMAT1_ECOSYSTEM.requires;
+  const minAppVersions = channelMinVersions(deps, listing.appStage, activities, requires);
   const { packageUrl, iconUrl } = await deps.publishApproved({
     packageKey: String(sub.intakeKey), packageSha256: String(sub.sha256), iconKey: String(sub.iconIntakeKey), iconSha256: String(sub.iconSha256),
   });
@@ -310,8 +320,9 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
     ...(sub.description ? { description: String(sub.description) } : {}),
     ...(sub.tags ? { tags: sub.tags } : {}), ...(sub.regions ? { regions: sub.regions } : {}),
     icon: { url: iconUrl, sha256: String(sub.iconSha256) },
-    package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: 1 },
-    minAppVersion: minAppVersionFor(deps, listing.appStage), approvedAt: at,
+    package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: manifest.format ?? 1 },
+    activities, genres, requires, minAppVersions,
+    minAppVersion: legacyMinAppVersion(minAppVersions), approvedAt: at,
     // What the publisher adds up each time it lists the channel (DM-001 M-24).
     appStage: listing.appStage, collections: listing.collections, ownPrefetchBytes: listing.ownPrefetchBytes, ownMedia: listing.ownMedia,
   };
@@ -425,7 +436,7 @@ export async function getCollectionSubmissionPackage(deps: Deps, req: Request): 
 /** What the machine review recorded for approval to copy (DES-007 J-8). */
 interface CollectionListing {
   appStage: number; name: string; summary: string; media: string[]; resourcesSize: number; tags: string[]; regions: string[];
-  grants: { publishers: '*' | string[] }; resourceTypes: Record<string, string>; externalResources: { resourceId: string; url: string; size: number }[];
+  grants: { publishers: '*' | string[]; apps?: string[] }; resourceTypes: Record<string, string>; externalResources: { resourceId: string; url: string; size: number }[];
 }
 
 function verificationOf(body: Record<string, unknown>): Schemas['Verification'] | undefined {
@@ -465,13 +476,14 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
 
   const at = deps.now().toISOString();
   const packageUrl = await deps.publishCollection(String(sub.intakeKey), String(sub.sha256));
+  const minAppVersions = collectionMinVersions(deps, listing.appStage, listing.grants.apps);
   const latestApproved = {
     submissionId: String(sub.submissionId), version: Number(sub.version), producer: String(sub.accountId),
     name: listing.name, summary: listing.summary, media: listing.media, resourcesSize: listing.resourcesSize,
     tags: listing.tags, regions: listing.regions, grants: listing.grants,
     package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: 1 },
     resourceTypes: listing.resourceTypes, externalResources: listing.externalResources,
-    appStage: listing.appStage, minAppVersion: minAppVersionFor(deps, listing.appStage), approvedAt: at,
+    appStage: listing.appStage, minAppVersions, minAppVersion: legacyMinAppVersion(minAppVersions), approvedAt: at,
   };
   const decision = { action: 'approve', at, ...(message ? { message } : {}) };
   // The first version with a transferred key starts the 90 days the list shows the change (API-002 P-13, as P-9).

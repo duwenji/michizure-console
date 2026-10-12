@@ -59,6 +59,12 @@ export interface ChannelEntry {
   media?: string[];
   /** Bytes fetched ahead when the channel is chosen, its collections included (P-14). */
   resourcesSize?: number;
+  /** API-002 1.4 P-19: as the package writes them; absent means `["walk"]`, `[]`, `[]` (API-003 G-6). */
+  activities?: string[];
+  genres?: string[];
+  requires?: string[];
+  /** API-002 1.4 P-20: the version each app needs, by app id. */
+  minAppVersions?: Record<string, number>;
 }
 
 /** One entry of `collections[]` (API-002 1.2 P-10・P-15). */
@@ -74,10 +80,13 @@ export interface CollectionEntry {
   resourcesSize: number;
   tags: string[];
   regions?: string[];
-  grants: { publishers: '*' | string[] };
+  /** `apps` (API-004 1.5 I-11): the apps that may use it; absent means every app. */
+  grants: { publishers: '*' | string[]; apps?: string[] };
   package: { url: string; sha256: string; size: number; format: number };
   minAppVersion: number;
   approvedAt: string;
+  /** API-002 1.4 P-20. */
+  minAppVersions?: Record<string, number>;
 }
 
 export interface RevokedEntry {

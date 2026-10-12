@@ -13,7 +13,7 @@ import { kmsSigner } from '../publish/aws.js';
 import type { SigningKeyRecord } from '../publish/ports.js';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { createHash } from 'node:crypto';
-import { DEFAULT_APP_STAGE_VERSIONS, type Deps } from './deps.js';
+import { appsWith, DEFAULT_STAGE_VERSIONS, type AppEntry, type Deps } from './deps.js';
 import { ApiError, problem } from './http.js';
 import { callerFrom, route } from './router.js';
 import { CursorCodec } from './util.js';
@@ -143,7 +143,7 @@ async function load(): Promise<Deps> {
       }));
       return `${env('PROVIDER_URL')}/${key}`;
     },
-    appStageVersions: appStageVersions(),
+    apps: apps(),
     deleteUser: async (sub) => {
       // Sign-in is by email, so the user name is the sub.
       await cognito.send(new AdminDeleteUserCommand({ UserPoolId: env('USER_POOL_ID'), Username: sub }));
@@ -154,12 +154,14 @@ async function load(): Promise<Deps> {
   };
 }
 
-/** The app version each app stage needs, from the CDK context (API-001 C-21); a placeholder until set. */
-function appStageVersions(): Record<number, number> {
+/** The known apps with the versions each app stage needs, from the CDK configuration (DES-011 N-4). */
+function apps(): Record<string, AppEntry> {
   const raw = process.env.APP_STAGE_VERSIONS;
-  if (!raw) return DEFAULT_APP_STAGE_VERSIONS;
-  const parsed = JSON.parse(raw) as Record<string, number>;
-  return Object.fromEntries(Object.entries(parsed).map(([k, v]) => [Number(k), Number(v)]));
+  if (!raw) return appsWith(DEFAULT_STAGE_VERSIONS);
+  const parsed = JSON.parse(raw) as Record<string, Record<string, number>>;
+  return appsWith(Object.fromEntries(Object.entries(parsed).map(([id, byStage]) => [
+    id, Object.fromEntries(Object.entries(byStage).map(([k, v]) => [Number(k), Number(v)])),
+  ])));
 }
 
 const MAX_BODY = 1024 * 1024;

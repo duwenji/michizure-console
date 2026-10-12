@@ -1,5 +1,6 @@
 import {
   ACCOUNT_ID,
+  FORMAT1_ECOSYSTEM,
   CHANNEL_ID,
   LIMITS,
   ProtocolError,
@@ -15,7 +16,7 @@ import {
 import { unzipSync } from 'fflate';
 
 /** The checks of API-002 「確認観点」 that a provider is responsible for. */
-export type CheckId = 'V-01' | 'V-02' | 'V-03' | 'V-04' | 'V-05' | 'V-06' | 'V-07' | 'V-08' | 'V-09' | 'V-15' | 'V-16' | 'V-19' | 'V-20' | 'V-21' | 'V-25';
+export type CheckId = 'V-01' | 'V-02' | 'V-03' | 'V-04' | 'V-05' | 'V-06' | 'V-07' | 'V-08' | 'V-09' | 'V-15' | 'V-16' | 'V-19' | 'V-20' | 'V-21' | 'V-25' | 'V-27' | 'V-29';
 
 export interface CheckResult {
   id: CheckId;
@@ -50,9 +51,22 @@ const TITLES: Record<CheckId, string> = {
   'V-20': 'collections a channel declares are listed, new enough and granted to its publisher',
   'V-21': 'media and resourcesSize are well-formed',
   'V-25': 'collections’ tags, regions and grants match their packages',
+  'V-27': 'channels’ activities, genres and requires match their packages (API-002 1.4)',
+  'V-29': 'minAppVersions name app ids with positive versions (API-002 1.4)',
 };
 
 const MEDIA = new Set(['text', 'image', 'audio', 'video']);
+
+/** Grants as written and as listed: the same publishers and apps, in any order (API-004 1.5 I-11). */
+function sameGrants(a: unknown, b: { publishers: '*' | string[]; apps?: string[] }): boolean {
+  if (typeof a !== 'object' || a === null) return false;
+  const g = a as { publishers?: unknown; apps?: unknown };
+  const publishersMatch = g.publishers === '*' || b.publishers === '*'
+    ? g.publishers === b.publishers
+    : Array.isArray(g.publishers) && sameList(g.publishers as string[], b.publishers);
+  const appsMatch = g.apps === undefined || b.apps === undefined ? g.apps === b.apps : Array.isArray(g.apps) && sameList(g.apps as string[], b.apps);
+  return publishersMatch && appsMatch;
+}
 
 /** A JSON file inside a package, or undefined when the package isn't a ZIP or lacks it. */
 function jsonIn(zip: Uint8Array, name: string): Record<string, unknown> | undefined {
@@ -247,9 +261,42 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
       const regions = [...new Set(resources.flatMap((r) => (r.about?.lat !== undefined && r.about?.lon !== undefined ? [geohash(r.about.lat, r.about.lon)] : [])))];
       if (!sameList(tags, col.tags)) set('V-25', 'fail', `${id}: tags ${col.tags.join(',')} but the package has ${tags.join(',')}`);
       if (!sameList(regions, col.regions ?? [])) set('V-25', 'fail', `${id}: regions ${(col.regions ?? []).join(',')} but the package has ${regions.join(',')}`);
-      if (JSON.stringify(manifest.grants) !== JSON.stringify(col.grants)) set('V-25', 'fail', `${id}: grants differ from the package`);
+      if (!sameGrants(manifest.grants, col.grants)) set('V-25', 'fail', `${id}: grants differ from the package`);
     }
     set('V-25', 'pass', `${collectionPackages.size} collections`);
+
+    // V-27 (API-002 1.4 P-19): what the list copies for the apps to choose by is what the package says.
+    // A package in format 1 is a walking channel with no genre and no requirement (API-003 G-6).
+    for (const [id, bytes] of channelPackages) {
+      const entry = list.channels.find((c) => c.id === id)!;
+      // A package that isn't the one listed is V-07's to report.
+      if (sha256Hex(bytes) !== entry.package.sha256) continue;
+      const manifest = jsonIn(bytes, 'channel.json');
+      if (!manifest) { set('V-27', 'fail', `${id}: no channel.json`); continue; }
+      const format = (manifest.format as number | undefined) ?? 1;
+      const format2 = format === 2;
+      const written = {
+        activities: format2 ? (manifest.activities as string[] | undefined) ?? [] : FORMAT1_ECOSYSTEM.activities,
+        genres: format2 ? (manifest.genres as string[] | undefined) ?? [] : FORMAT1_ECOSYSTEM.genres,
+        requires: format2 ? ((manifest.requires as { features?: string[] } | undefined)?.features ?? []) : FORMAT1_ECOSYSTEM.requires,
+      };
+      const listed = {
+        activities: entry.activities ?? FORMAT1_ECOSYSTEM.activities,
+        genres: entry.genres ?? FORMAT1_ECOSYSTEM.genres,
+        requires: entry.requires ?? FORMAT1_ECOSYSTEM.requires,
+      };
+      for (const field of ['activities', 'genres', 'requires'] as const) {
+        if (!sameList(written[field], listed[field])) set('V-27', 'fail', `${id}: ${field} ${listed[field].join(',')} but the package has ${written[field].join(',')}`);
+      }
+      if (entry.package.format !== format) set('V-27', 'fail', `${id}: package.format ${entry.package.format} but the package is format ${format}`);
+    }
+    set('V-27', channelPackages.size ? 'pass' : 'skip', `${channelPackages.size} channels`);
+
+    // V-29 (P-20): app id → a positive whole number, for channels and collections alike.
+    const versioned = [...list.channels, ...collections].filter((e) => e.minAppVersions !== undefined);
+    const badVersions = versioned.find((e) => Object.entries(e.minAppVersions!).some(([app, v]) => !CHANNEL_ID.test(app) || !Number.isInteger(v) || v < 1));
+    if (badVersions) set('V-29', 'fail', `${badVersions.id}: minAppVersions ${JSON.stringify(badVersions.minAppVersions)}`);
+    else set('V-29', 'pass', `${versioned.length} entries with minAppVersions`);
   }
 
   // V-09: every URL, including those of documents that failed.

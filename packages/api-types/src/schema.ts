@@ -1186,10 +1186,23 @@ export interface components {
                 sha256: string;
             };
             package: components["schemas"]["ListedPackage"];
+            /** @description SanpoGuide の版（DES-011 N-6） */
             minAppVersion: number;
+            minAppVersions?: components["schemas"]["MinAppVersions"];
+            /** @description DES-011 N-3。パッケージの activities（format 1 は walk） */
+            activities?: string[];
+            genres?: string[];
+            /** @description パッケージの requires.features */
+            requires?: string[];
             /** Format: date-time */
             approvedAt: string;
         };
+        /** @description DES-011 N-5。アプリの ID → 必要な versionCode（SanpoGuide API-002 P-20） */
+        MinAppVersions: {
+            [key: string]: number;
+        };
+        /** @description DES-011 N-9。このチャンネルが出るアプリの名前（過ごし方と必要な機能から）。空ならどのアプリにも出ない */
+        OfferedIn: string[];
         Channel: {
             channelId: components["schemas"]["ChannelId"];
             publisherId: components["schemas"]["Ulid"];
@@ -1199,6 +1212,7 @@ export interface components {
             latestApproved?: components["schemas"]["LatestApproved"] | null;
             /** @description 今のリストに載っているか */
             listed?: boolean;
+            offeredIn?: components["schemas"]["OfferedIn"];
             publisherChange?: {
                 from?: components["schemas"]["AccountId"];
                 /** Format: date-time */
@@ -1298,6 +1312,12 @@ export interface components {
             description?: string;
             tags?: string[];
             regions?: string[];
+            /** @description DES-011 N-3。パッケージの activities（format 1 は walk） */
+            activities?: string[];
+            genres?: string[];
+            /** @description パッケージの requires.features */
+            requires?: string[];
+            offeredIn?: components["schemas"]["OfferedIn"];
             note?: string;
             sha256?: string | null;
             size?: number | null;
@@ -1384,10 +1404,14 @@ export interface components {
             regions?: string[];
             grants: {
                 publishers: "*" | components["schemas"]["AccountId"][];
+                /** @description DES-011 N-7。使ってよいアプリの ID（ないときはすべてのアプリ） */
+                apps?: string[];
             };
             package: components["schemas"]["ListedPackage"];
             appStage?: number;
+            /** @description SanpoGuide の版（DES-011 N-6） */
             minAppVersion: number;
+            minAppVersions?: components["schemas"]["MinAppVersions"];
             /** Format: date-time */
             approvedAt: string;
         };
@@ -1452,8 +1476,10 @@ export interface components {
             expiresAt: string;
         };
         SamplePrompts: {
-            /** @description 組み立てた station-format の版 */
+            /** @description 組み立てた core-format とプロンプト・パックの版 */
             generatedBy: string;
+            /** @description DES-011 N-8。代表のアプリがまだない過ごし方（このときは scenarios が空。語り手の文章を読んで確かめる） */
+            noRepresentativeApp?: string[];
             scenarios: {
                 id: string;
                 label: string;
