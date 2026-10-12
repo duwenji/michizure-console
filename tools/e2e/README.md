@@ -8,6 +8,7 @@ npx tsx tools/e2e/machine-review.ts   # 署名したパッケージが「審査�
 npx tsx tools/e2e/test-ticket.ts      # 管理 API の Lambda を直接呼んで試用チケットを発行し、署名と trial/ のパッケージを確かめる
 npx tsx tools/e2e/review.ts           # 申請 → 機械審査 → 運営の審査と承認 → リストに載る → 準拠テスト（V-07 まで）→ 後片付け
 npx tsx tools/e2e/collections.ts      # 外部の音声つきの素材集 → 機械審査（外部の素材のハッシュ）→ 身元の確認つきで承認 → collections[] → それを使うチャンネル → 利用の記録 → media・resourcesSize → 準拠テスト（V-19〜V-25）→ 毎日の外部の素材の確認 → 後片付け
+npx tsx tools/e2e/ecosystem.ts        # format 2 の walk・cycle のチャンネルと cycle だけのチャンネルを承認 → リストの activities・minAppVersions（DES-011）→ 準拠テスト（V-27・V-29）→ 後片付け。--keep で残してアプリで確かめ、--cleanup で片付ける
 npx tsx tools/e2e/transfer.ts         # 鍵 A の版 1 を承認 → 鍵 B への移し替えを承認 → 鍵 B の版 2 を承認 → リストに publisherChange（V-16）→ メールの記録 → 後片付け
 ```
 
