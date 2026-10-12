@@ -11,8 +11,8 @@
 | 作成日 | 2026-10-12 |
 | 作成者 | Claude（開発者との検討） |
 | 承認者 | 開発者（1.0: 2026-10-12。未決事項 No.1・2 は案のとおり。実装は PR でレビュー） |
-| ステータス | 実装済（開発用への配備と通しの確認は未） |
-| 版 | 1.1 |
+| ステータス | 実装済（開発用に配備し、通しの確認済み） |
+| 版 | 1.2 |
 
 ## 目的・背景
 
@@ -76,7 +76,7 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 | b | API の申請に `activities`・`genres`・`requires`・`offeredIn`、チャンネルに `offeredIn`。OpenAPI・型を更新。運営の審査とチャンネル提供者のチャンネルに過ごし方・ジャンル・必要な機能と「このチャンネルが出るアプリ」、代表のアプリがないチャンネルでは見本の代わりに案内、素材集に「使ってよいアプリ」。利用ガイド（チャンネル提供者・素材提供者） |
 | c | 準拠テストに V-27（`activities`・`genres`・`requires`・`package.format` がパッケージと一致）と V-29（`minAppVersions` の形）。V-25 の `grants` を集合で比べるように直した。通しのテスト 3 件。アプリのテスト用の文書（`app-vectors.ts`）への format 2 のチャンネルの追加は見送った（SanpoGuide 側は `EcosystemSyncTest` で format 2 のリストを確かめている） |
 
-確認: `npx tsc -b`、GitHub Actions の CI（API・CDK・準拠テスト・validator）が通る。この PC は Node 20・Docker なしのため、API のテストは CI でだけ流した。**開発用の環境への配備と、SanpoGuide（エミュレータ）との通しの確認（検証の計画の最後の行）はまだ**。
+確認: `npx tsc -b`、GitHub Actions の CI（API・CDK・準拠テスト・validator）が通る。この PC は Node 20・Docker なしのため、API のテストは CI でだけ流した。開発用への配備と通しの確認（2026-10-12）: 開発用に配備し、準拠テストに合格。既存の通しの確認（`tools/e2e` の 5 本）も通った（format 1 のチャンネルで V-27・V-29 も確かめた）。`tools/e2e/ecosystem.ts` で、format 2 の `walk`・`cycle` のチャンネルと `cycle` だけのチャンネルを申請・承認し、リストに `activities`・`genres`・`requires`・`package.format: 2` が載り、前者は `minAppVersions: { sanpoguide: 1 }`・`minAppVersion: 1`、後者は `minAppVersions: {}`・`minAppVersion: 9999` になること、準拠テスト（V-07・V-27・V-29 を含む）の合格を確かめた。そのリストを SanpoGuide（main、エミュレータ）に足し、前者だけが出て取り込めること、後者は出ないことを確かめた。この PC では GitHub Packages を読むトークンがないため、validator は SanpoGuide の main から `core-format` 1.2.0・`prompts` 1.1.0 を mavenLocal に公開してビルドした。
 
 ## 未決事項・リスク
 
@@ -99,3 +99,4 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 | 2026-10-12 | 0.1 | 草案 | Claude |
 | 2026-10-12 | 1.0 | 承認 | Claude（承認: 開発者） |
 | 2026-10-12 | 1.1 | 実装の記録。N-4 の設定を KNOWN_APPS と appStageVersions に分けた | Claude |
+| 2026-10-12 | 1.2 | 開発用への配備と通しの確認の記録（`tools/e2e/ecosystem.ts`） | Claude |
