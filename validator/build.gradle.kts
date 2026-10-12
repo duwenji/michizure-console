@@ -1,7 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // The machine review (ADR-001 A-11): a Lambda that checks an uploaded package with the very code
-// the app uses (SanpoGuide's station-format), and renders the review samples (API-001 C-1).
+// the app uses (michizure core-format), and renders the review samples with SanpoGuide's prompt pack
+// (API-001 C-1; SanpoGuide RFC-002 R-12).
 plugins {
     kotlin("jvm") version "2.2.0"
 }
@@ -16,8 +17,9 @@ kotlin {
 }
 
 dependencies {
-    implementation("io.github.duwenji.sanpoguide:station-format:2.1.0")
-    // station-format leaves org.json to its users (Android ships one).
+    implementation("io.github.duwenji.michizure:core-format:1.0.0")
+    implementation("io.github.duwenji.sanpoguide:prompts:1.0.0")
+    // core-format leaves org.json to its users (Android ships one).
     implementation("org.json:json:20240303")
     implementation("com.amazonaws:aws-lambda-java-core:1.4.0")
     implementation("com.amazonaws:aws-lambda-java-events:3.16.1")

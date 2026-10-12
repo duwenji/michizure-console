@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  # station-format from SanpoGuide's GitHub Packages (a public repository: GITHUB_TOKEN can read it).
+  # core-format and SanpoGuide's prompt pack from SanpoGuide's GitHub Packages (a public repository: GITHUB_TOKEN can read it).
   packages: read
 
 jobs:

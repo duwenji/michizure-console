@@ -29,7 +29,7 @@ flowchart LR
     APIGW["API Gateway（HTTP API）<br/>JWT の確認・流量の制限"]
     API["管理 API の Lambda<br/>api/src/console"]
     INTAKE[("受付用 S3<br/>intake/・archive/<br/>intake-col/・archive-col/")]
-    MR["機械審査の Lambda<br/>Kotlin・station-format"]
+    MR["機械審査の Lambda<br/>Kotlin・core-format"]
     NOTIFY["通知の Lambda<br/>api/src/notify"]
   end
 
@@ -69,7 +69,7 @@ flowchart LR
 - **素材提供者** は、同じアカウントで素材提供者の役割を有効にし、素材集（チャンネルが参照する文字・画像などの素材のまとまり）の登録・申請・利用許諾の設定をし、自分の素材集を使っているチャンネルを見る。1 つのアカウントがチャンネル提供者と素材提供者の両方の役割を持てる（DM-001 1.3 M-16）。運営は素材集をチャンネルとは別に審査し、最初の承認のときに素材提供者の身元の確認を記録する
 - **アプリ** は公開の面だけを読む。リストの署名・期限・パッケージのハッシュをアプリ自身が確かめるので、CloudFront や S3 を信用する必要はない
 
-## 図 2 · リポジトリ: npm workspaces と、SanpoGuide から借りる station-format
+## 図 2 · リポジトリ: npm workspaces と、SanpoGuide から借りる core-format・プロンプト・パック
 
 ```mermaid
 flowchart TB
@@ -88,7 +88,7 @@ flowchart TB
     validator["validator<br/>機械審査の Lambda<br/>チャンネルと素材集"]
   end
   subgraph SG["SanpoGuide（別リポジトリ）"]
-    sf["station-format<br/>パッケージ・素材集の形式・確認・プロンプト<br/>（GitHub Packages、今は 2.1.0）"]
+    sf["core-format・prompts<br/>パッケージ・素材集の形式・確認、SanpoGuide のプロンプト<br/>（GitHub Packages、今は 1.0.0。SanpoGuide RFC-002）"]
     app["アプリ"]
   end
 
@@ -107,7 +107,7 @@ flowchart TB
 ```
 
 - 管理 API の契約は `docs/api/console.openapi.yaml` が元で、`packages/api-types` の型を API と画面の両方が使う
-- 機械審査は、アプリと同じ `station-format` で確かめる（審査とアプリの判定をずらさない）。`conformance` の `app-vectors.ts` が作った署名つきの文書で、アプリ側の確認（`ProviderDocuments`）をテストしている
+- 機械審査は、アプリと同じ `core-format` で確かめ、見本は SanpoGuide のプロンプト・パック（`prompts`）で組み立てる（審査とアプリの判定をずらさない）。`conformance` の `app-vectors.ts` が作った署名つきの文書で、アプリ側の確認（`ProviderDocuments`）をテストしている
 
 ## 図 3 · 信頼の鎖: アプリはルート鍵だけを知っていればよい
 

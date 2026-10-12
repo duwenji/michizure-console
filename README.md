@@ -22,7 +22,7 @@ tools/provision    配備した環境に署名鍵・鍵セットを登録して�
 conformance/       API-002 の準拠テスト（任意のリストの URL に対して流せる）
 infra/             AWS CDK
 web/               運営・チャンネル提供者・素材提供者の画面（React + Vite）
-validator/         機械審査の Lambda（Kotlin、Gradle、station-format）
+validator/         機械審査の Lambda（Kotlin、Gradle、SanpoGuide の core-format とプロンプト・パック）
 tools/e2e          開発用の環境での通しの確認
 ```
 
