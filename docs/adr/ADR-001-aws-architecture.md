@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 文書ID | ADR-001（sanpo-channel-console） |
+| 文書ID | ADR-001（michizure-console） |
 | ドキュメント種別 | ADR |
 | 対象システム/機能 | チャンネル管理システム（SanpoGuide の第三者のチャンネルの申請・審査・承認・取り下げと、承認済みチャンネル・リストの署名・公開） |
 | 関連Skill | architecture-decision-record |

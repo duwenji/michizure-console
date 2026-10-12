@@ -1,5 +1,5 @@
 {
-  "name": "@sanpo-console/conformance",
+  "name": "@michizure-console/conformance",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,6 +10,6 @@
     "serve": "tsx src/serve-cli.ts",
     "vectors": "tsx src/app-vectors.ts"
   },
-  "dependencies": { "@sanpo-console/protocol": "0.1.0", "fflate": "^0.8.3" },
-  "devDependencies": { "@sanpo-console/api": "0.1.0" }
+  "dependencies": { "@michizure-console/protocol": "0.1.0", "fflate": "^0.8.3" },
+  "devDependencies": { "@michizure-console/api": "0.1.0" }
 }

@@ -1,6 +1,6 @@
 import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { accountId, b64url, generateEd25519, signDocument, signEd25519, utf8, verifyEd25519 } from '@sanpo-console/protocol';
-import { makeTestProvider, type TestProvider } from '@sanpo-console/protocol/testing';
+import { accountId, b64url, generateEd25519, signDocument, signEd25519, utf8, verifyEd25519 } from '@michizure-console/protocol';
+import { makeTestProvider, type TestProvider } from '@michizure-console/protocol/testing';
 import { randomBytes, type KeyObject } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_APPS, type Deps, type Notice } from '../src/console/deps.js';

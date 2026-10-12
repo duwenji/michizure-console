@@ -1,4 +1,4 @@
-import type { Problem, paths } from '@sanpo-console/api-types';
+import type { Problem, paths } from '@michizure-console/api-types';
 import createClient, { type Middleware } from 'openapi-fetch';
 import type { Auth } from './auth';
 

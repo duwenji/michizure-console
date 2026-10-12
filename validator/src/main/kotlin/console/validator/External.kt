@@ -95,7 +95,7 @@ class HttpsFetcher(
         }
         if (addresses.isEmpty() || !addresses.all(allowed)) return Fetched.Refused("$host is not a public address")
 
-        val request = HttpRequest.newBuilder(uri).timeout(timeout).header("User-Agent", "sanpo-channel-console machine review").GET().build()
+        val request = HttpRequest.newBuilder(uri).timeout(timeout).header("User-Agent", "michizure-console machine review").GET().build()
         return try {
             val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
             response.body().use { body ->

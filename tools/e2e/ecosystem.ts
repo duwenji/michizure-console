@@ -3,7 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { utf8 } from '@sanpo-console/protocol';
+import { utf8 } from '@michizure-console/protocol';
 import { zipSync } from 'fflate';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -22,7 +22,7 @@ import { createKey, signPackage } from '../../web/src/publisher-crypto.js';
  * `--cleanup` removes them afterwards.
  */
 const region = 'ap-northeast-1';
-const stack = 'SanpoChannelConsole-dev';
+const stack = 'MichizureConsole-dev';
 const stateFile = join(tmpdir(), 'sanpo-e2e-ecosystem.json');
 const cfn = new CloudFormationClient({ region });
 const outputs = new Map(((await cfn.send(new DescribeStacksCommand({ StackName: stack }))).Stacks?.[0]?.Outputs ?? []).map((o) => [o.OutputKey!, o.OutputValue!]));

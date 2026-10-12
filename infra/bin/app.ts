@@ -14,7 +14,7 @@ if (!rootPublicKey) {
 }
 const config: EnvConfig = { ...base, rootPublicKey, ...(app.node.tryGetContext('alarmEmail') ? { alarmEmail: app.node.tryGetContext('alarmEmail') } : {}) };
 
-const stack = new ConsoleStack(app, `SanpoChannelConsole-${name}`, {
+const stack = new ConsoleStack(app, `MichizureConsole-${name}`, {
   config,
   env: { region: config.region, ...(config.account ? { account: config.account } : {}) },
   description: `SanpoGuide channel management system (${name})`,

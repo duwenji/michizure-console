@@ -1,5 +1,5 @@
 {
-  "name": "@sanpo-console/web",
+  "name": "@michizure-console/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@sanpo-console/api-types": "0.1.0",
+    "@michizure-console/api-types": "0.1.0",
     "oidc-client-ts": "^3.5.0",
     "openapi-fetch": "^0.17.0",
     "react": "^19.3.0",
@@ -24,6 +24,6 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "vite": "^8.3.2",
-    "@sanpo-console/protocol": "0.1.0"
+    "@michizure-console/protocol": "0.1.0"
   }
 }

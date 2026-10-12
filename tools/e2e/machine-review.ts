@@ -9,7 +9,7 @@ import { createKey, signPackage } from '../../web/src/publisher-crypto.js';
 // End-to-end check of the deployed machine review: a signed package passes, a tampered one fails.
 const region = 'ap-northeast-1';
 const outputs = new Map(
-  ((await new CloudFormationClient({ region }).send(new DescribeStacksCommand({ StackName: 'SanpoChannelConsole-dev' }))).Stacks?.[0]?.Outputs ?? []).map((o) => [o.OutputKey!, o.OutputValue!]),
+  ((await new CloudFormationClient({ region }).send(new DescribeStacksCommand({ StackName: 'MichizureConsole-dev' }))).Stacks?.[0]?.Outputs ?? []).map((o) => [o.OutputKey!, o.OutputValue!]),
 );
 const table = outputs.get('TableName')!;
 const bucket = outputs.get('IntakeBucketName')!;

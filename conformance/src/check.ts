@@ -12,7 +12,7 @@ import {
   type ChannelList,
   type CollectionEntry,
   type Keyset,
-} from '@sanpo-console/protocol';
+} from '@michizure-console/protocol';
 import { unzipSync } from 'fflate';
 
 /** The checks of API-002 「確認観点」 that a provider is responsible for. */

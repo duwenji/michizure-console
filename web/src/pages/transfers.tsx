@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import type { Schemas } from '@sanpo-console/api-types';
+import type { Schemas } from '@michizure-console/api-types';
 import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { Empty, ReasonForm, Status, Time, useLoad } from './common';

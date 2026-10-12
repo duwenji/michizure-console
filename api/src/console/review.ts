@@ -1,6 +1,6 @@
 import { QueryCommand, type TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
-import type { Schemas } from '@sanpo-console/api-types';
-import { FORMAT1_ECOSYSTEM, sha256Hex, utf8 } from '@sanpo-console/protocol';
+import type { Schemas } from '@michizure-console/api-types';
+import { FORMAT1_ECOSYSTEM, sha256Hex, utf8 } from '@michizure-console/protocol';
 import { unzipSync } from 'fflate';
 import { auditItem, channelMinVersions, collectionMinVersions, legacyMinAppVersion, notifyAfter, type Deps, type Notice } from './deps.js';
 import { fail, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';

@@ -102,7 +102,7 @@ export class ConsoleStack extends Stack {
           description: `SanpoGuide channel list signing key ${keyId} (${config.name})`,
           keySpec: kms.KeySpec.ECC_NIST_EDWARDS25519,
           keyUsage: kms.KeyUsage.SIGN_VERIFY,
-          alias: `alias/sanpo-channel-console/${config.name}/${keyId}`,
+          alias: `alias/michizure-console/${config.name}/${keyId}`,
           removalPolicy: RemovalPolicy.RETAIN,
         }),
     );
@@ -196,7 +196,7 @@ export class ConsoleStack extends Stack {
     if (config.cost.budget) {
       new budgets.CfnBudget(this, 'MonthlyBudget', {
         budget: {
-          budgetName: `sanpo-channel-console-${config.name}`,
+          budgetName: `michizure-console-${config.name}`,
           budgetType: 'COST',
           timeUnit: 'MONTHLY',
           budgetLimit: { amount: config.cost.budget.monthlyUsd, unit: 'USD' },
