@@ -117,6 +117,27 @@ describe('the checks catch a broken provider (API-002 1.2)', () => {
     await republish();
     expect(failed(await statuses())).toEqual(['V-25']);
   });
+
+  it('V-25: the apps a collection is granted to, in any order (API-004 1.5)', async () => {
+    listCollection(collectionJson({ grants: { publishers: '*', apps: ['sanpoguide', 'cycle'] } }), { grants: { publishers: '*', apps: ['cycle', 'sanpoguide'] } });
+    await republish();
+    expect(failed(await statuses())).toEqual([]);
+    listCollection(collectionJson({ grants: { publishers: '*', apps: ['sanpoguide'] } }));
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-25']);
+  });
+
+  it('V-27: activities, genres or requires that differ from the package (API-002 1.4)', async () => {
+    store.channels[0]!.entry = { ...store.channels[0]!.entry, activities: ['cycle'] };
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-27']);
+  });
+
+  it('V-29: minAppVersions with a version no app has written badly', async () => {
+    listCollection(collectionJson(), { minAppVersions: { sanpoguide: 0 } });
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-29']);
+  });
 });
 
 describe('the checks catch a broken provider', () => {
