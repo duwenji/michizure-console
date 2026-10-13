@@ -75,7 +75,7 @@ export function EcosystemNote({ activities, genres, requires, offeredIn }: {
 }
 
 /** Where the review policy says what promotion may be (SanpoGuide 審査基準 2.4). */
-const PROMOTION_POLICY = 'https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md#24-宣伝';
+const PROMOTION_POLICY = 'https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md#24-宣伝';
 
 /** The declaration on a submission form (DES-012 R-1, R-6). */
 export function PromotionalField({ checked, onChange, what }: { checked: boolean; onChange: (v: boolean) => void; what: string }) {
