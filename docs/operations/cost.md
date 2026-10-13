@@ -12,7 +12,7 @@
 | Lambda のログ | 14 日で消す | 消さない | 溜まり続けないように |
 | 予算の通知（AWS Budgets） | 月 5 USD。実績が 80% を超えたとき、または予測が 100% を超えたときにメール | なし（本番の配備時に決める） | 想定外の費用にすぐ気づく |
 
-どちらの環境も、全リソースに `project=michizure-console` と `environment=<dev|prod>` のタグを付ける（`infra/bin/app.ts`）。同じ AWS アカウントのほかのプロジェクトと分けて費用を見るため。
+どちらの環境も、全リソースに `project=yorisoi-console` と `environment=<dev|prod>` のタグを付ける（`infra/bin/app.ts`）。同じ AWS アカウントのほかのプロジェクトと分けて費用を見るため。
 
 ## 開発用の費用の目安（月額、東京リージョン）
 

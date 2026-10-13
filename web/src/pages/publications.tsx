@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Schemas } from '@michizure-console/api-types';
+import type { Schemas } from '@yorisoi-console/api-types';
 import { useSession } from '../main';
 import { Empty, ReasonForm, Status, Time, useLoad } from './common';
 

@@ -1,6 +1,6 @@
 import { GetCommand, QueryCommand, type QueryCommandInput } from '@aws-sdk/lib-dynamodb';
-import type { Schemas } from '@michizure-console/api-types';
-import { appsFor, FORMAT1_ECOSYSTEM, KNOWN_APPS } from '@michizure-console/protocol';
+import type { Schemas } from '@yorisoi-console/api-types';
+import { appsFor, FORMAT1_ECOSYSTEM, KNOWN_APPS } from '@yorisoi-console/protocol';
 import type { Deps } from './deps.js';
 import { fail, limit, type Request } from './http.js';
 import { jstDate } from './util.js';

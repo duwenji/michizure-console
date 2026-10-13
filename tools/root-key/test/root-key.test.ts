@@ -1,4 +1,4 @@
-import { b64url, generateEd25519, signDocument } from '@michizure-console/protocol';
+import { b64url, generateEd25519, signDocument } from '@yorisoi-console/protocol';
 import { describe, expect, it } from 'vitest';
 import { buildKeyset, generateRootKey, openRootKey, signKeyset, verifyKeyset } from '../src/root-key.js';
 

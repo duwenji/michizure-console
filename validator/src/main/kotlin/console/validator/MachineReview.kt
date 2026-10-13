@@ -1,27 +1,27 @@
 package console.validator
 
-import io.github.duwenji.michizure.core.format.Activity
-import io.github.duwenji.michizure.core.format.material.CollectionCheck
-import io.github.duwenji.michizure.core.format.material.CollectionListedAs
-import io.github.duwenji.michizure.core.format.material.CollectionPackage
-import io.github.duwenji.michizure.core.format.material.CollectionValidator
-import io.github.duwenji.michizure.core.format.material.Grants
-import io.github.duwenji.michizure.core.format.material.MaterialType
-import io.github.duwenji.michizure.core.format.material.Regions
-import io.github.duwenji.michizure.core.format.material.ResourceLocation
+import io.github.duwenji.yorisoi.core.format.Activity
+import io.github.duwenji.yorisoi.core.format.material.CollectionCheck
+import io.github.duwenji.yorisoi.core.format.material.CollectionListedAs
+import io.github.duwenji.yorisoi.core.format.material.CollectionPackage
+import io.github.duwenji.yorisoi.core.format.material.CollectionValidator
+import io.github.duwenji.yorisoi.core.format.material.Grants
+import io.github.duwenji.yorisoi.core.format.material.MaterialType
+import io.github.duwenji.yorisoi.core.format.material.Regions
+import io.github.duwenji.yorisoi.core.format.material.ResourceLocation
 import io.github.duwenji.sanpoguide.prompt.ReviewSamples
-import io.github.duwenji.michizure.core.format.ChannelList
-import io.github.duwenji.michizure.core.format.CollectionReferences
-import io.github.duwenji.michizure.core.format.CollectionStatus
-import io.github.duwenji.michizure.core.format.FileRef
-import io.github.duwenji.michizure.core.format.JcaEd25519
-import io.github.duwenji.michizure.core.format.ListedChannel
-import io.github.duwenji.michizure.core.format.ListedCollection
-import io.github.duwenji.michizure.core.format.MediaStage
-import io.github.duwenji.michizure.core.format.PackageRef
-import io.github.duwenji.michizure.core.format.PublisherChange
-import io.github.duwenji.michizure.core.format.StationCheck
-import io.github.duwenji.michizure.core.format.StationValidator
+import io.github.duwenji.yorisoi.core.format.ChannelList
+import io.github.duwenji.yorisoi.core.format.CollectionReferences
+import io.github.duwenji.yorisoi.core.format.CollectionStatus
+import io.github.duwenji.yorisoi.core.format.FileRef
+import io.github.duwenji.yorisoi.core.format.JcaEd25519
+import io.github.duwenji.yorisoi.core.format.ListedChannel
+import io.github.duwenji.yorisoi.core.format.ListedCollection
+import io.github.duwenji.yorisoi.core.format.MediaStage
+import io.github.duwenji.yorisoi.core.format.PackageRef
+import io.github.duwenji.yorisoi.core.format.PublisherChange
+import io.github.duwenji.yorisoi.core.format.StationCheck
+import io.github.duwenji.yorisoi.core.format.StationValidator
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
@@ -156,7 +156,7 @@ sealed interface CollectionOutcome {
  * icon. Pure: the Lambda reads and writes, this decides.
  */
 object MachineReview {
-    const val VALIDATOR = "core-format 1.2.0, prompts 1.1.0"
+    const val VALIDATOR = "core-format 2.0.0, prompts 2.0.0"
     const val MAX_PACKAGE = 2 * 1024 * 1024
     const val MAX_ICON = 100 * 1024
     const val MAX_ICON_SIDE = 256

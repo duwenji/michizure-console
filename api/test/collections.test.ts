@@ -1,7 +1,7 @@
 import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, generateEd25519, sha256Hex, signDocument, signEd25519, utf8, verifyChannelList, verifyDiscovery } from '@michizure-console/protocol';
+import { b64url, generateEd25519, sha256Hex, signDocument, signEd25519, utf8, verifyChannelList, verifyDiscovery } from '@yorisoi-console/protocol';
 import { zipSync } from 'fflate';
-import { makeTestProvider, type TestProvider } from '@michizure-console/protocol/testing';
+import { makeTestProvider, type TestProvider } from '@yorisoi-console/protocol/testing';
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_APPS, type Deps, type Notice } from '../src/console/deps.js';

@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 文書ID | API-001（michizure-console） |
+| 文書ID | API-001（yorisoi-console） |
 | ドキュメント種別 | API契約書 |
 | 対象システム/機能 | チャンネル管理システムの管理 API（SPA と Lambda の間。API Gateway の HTTP API と Cognito） |
 | 関連Skill | 020_api-contract-design |
@@ -231,7 +231,7 @@ sequenceDiagram
 
 ```json
 // 応答（challenge）
-{ "nonce": "01J…", "message": "michizure-console:bind-key:01J…:{publisherId}", "expiresAt": "…" }
+{ "nonce": "01J…", "message": "yorisoi-console:bind-key:01J…:{publisherId}", "expiresAt": "…" }
 // 要求（keys）
 { "nonce": "01J…", "publicKey": "<base64url 32 バイト>", "signature": "<base64url(message の UTF-8 への Ed25519 署名)>" }
 ```

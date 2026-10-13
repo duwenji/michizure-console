@@ -1,7 +1,7 @@
 import { unzipSync } from 'fflate';
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import type { Schemas } from '@michizure-console/api-types';
+import type { Schemas } from '@yorisoi-console/api-types';
 import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { Empty, ReasonForm, Status, Time, useLoad } from './common';

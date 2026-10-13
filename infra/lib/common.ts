@@ -4,7 +4,7 @@ import type { Construct } from 'constructs';
 import type { EnvConfig } from './config.js';
 
 /** The cost allocation tag on every resource (bin/app.ts), and what the budget counts. */
-export const PROJECT_TAG = 'michizure-console';
+export const PROJECT_TAG = 'yorisoi-console';
 
 /** A log group with the environment's retention; none (the default group, kept forever) otherwise. */
 export function logGroupFor(scope: Construct, id: string, config: EnvConfig): { logGroup?: logs.ILogGroup } {

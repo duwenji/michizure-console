@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 文書ID | ADR-001（michizure-console） |
+| 文書ID | ADR-001（yorisoi-console） |
 | ドキュメント種別 | ADR |
 | 対象システム/機能 | チャンネル管理システム（SanpoGuide の第三者のチャンネルの申請・審査・承認・取り下げと、承認済みチャンネル・リストの署名・公開） |
 | 関連Skill | architecture-decision-record |
@@ -12,7 +12,7 @@
 | 作成者 | Claude（開発者との検討） |
 | 承認者 | 開発者（2026-10-03。1.3: 2026-10-13） |
 | ステータス | 承認済 |
-| 版 | 1.3 |
+| 版 | 1.4（草案） |
 
 本書で「SanpoGuide ADR-001」「API-002」「API-003」と書くものは、SanpoGuide リポジトリの文書を指す。
 
@@ -186,6 +186,7 @@ flowchart LR
 | T-7 | 独自ドメインを決める（SES の送信元にも使う） | 開発者 | 本番の配備の前 |
 | T-8 | SES のサンドボックスの解除を申請する（本番のアカウント） | 開発者 | 本番の配備の前 |
 | T-9 | `michizure-console` への改名（SanpoGuide ADR-003 E-22）。**完了（2026-10-12、PR #34）**: 開発者の判断で AWS のリソースまで改めた（リポジトリ・パッケージ `@michizure-console/*`・スタック `MichizureConsole-<env>`）。API-002 の `/.well-known/sanpo-channels` とリストID・アカウントIDの接頭辞は変えない。開発用はスタックを作り直した | 開発者・Claude | DM-001 1.4・API-001 1.2 の後 |
+| T-10 | `yorisoi-console` への改名（SanpoGuide ADR-003 1.2 E-22・T-11。michizure は「道連れにする」の悪い意味に取られるおそれがあるため）。リポジトリ・パッケージ `@yorisoi-console/*`・スタック `YorisoiConsole-<env>`・validator の依存（`io.github.duwenji.yorisoi:core-format` 2.0.0・`prompts` 2.0.0）。T-9 と同じく、API-002 の `/.well-known/sanpo-channels` とリストID・アカウントIDの接頭辞は変えない。開発用はスタックを作り直す（URL・ユーザープールが新しくなる） | 開発者・Claude | 2026-10-13〜 |
 
 見直しの条件:
 - 運営が複数になったとき（承認を 2 人にする、権限を分ける）
@@ -228,6 +229,7 @@ flowchart LR
 | 2026-10-03 | 0.1 | 草案（D-1〜D-6 は開発者の決定、A-1〜A-17 は提案） | Claude |
 | 2026-10-03 | 1.1 | A-19（SES でのチャンネル提供者への通知）、T-8 を追加 | Claude（承認: 開発者） |
 | 2026-10-03 | 1.1 | T-4 の完了を記録（決定事項の変更なし） | Claude |
+| 2026-10-13 | 1.4（草案） | T-10（`yorisoi-console` への改名）を追加 | Claude |
 | 2026-10-13 | 1.3 | 承認（PR #33 のマージ）。T-9 の完了を記録 | Claude（承認: 開発者） |
 | 2026-10-12 | 1.3（草案） | A-20（エコシステム）、A-21（宣伝）、T-9（`michizure-console` への改名）を追加 | Claude |
 | 2026-10-04 | 1.2 | A-4 を改訂: MFA は全員に必須（ユーザープール単位でしか決められないため）、マネージドログインと PKCE | Claude（決定: 開発者） |

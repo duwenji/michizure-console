@@ -8,7 +8,7 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 |---|---|
 | AWS アカウント | 140023390410（SSO プロファイル `sanpo-dev`） |
 | リージョン | ap-northeast-1 |
-| スタック | `MichizureConsole-dev` |
+| スタック | `MichizureConsole-dev`（`yorisoi-console` への改名（ADR-001 T-10）で `YorisoiConsole-dev` に作り直す。未実施。それまで下の手順のスタック名・URL は改名前のもの） |
 | リストID | `sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv` |
 | ルート鍵の公開鍵 | `YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagFVjECEI` |
 | 公開 URL | https://dp0n4y2yro06i.cloudfront.net |
@@ -17,7 +17,7 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 | ログイン | https://michizure-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_9kOvLsKwS`） |
 | 運営 | tofumiyoshi@gmail.com（`operator` グループ） |
 
-開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.michizure-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
+開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.yorisoi-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
 
 ### 手順
 
@@ -33,7 +33,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagF
 cd ..
 
 # 2. 署名鍵と鍵セットを登録し、1 回公開する（済んでいる手順は飛ばす）
-npm run provision -w tools/provision -- --env dev --root-key ~/.michizure-console/dev
+npm run provision -w tools/provision -- --env dev --root-key ~/.yorisoi-console/dev
 
 # 3. 準拠テスト
 npm run check -w conformance -- https://dp0n4y2yro06i.cloudfront.net --provider sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv

@@ -1,7 +1,7 @@
 import type { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, generateEd25519, localSigner, publicKeyFromRaw, signDocument, utf8, verifyChannelList, verifyDiscovery, type Keyset } from '@michizure-console/protocol';
-import { makeTestProvider, sampleChannel, type TestProvider } from '@michizure-console/protocol/testing';
+import { b64url, generateEd25519, localSigner, publicKeyFromRaw, signDocument, utf8, verifyChannelList, verifyDiscovery, type Keyset } from '@yorisoi-console/protocol';
+import { makeTestProvider, sampleChannel, type TestProvider } from '@yorisoi-console/protocol/testing';
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_APPS, type Deps, type Notice } from '../src/console/deps.js';

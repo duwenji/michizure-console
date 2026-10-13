@@ -1,6 +1,6 @@
 import { GetCommand, QueryCommand, TransactWriteCommand, type QueryCommandInput } from '@aws-sdk/lib-dynamodb';
-import type { Schemas } from '@michizure-console/api-types';
-import { ProtocolError, b64url, providerId, publicKeyFromRaw, rawPublicKey, verifyDiscovery } from '@michizure-console/protocol';
+import type { Schemas } from '@yorisoi-console/api-types';
+import { ProtocolError, b64url, providerId, publicKeyFromRaw, rawPublicKey, verifyDiscovery } from '@yorisoi-console/protocol';
 import { createPublicKey } from 'node:crypto';
 import { auditItem, guarded, notifyAfter, type Deps } from './deps.js';
 import { channelView, get, loadChannel, loadPublisher, page, publisherView, type Item } from './shared.js';

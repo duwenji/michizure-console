@@ -3,10 +3,10 @@ package console.validator
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.amazonaws.services.lambda.runtime.events.S3Event
-import io.github.duwenji.michizure.core.format.material.Grants
-import io.github.duwenji.michizure.core.format.ListedCollection
-import io.github.duwenji.michizure.core.format.PackageRef
-import io.github.duwenji.michizure.core.format.PublisherChange
+import io.github.duwenji.yorisoi.core.format.material.Grants
+import io.github.duwenji.yorisoi.core.format.ListedCollection
+import io.github.duwenji.yorisoi.core.format.PackageRef
+import io.github.duwenji.yorisoi.core.format.PublisherChange
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient

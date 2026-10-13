@@ -3,8 +3,8 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { GetPublicKeyCommand, KMSClient } from '@aws-sdk/client-kms';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, TransactWriteCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, publicKeyFromRaw, rawPublicKey, utf8 } from '@michizure-console/protocol';
-import { signKeyset, verifyKeyset } from '@michizure-console/root-key';
+import { b64url, publicKeyFromRaw, rawPublicKey, utf8 } from '@yorisoi-console/protocol';
+import { signKeyset, verifyKeyset } from '@yorisoi-console/root-key';
 import { createPublicKey } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
@@ -33,7 +33,7 @@ async function main() {
     return;
   }
   const region = 'ap-northeast-1';
-  const stackName = `MichizureConsole-${values.env}`;
+  const stackName = `YorisoiConsole-${values.env}`;
 
   // 1. Stack outputs.
   const cfn = new CloudFormationClient({ region });
