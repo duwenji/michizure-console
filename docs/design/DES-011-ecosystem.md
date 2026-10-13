@@ -16,11 +16,11 @@
 
 ## 目的・背景
 
-SanpoGuide の [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-003-companion-app-platform.md)（付き添いアプリのエコシステム）で、チャンネル・素材集はアプリをまたいで使うものになった。管理システムはエコシステムで 1 つのまま、リストも 1 本のまま（E-17）で、アプリが端末で絞り込む。契約は 2026-10-12 に承認済み:
+SanpoGuide の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)（付き添いアプリのエコシステム）で、チャンネル・素材集はアプリをまたいで使うものになった。管理システムはエコシステムで 1 つのまま、リストも 1 本のまま（E-17）で、アプリが端末で絞り込む。契約は 2026-10-12 に承認済み:
 
-- [API-003 2.0](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md): `format: 2`（`activities`・`genres`・`requires.features`）。審査は一覧にない値を拒む（G-3）。format 1 の受け付けは、format 2 に対応した SanpoGuide の公開から 90 日（G-6）
-- [API-002 1.4](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md): リストの `channels[].activities`・`genres`・`requires`（P-19）、`minAppVersions`（P-20）、古いアプリへの備え（P-21）
-- [API-004 1.5](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md): 素材集の `grants.apps`（I-11）
+- [API-003 2.0](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): `format: 2`（`activities`・`genres`・`requires.features`）。審査は一覧にない値を拒む（G-3）。format 1 の受け付けは、format 2 に対応した SanpoGuide の公開から 90 日（G-6）
+- [API-002 1.4](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): リストの `channels[].activities`・`genres`・`requires`（P-19）、`minAppVersions`（P-20）、古いアプリへの備え（P-21）
+- [API-004 1.5](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 素材集の `grants.apps`（I-11）
 
 本書は、管理システムがこれをどう実装するかを決める（ADR-003 T-7）。SanpoGuide 側（`core-format` 1.2.0・プロンプト・パック 1.1.0）は実装・公開済み。
 
@@ -90,7 +90,7 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 
 - [DES-007](DES-007-materials-review.md)・[DES-008](DES-008-materials-api.md)・[DES-009](DES-009-materials-publish.md): 素材集の審査・API・公開
 - [DM-001](../data-model.md)、[API-001](../console-api.md)
-- SanpoGuide [ADR-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-003-companion-app-platform.md)、API-002・API-003・API-004
+- SanpoGuide [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)、API-002・API-003・API-004
 
 ## 変更履歴
 

@@ -82,7 +82,7 @@
 ## 関連ドキュメント・参照リンク
 
 - [API-001](../console-api.md)、[DM-001](../data-model.md)、[DES-002](DES-002-operator-console.md)、[チャンネル提供者ガイド](../guide/publisher.md)
-- SanpoGuide [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)
+- SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)
 
 ## 変更履歴
 

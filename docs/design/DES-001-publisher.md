@@ -81,7 +81,7 @@
 ## 関連ドキュメント・参照リンク
 
 - [ADR-001](../adr/ADR-001-aws-architecture.md)、[DM-001](../data-model.md)、[API-001](../console-api.md)
-- SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md)
+- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)
 - 検討の記録: [skill-logs/feature_implementation_2026-10-03.md](../skill-logs/feature_implementation_2026-10-03.md)
 
 ## 変更履歴

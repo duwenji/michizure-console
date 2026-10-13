@@ -20,7 +20,7 @@
 
 [ADR-001](adr/ADR-001-aws-architecture.md) で管理システムの構成を、[DM-001](data-model.md) でデータを決めた。本書は、チャンネル提供者と運営が SPA から使う API を決める（ADR-001 T-3）。
 
-1.1 では、SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者の切り出し）と [DM-001](data-model.md) 1.3 に合わせて、素材提供者の役割と素材集の操作を足す。
+1.1 では、SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者の切り出し）と [DM-001](data-model.md) 1.3 に合わせて、素材提供者の役割と素材集の操作を足す。
 
 この API の利用者は、同じリポジトリの SPA（`web/`）だけ。アプリ（SanpoGuide）はこの API を使わない。アプリが使うのは、公開用の静的ファイル（SanpoGuide の API-002）だけである。
 
@@ -485,10 +485,10 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 - [api/console.openapi.yaml](api/console.openapi.yaml): 入出力の正本
 - [ADR-001](adr/ADR-001-aws-architecture.md): AWS の構成
 - [DM-001](data-model.md): データモデル
-- SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)・[審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md)
+- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)
 - [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457): Problem Details for HTTP APIs
 - 検討の記録: [skill-logs/api_contract_design_2026-10-03.md](skill-logs/api_contract_design_2026-10-03.md)、[skill-logs/api_contract_design_2026-10-11.md](skill-logs/api_contract_design_2026-10-11.md)（1.1）
-- SanpoGuide [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md)
+- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)
 
 ## 変更履歴
 

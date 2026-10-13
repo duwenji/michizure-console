@@ -37,7 +37,7 @@ flowchart LR
 
 ## 3. 素材集を作る
 
-形式は SanpoGuide の [API-004「素材集の形式」](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md)が正本です。ここでは要点だけを書きます。
+形式は SanpoGuide の [API-004「素材集の形式」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)が正本です。ここでは要点だけを書きます。
 
 ### 3.1 ファイルの構成
 
@@ -80,7 +80,7 @@ resources/
 | `version` | 更新のたびに、最後に承認された版より大きくする |
 | `producer` | 画面の「鍵」に出るあなたのアカウントID |
 | `grants.publishers` | 使ってよいチャンネル提供者。`"*"`（誰でも）か、チャンネル提供者のアカウントIDの配列 |
-| `grants.apps` | 使ってよいアプリ（任意）。アプリの ID（今は `sanpoguide`）を 1〜20 個。書かなければ、エコシステムのすべてのアプリで使えます（[API-004 1.5](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md)） |
+| `grants.apps` | 使ってよいアプリ（任意）。アプリの ID（今は `sanpoguide`）を 1〜20 個。書かなければ、エコシステムのすべてのアプリで使えます（[API-004 1.5](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)） |
 | `resources[].tags` | 何の話かを表すタグ（`history`・`faith`・`architecture`・`nature`・`landscape`・`season`・`festival`・`food`・`craft`・`art`・`folklore`）。チャンネルが「歴史の音声があれば流す」のように基準で選ぶときに使う |
 | `resources[].about` | 何についての素材か。スポット（OpenStreetMap の ID と名前）か地点（半径つき）。どちらも、おおよその緯度・経度を書く |
 | `credit` | 画像・音声・映像では必須。作者とライセンス（SPDX の識別子、`PD`、`permission`） |

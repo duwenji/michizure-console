@@ -18,7 +18,7 @@
 
 ## 目的・背景
 
-SanpoGuide のアプリは、第三者が配信するチャンネルのうち、運営が審査して署名したものだけを取り込む（[SanpoGuide ADR-001](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-001-third-party-channel-curation.md)）。審査と公開はアプリとは別の**チャンネル管理システム**で行い、アプリとの境界は承認済みチャンネル・リストの契約（[API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md)）だけにする。API-002 に準拠していれば、管理システムの実装方法と置き場所は問わない（SanpoGuide ADR-001 C-9）。
+SanpoGuide のアプリは、第三者が配信するチャンネルのうち、運営が審査して署名したものだけを取り込む（[SanpoGuide ADR-001](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-001-third-party-channel-curation.md)）。審査と公開はアプリとは別の**チャンネル管理システム**で行い、アプリとの境界は承認済みチャンネル・リストの契約（[API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)）だけにする。API-002 に準拠していれば、管理システムの実装方法と置き場所は問わない（SanpoGuide ADR-001 C-9）。
 
 本書は、その管理システムの実装方法と置き場所を決める。開発者から次の条件が示された（2026-10-03）。
 
@@ -215,10 +215,10 @@ flowchart LR
 
 ## 関連ドキュメント・参照リンク
 
-- SanpoGuide [ADR-001](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-001-third-party-channel-curation.md): 第三者のチャンネルは運営の審査と署名を経たものだけ取り込む
-- SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
-- SanpoGuide [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md): チャンネル・パッケージの形式
-- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md): 審査基準（1.0、2026-10-11 承認）
+- SanpoGuide [ADR-001](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-001-third-party-channel-curation.md): 第三者のチャンネルは運営の審査と署名を経たものだけ取り込む
+- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
+- SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): チャンネル・パッケージの形式
+- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準（1.0、2026-10-11 承認）
 - [AWS KMS Sign API](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html): 署名できる大きさ（4,096 バイト）と Ed25519
 - 検討の記録: [skill-logs/adr_2026-10-03.md](../skill-logs/adr_2026-10-03.md)
 

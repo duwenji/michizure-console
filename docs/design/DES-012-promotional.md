@@ -16,11 +16,11 @@
 
 ## 目的・背景
 
-SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md) 1.2（D-29〜D-36）で、宣伝を目的としたチャンネル・素材集を表示つきで認めることにした。契約は 2026-10-11 に承認済み:
+SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md) 1.2（D-29〜D-36）で、宣伝を目的としたチャンネル・素材集を表示つきで認めることにした。契約は 2026-10-11 に承認済み:
 
-- [API-002 1.3](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md): `channels[].promotional`・`collections[].promotional`（P-16）、古いアプリへの備え（P-17）
-- [API-003 1.4](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)・審査基準 2.4: 審査で確かめること
-- [API-004 1.4](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md): 宣伝の素材集を基準で選ばない
+- [API-002 1.3](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): `channels[].promotional`・`collections[].promotional`（P-16）、古いアプリへの備え（P-17）
+- [API-003 1.4](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・審査基準 2.4: 審査で確かめること
+- [API-004 1.4](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 宣伝の素材集を基準で選ばない
 
 本書は、管理システムがこれをどう実装するかを決める（ADR-002 T-13）。アプリ側の読み込みは `core-format` 1.3.0（T-12、2026-10-12 公開）で済んでいる。アプリの表示（T-14）はまだ。
 
@@ -88,7 +88,7 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 - [DES-009](DES-009-materials-publish.md): 素材集の公開（`withMaterial`）
 - [DES-011](DES-011-ecosystem.md): アプリごとの版
 - [DM-001](../data-model.md)、[API-001](../console-api.md)
-- SanpoGuide [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)、API-002、[審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md) 2.4
+- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)、API-002、[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) 2.4
 
 ## 変更履歴
 

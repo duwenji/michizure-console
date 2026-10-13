@@ -7,7 +7,7 @@ SanpoGuide の第三者のチャンネルと素材集を審査して公開する
 - 運営: 審査（機械で確かめた結果と、AI に話させた見本）、承認・差し戻し・取り下げ、鍵の移し替えの承認
 - 自動: 承認済みチャンネル・リストを作り、署名して公開する。毎日、素材集の外部の素材を確かめる
 
-アプリとの境界は、SanpoGuide の [API-002（承認済みチャンネル・リスト）](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md) だけ。パッケージと素材集の形式は [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md)。
+アプリとの境界は、SanpoGuide の [API-002（承認済みチャンネル・リスト）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。パッケージと素材集の形式は [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)。
 
 ## 構成
 
