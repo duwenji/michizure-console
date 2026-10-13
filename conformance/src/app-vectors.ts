@@ -4,11 +4,11 @@ import { b64url, localSigner, providerId, rawPublicKey, signChannelList, signDoc
 import { sampleChannel } from '@yorisoi-console/protocol/testing';
 
 /**
- * Test vectors for the app's own checks of API-002 (SanpoGuide station-format): a discovery
+ * Test vectors for the app's own checks of API-002 (yorisoi-platform core-format): a discovery
  * document, a channel list and a test ticket, signed by this repository's code with fixed keys.
  * Ed25519 is deterministic, so the output never changes unless the format does.
  *
- *   npm run vectors -w conformance -- ../SanpoGuide/station-format/src/test/resources/provider-vectors.json
+ *   npm run vectors -w conformance -- ../../yorisoi-platform/core-format/src/test/resources/provider-vectors.json
  *
  * The keys come from fixed seeds and are public: never use them for a real provider.
  */
