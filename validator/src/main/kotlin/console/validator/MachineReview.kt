@@ -156,7 +156,7 @@ sealed interface CollectionOutcome {
  * icon. Pure: the Lambda reads and writes, this decides.
  */
 object MachineReview {
-    const val VALIDATOR = "core-format 2.0.0, prompts 2.0.0"
+    const val VALIDATOR = "core-format 1.0.0, prompts 2.0.0"
     const val MAX_PACKAGE = 2 * 1024 * 1024
     const val MAX_ICON = 100 * 1024
     const val MAX_ICON_SIDE = 256

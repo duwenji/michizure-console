@@ -68,7 +68,7 @@
 ## 関連ドキュメント・参照リンク
 
 - [DES-005](DES-005-review.md)、[API-001](../console-api.md)、[DM-001](../data-model.md)、[運営の使い方](../guide/operator.md)、[チャンネル提供者の使い方](../guide/publisher.md)、[通しの確認](../../tools/e2e/README.md)
-- SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md)（P-9、V-16）
+- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)（P-9、V-16）
 
 ## 変更履歴
 

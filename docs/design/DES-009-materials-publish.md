@@ -77,7 +77,7 @@
 ## 関連ドキュメント・参照リンク
 
 - [DES-001](DES-001-publisher.md)（公開の処理）、[DES-007](DES-007-materials-review.md)、[DES-008](DES-008-materials-api.md)
-- SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md) 1.2
+- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) 1.2
 
 ## 変更履歴
 

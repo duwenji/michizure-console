@@ -18,7 +18,7 @@
 
 [ADR-001](adr/ADR-001-aws-architecture.md) A-6 で、データは DynamoDB の 1 テーブルに置き、パッケージ・アイコン・リストの本体は S3 に置くと決めた。本書は、そのテーブルの項目の種類、キー、インデックス、状態の移り方、上限（A-18）を決める（ADR-001 T-2）。
 
-1.3 では、SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者の切り出し）に合わせて、素材提供者の役割と素材集（申請・審査・公開・取り下げ）、チャンネルが素材集を使う記録（依存）を足す（ADR-002 T-6）。
+1.3 では、SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者の切り出し）に合わせて、素材提供者の役割と素材集（申請・審査・公開・取り下げ）、チャンネルが素材集を使う記録（依存）を足す（ADR-002 T-6）。
 
 DynamoDB では、取り出し方（アクセスパターン）からキーを決める。本書は、先にアクセスパターンを挙げ、それを満たすキーを決める。
 
@@ -563,10 +563,10 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 ## 関連ドキュメント・参照リンク
 
 - [ADR-001](adr/ADR-001-aws-architecture.md): AWS の構成
-- SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
-- SanpoGuide [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md): パッケージの形式
-- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md): 審査基準（1.0、2026-10-11 承認）
-- SanpoGuide [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md): 素材の素材提供者と素材集
+- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
+- SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): パッケージの形式
+- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準（1.0、2026-10-11 承認）
+- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 素材の素材提供者と素材集
 - 検討の記録（1.3）: [skill-logs/data_model_design_2026-10-11.md](skill-logs/data_model_design_2026-10-11.md)
 - 検討の記録: [skill-logs/data_model_design_2026-10-03.md](skill-logs/data_model_design_2026-10-03.md)
 

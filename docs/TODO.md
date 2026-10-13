@@ -27,6 +27,7 @@
 - 準拠テストは本リポジトリに置く
 - `station-format` を GitHub Packages に公開した（`com.example.sanpoguide:station-format:1.0.0`。SanpoGuide RFC-001）。プロンプト・組み込みのチャンネル・審査の見本（`ReviewSamples`）を含む。ZIP の展開とチャンネル提供者の署名の確認は、機械審査の実装の前に station-format に足す
 - validator の station-format を `io.github.duwenji.sanpoguide:station-format:2.0.0` に切り替えた（2026-10-11、SanpoGuide RFC-001 1.1。アプリの識別子に合わせて group とパッケージ名が変わった）
+- validator の読み先を、SanpoGuide のリポジトリの分割に合わせて切り替えた（2026-10-13、yorisoi-platform RFC-004 手順 4）: `core-format` は yorisoi-platform の 1.0.0（2.0.0 ではなく 1.0.0 から始めた）、プロンプト・パック `prompts:2.0.0` は yorisoi-sanpoguide。SanpoGuide の文書へのリンクは、移った先の yorisoi-platform に直した
 - チャンネル提供者は誰でも登録できる。悪用への備えは ADR-001 A-18
 - ADR-001（AWS の構成）を承認（1.0）。SanpoGuide の API-002 1.1・ADR-001 1.1 も承認
 - 管理 API [API-001](console-api.md)（[OpenAPI](api/console.openapi.yaml)、48 操作）を承認（1.0）。エラーは RFC 9457、`If-Match` 必須、鍵の移し替えはチャンネル提供者ごと、チャンネル提供者は自分で退会できる、判定・取り下げ・移し替えの結果は SES でメールする（ADR-001 1.1 A-19）。DM-001 も 1.1 に改訂

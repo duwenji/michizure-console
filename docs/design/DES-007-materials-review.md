@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md) で素材の素材提供者を切り出し、管理システムでは [DM-001](../data-model.md) 1.3 と [API-001](../console-api.md) 1.1 でデータと API を決めた（ADR-002 T-6）。本書は、その実装の段階分けと、最初の段階の機械審査を決める。
+SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md) で素材の素材提供者を切り出し、管理システムでは [DM-001](../data-model.md) 1.3 と [API-001](../console-api.md) 1.1 でデータと API を決めた（ADR-002 T-6）。本書は、その実装の段階分けと、最初の段階の機械審査を決める。
 
 今の機械審査（[DES-004](DES-004-machine-review.md)）は station-format 2.0.0 で、素材（`resources`）やきっかけ（`cues`）のあるチャンネルを「未対応」として拒む。station-format 2.1.0 で、素材・きっかけ・素材集の確認と、リストを使った参照の解決ができるようになった。
 
@@ -86,7 +86,7 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/ad
 
 - [DES-004](DES-004-machine-review.md): 今の機械審査
 - [DM-001](../data-model.md) 1.3・[API-001](../console-api.md) 1.1
-- SanpoGuide [ADR-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/adr/ADR-002-material-producers.md)・[API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md)
+- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)
 
 ## 変更履歴
 

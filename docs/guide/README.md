@@ -53,7 +53,7 @@ flowchart LR
 | 用語 | 意味 |
 |---|---|
 | チャンネル | 語り手・話題・話す量・雰囲気をまとめた設定。アプリで切り替えて使う。ID は英小文字・数字・`-` の 3〜40 文字（例 `kamakura-history`） |
-| パッケージ | 1 つのチャンネルの中身（`channel.json` とプロンプトの文章など）を ZIP にしたもの。形式は SanpoGuide の [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md) |
+| パッケージ | 1 つのチャンネルの中身（`channel.json` とプロンプトの文章など）を ZIP にしたもの。形式は SanpoGuide の [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) |
 | 版（version） | パッケージの版の番号。更新のたびに、最後に承認された版より大きくする |
 | 申請 | パッケージを審査に出すこと。1 つのチャンネルに審査待ちの申請は 1 つまで |
 | チャンネル提供者 | チャンネルを作って申請する人・団体。1 つのログインのアカウントが 1 つのチャンネル提供者 |
@@ -68,7 +68,7 @@ flowchart LR
 | `seq` | リスト・鍵セットの通し番号。公開のたびに増える。アプリは小さくなったリストを拒む |
 | 取り下げ | 承認したチャンネルをリストから外すこと。アプリは理由とともに使用を止める |
 | アカウントID | チャンネル提供者の鍵の指紋（`sg1…`）。チャンネル提供者はパッケージにこの鍵で署名する |
-| 素材集 | 素材提供者が作る、テキスト・画像・音声・映像の素材のまとまり。チャンネルとは別に審査・公開され、チャンネルが ID や基準で指して使う。形式は SanpoGuide の [API-004](https://github.com/duwenji/SanpoGuide/blob/main/docs/material-producer-api.md) |
+| 素材集 | 素材提供者が作る、テキスト・画像・音声・映像の素材のまとまり。チャンネルとは別に審査・公開され、チャンネルが ID や基準で指して使う。形式は SanpoGuide の [API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md) |
 | 素材提供者 | 素材集を作って申請する人・団体。アカウントはチャンネル提供者と共通で、「素材提供者として始める」で役割が加わる |
 | 利用の記録 | どのチャンネルが、どの素材集のどの素材を使っているか。素材集の更新で使われている素材を消せないようにし、取り下げのときに知らせる先になる |
 | 試用チケット | 審査前のチャンネルを、チャンネル提供者が自分の端末で試すための QR コード。7 日で切れる。アプリの開発者モードで読み込む |
@@ -79,12 +79,12 @@ flowchart LR
 
 | 文書 | 内容 |
 |---|---|
-| SanpoGuide [関係者と呼び方](https://github.com/duwenji/SanpoGuide/blob/main/docs/stakeholders.md) | 散策者・チャンネル提供者・素材提供者・運営の役割と、関係者ごとの課題 |
+| SanpoGuide [関係者と呼び方](https://github.com/duwenji/yorisoi-platform/blob/main/docs/stakeholders.md) | 散策者・チャンネル提供者・素材提供者・運営の役割と、関係者ごとの課題 |
 | [構成図](../architecture.md) | システム全体を 8 枚の図で |
 | [ADR-001](../adr/ADR-001-aws-architecture.md) | AWS の構成と、その理由 |
 | [DM-001](../data-model.md) | データの持ち方と状態の移り方 |
 | [API-001](../console-api.md)・[OpenAPI](../api/console.openapi.yaml) | 管理 API の契約 |
-| SanpoGuide [API-002](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-list-api.md) | 承認済みチャンネル・リストの形式（アプリとの約束） |
-| SanpoGuide [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md) | パッケージの形式 |
-| SanpoGuide [審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか（1.0、2026-10-11 承認） |
+| SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) | 承認済みチャンネル・リストの形式（アプリとの約束） |
+| SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) | パッケージの形式 |
+| SanpoGuide [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか（1.0、2026-10-11 承認） |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値と手順 |

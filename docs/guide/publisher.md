@@ -43,7 +43,7 @@ flowchart LR
 
 ## 3. パッケージを作る
 
-パッケージは、1 つのチャンネルの中身を入れた ZIP（無圧縮か Deflate）です。正式な形式は SanpoGuide の [API-003](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md) です。アプリと管理システムは、同じ確認のプログラム（SanpoGuide の core-format）で確かめます。
+パッケージは、1 つのチャンネルの中身を入れた ZIP（無圧縮か Deflate）です。正式な形式は SanpoGuide の [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) です。アプリと管理システムは、同じ確認のプログラム（SanpoGuide の core-format）で確かめます。
 
 ### 3.1 ファイルの構成
 
@@ -66,7 +66,7 @@ prompts/
 - 文章の合計は 4,000 字まで。UTF-8（BOM なし）、改行は LF（CR を含むと拒まれます）
 - 文章に `{{`、URL（`http://`・`https://`・`www.`）、見出し（`#` で始まる行）を書けません
 - 天気の急変・日の入り・施設の案内には指示を書けません。これらはどのチャンネルでもアプリが同じ言葉で知らせます
-- 素材ときっかけ（`resources`・`collections`・`selectors`・`cues`）も入れられます（[API-003「素材・きっかけ・見せ方」](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)）。アプリが対応しているのは文字と画像（第 1 段、SanpoGuide の versionCode 2 から）までで、音声・映像を使うチャンネルは、対応したアプリが出るまで散策者に届きません
+- 素材ときっかけ（`resources`・`collections`・`selectors`・`cues`）も入れられます（[API-003「素材・きっかけ・見せ方」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)）。アプリが対応しているのは文字と画像（第 1 段、SanpoGuide の versionCode 2 から）までで、音声・映像を使うチャンネルは、対応したアプリが出るまで散策者に届きません
 
 ### 3.2 channel.json
 
@@ -95,7 +95,7 @@ prompts/
 | `format` | `2`（2026-10-12 から）。`1` は、format 2 に対応した散策ガイドの公開から 90 日まで受け付けます（その後は `format_retired` で通りません。公開中の format 1 のチャンネルは、更新するまでそのまま届きます） |
 | `activities` | このチャンネルが合う過ごし方: `walk`（散歩）・`cycle`（サイクリング）から 1〜4 個。語り手の文章がその過ごし方に合っているかは、人の審査で確かめます。チャンネルは、過ごし方が合うアプリにだけ届きます（今あるのは散歩の「散策ガイド」だけ） |
 | `genres` | 散策者が探すときの分類: `general`・`history`・`nature`・`food`・`shopping` から 0〜3 個 |
-| `requires.features` | これがないアプリでは成り立たない機能（`slot:guide`、`trigger:point`、`present:fullscreen` など。[API-003「機能」](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-package-format.md)）。書いた機能を持たないアプリには届きません。書かない機能は、持たないアプリでは使われないだけです |
+| `requires.features` | これがないアプリでは成り立たない機能（`slot:guide`、`trigger:point`、`present:fullscreen` など。[API-003「機能」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)）。書いた機能を持たないアプリには届きません。書かない機能は、持たないアプリでは使われないだけです |
 | `id`・`version` | 登録したチャンネル ID。版は、最後に承認された版より大きく |
 | `publisher` | 紐づけたアカウントID |
 | `name`・`summary`・`greeting` | 1〜20 字・1〜60 字・1〜60 字（`greeting` は切り替えたときにそのまま読み上げる） |
@@ -111,7 +111,7 @@ prompts/
 
 ### 3.4 内容の決まり（審査基準）
 
-審査では、機械の確認に加えて、運営が中身と AI に話させた見本を確かめます。基準は SanpoGuide の [審査基準](https://github.com/duwenji/SanpoGuide/blob/main/docs/channel-review-policy.md)（1.0、2026-10-11 承認）です。主な観点:
+審査では、機械の確認に加えて、運営が中身と AI に話させた見本を確かめます。基準は SanpoGuide の [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)（1.0、2026-10-11 承認）です。主な観点:
 
 - 語り口と内容（2.1）、安全（2.2: 危険な場所・立入禁止・私有地に誘わない）、プライバシー（2.3: 位置・住所・名前などを尋ねさせない）、宣伝（2.4）、AI への指示の書き方（2.5）
 - 情報の少ない小さなスポットで、もっともらしい歴史を作らせないこと（2.7）
