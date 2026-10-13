@@ -3,7 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { utf8 } from '@michizure-console/protocol';
+import { utf8 } from '@yorisoi-console/protocol';
 import { zipSync } from 'fflate';
 import { ulid } from '../../api/src/console/util.js';
 import { checkProvider } from '../../conformance/src/check.js';
@@ -16,7 +16,7 @@ import { createKey, signPackage } from '../../web/src/publisher-crypto.js';
  * approved package and icon). Then the test data is removed and the list rebuilt.
  */
 const region = 'ap-northeast-1';
-const stack = 'MichizureConsole-dev';
+const stack = 'YorisoiConsole-dev';
 const cfn = new CloudFormationClient({ region });
 const outputs = new Map(((await cfn.send(new DescribeStacksCommand({ StackName: stack }))).Stacks?.[0]?.Outputs ?? []).map((o) => [o.OutputKey!, o.OutputValue!]));
 const resources = (await cfn.send(new DescribeStackResourcesCommand({ StackName: stack }))).StackResources ?? [];

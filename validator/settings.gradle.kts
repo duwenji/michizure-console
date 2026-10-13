@@ -23,7 +23,7 @@ dependencyResolutionManagement {
                     password = gprKey
                 }
                 content {
-                    includeGroup("io.github.duwenji.michizure")
+                    includeGroup("io.github.duwenji.yorisoi")
                     includeGroup("io.github.duwenji.sanpoguide")
                 }
             }
@@ -31,7 +31,7 @@ dependencyResolutionManagement {
         // Built locally (`./gradlew publishToMavenLocal` in SanpoGuide).
         mavenLocal {
             content {
-                includeGroup("io.github.duwenji.michizure")
+                includeGroup("io.github.duwenji.yorisoi")
                 includeGroup("io.github.duwenji.sanpoguide")
             }
         }

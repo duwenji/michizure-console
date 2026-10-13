@@ -132,7 +132,7 @@ describe('ConsoleStack', () => {
     dev.hasResourceProperties('AWS::Logs::LogGroup', { RetentionInDays: 14 });
     dev.hasResourceProperties('AWS::DynamoDB::GlobalTable', { Replicas: [Match.objectLike({ PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: false } })] });
     dev.hasResourceProperties('AWS::Budgets::Budget', {
-      Budget: Match.objectLike({ BudgetLimit: { Amount: 5, Unit: 'USD' }, CostFilters: { TagKeyValue: ['user:project$michizure-console'] } }),
+      Budget: Match.objectLike({ BudgetLimit: { Amount: 5, Unit: 'USD' }, CostFilters: { TagKeyValue: ['user:project$yorisoi-console'] } }),
     });
 
     prod.resourceCountIs('AWS::WAFv2::WebACL', 1);

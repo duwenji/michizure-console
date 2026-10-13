@@ -1,5 +1,5 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { b64url } from '@michizure-console/protocol';
+import { b64url } from '@yorisoi-console/protocol';
 import type { Notice } from '../console/deps.js';
 import { ulid } from '../console/util.js';
 import { CloudFrontCdn, DynamoStore, S3Storage, kmsSigner } from './aws.js';

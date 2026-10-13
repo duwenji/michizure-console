@@ -3,14 +3,14 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { DeleteCommand, DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, sha256Hex, utf8, verifyDiscovery, verifyEd25519 } from '@michizure-console/protocol';
+import { b64url, sha256Hex, utf8, verifyDiscovery, verifyEd25519 } from '@yorisoi-console/protocol';
 import { ulid } from '../../api/src/console/util.js';
 
 // Issues a test ticket through the deployed console Lambda (as API Gateway would call it after
 // the JWT check), then checks its signature against the published keyset and fetches the package.
 const region = 'ap-northeast-1';
 const cfn = new CloudFormationClient({ region });
-const stack = 'MichizureConsole-dev';
+const stack = 'YorisoiConsole-dev';
 const outputs = new Map(((await cfn.send(new DescribeStacksCommand({ StackName: stack }))).Stacks?.[0]?.Outputs ?? []).map((o) => [o.OutputKey!, o.OutputValue!]));
 const resources = (await cfn.send(new DescribeStackResourcesCommand({ StackName: stack }))).StackResources ?? [];
 const consoleFn = resources.find((r) => r.ResourceType === 'AWS::Lambda::Function' && r.LogicalResourceId?.startsWith('ConsoleConsoleApi'))!.PhysicalResourceId!;

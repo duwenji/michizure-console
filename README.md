@@ -1,4 +1,4 @@
-# michizure-console
+# yorisoi-console
 
 SanpoGuide の第三者のチャンネルと素材集を審査して公開する **チャンネル管理システム**。
 

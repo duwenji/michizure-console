@@ -1,4 +1,4 @@
-import { accountId, sha256Hex, utf8, verifyEd25519 } from '@michizure-console/protocol';
+import { accountId, sha256Hex, utf8, verifyEd25519 } from '@yorisoi-console/protocol';
 import { unzipSync, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import { accountIdOf, b64url, createKey, openKeyFile, signCollectionPackage, signPackage } from '../src/publisher-crypto';

@@ -10,7 +10,7 @@ import {
   type CollectionEntry,
   type Discovery,
   type SigningKeyEntry,
-} from '@michizure-console/protocol';
+} from '@yorisoi-console/protocol';
 import type { Cdn, DocumentStorage, ListedChannel, PublicationRecord, PublicationStore, SignerFor, Trigger } from './ports.js';
 
 export const DISCOVERY_PATH = '.well-known/sanpo-channels';

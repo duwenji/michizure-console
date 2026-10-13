@@ -1,9 +1,9 @@
 package console.validator
 
-import io.github.duwenji.michizure.core.format.material.Grants
-import io.github.duwenji.michizure.core.format.AccountIds
-import io.github.duwenji.michizure.core.format.ListedCollection
-import io.github.duwenji.michizure.core.format.PackageRef
+import io.github.duwenji.yorisoi.core.format.material.Grants
+import io.github.duwenji.yorisoi.core.format.AccountIds
+import io.github.duwenji.yorisoi.core.format.ListedCollection
+import io.github.duwenji.yorisoi.core.format.PackageRef
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals

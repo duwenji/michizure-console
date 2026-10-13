@@ -1,5 +1,5 @@
 {
-  "name": "@michizure-console/api",
+  "name": "@yorisoi-console/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -26,8 +26,8 @@
     "@aws-sdk/lib-dynamodb": "^3.1146.0",
     "@aws-sdk/s3-presigned-post": "^3.1146.0",
     "@aws-sdk/s3-request-presigner": "^3.1146.0",
-    "@michizure-console/api-types": "0.1.0",
-    "@michizure-console/protocol": "0.1.0",
+    "@yorisoi-console/api-types": "0.1.0",
+    "@yorisoi-console/protocol": "0.1.0",
     "fflate": "^0.8.3"
   },
   "devDependencies": {

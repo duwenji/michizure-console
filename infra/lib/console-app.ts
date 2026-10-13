@@ -74,7 +74,7 @@ export class ConsoleApp extends Construct {
 
     // ---- Cognito (ADR-001 A-4, 1.2: one pool, TOTP MFA for everyone) ----
     const userPool = new cognito.UserPool(this, 'UserPool', {
-      userPoolName: `michizure-console-${config.name}`,
+      userPoolName: `yorisoi-console-${config.name}`,
       // Publishers register themselves (D-7); operators are created by an administrator.
       selfSignUpEnabled: true,
       signInAliases: { email: true },
@@ -114,7 +114,7 @@ export class ConsoleApp extends Construct {
     userPool.addTrigger(cognito.UserPoolOperation.POST_CONFIRMATION, postConfirmation);
 
     const domain = userPool.addDomain('Domain', {
-      cognitoDomain: { domainPrefix: `michizure-console-${config.name}` },
+      cognitoDomain: { domainPrefix: `yorisoi-console-${config.name}` },
       managedLoginVersion: cognito.ManagedLoginVersion.NEWER_MANAGED_LOGIN,
     });
 
@@ -123,7 +123,7 @@ export class ConsoleApp extends Construct {
     const waf = new wafv2.CfnWebACL(this, 'UserPoolWaf', {
       scope: 'REGIONAL',
       defaultAction: { allow: {} },
-      visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: `michizure-console-${config.name}-cognito`, sampledRequestsEnabled: true },
+      visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: `yorisoi-console-${config.name}-cognito`, sampledRequestsEnabled: true },
       rules: [
         {
           name: 'RateLimitPerIp',
@@ -192,7 +192,7 @@ export class ConsoleApp extends Construct {
           })
         : undefined;
 
-    const httpApi = new apigw.HttpApi(this, 'HttpApi', { apiName: `michizure-console-${config.name}`, createDefaultStage: true });
+    const httpApi = new apigw.HttpApi(this, 'HttpApi', { apiName: `yorisoi-console-${config.name}`, createDefaultStage: true });
     const stage = httpApi.defaultStage?.node.defaultChild as apigw.CfnStage;
     stage.defaultRouteSettings = { throttlingRateLimit: 20, throttlingBurstLimit: 40 };
 

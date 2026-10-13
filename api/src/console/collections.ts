@@ -1,5 +1,5 @@
 import { QueryCommand, type TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
-import { CHANNEL_ID } from '@michizure-console/protocol';
+import { CHANNEL_ID } from '@yorisoi-console/protocol';
 import { auditItem, type Deps } from './deps.js';
 import { fail, flag, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { myPublisher, transact } from './publisher.js';

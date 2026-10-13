@@ -1,7 +1,7 @@
 import { StrictMode, createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, NavLink, Route, Routes, useNavigate } from 'react-router';
-import type { Schemas } from '@michizure-console/api-types';
+import type { Schemas } from '@yorisoi-console/api-types';
 import { createApi, describe, type Api } from './api';
 import { createAuth, loadConfig, type Auth, type ConsoleConfig } from './auth';
 import { AuditPage } from './pages/audit';

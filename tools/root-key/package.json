@@ -1,5 +1,5 @@
 {
-  "name": "@michizure-console/root-key",
+  "name": "@yorisoi-console/root-key",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "root-key": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@michizure-console/protocol": "0.1.0"
+    "@yorisoi-console/protocol": "0.1.0"
   },
   "exports": {
     ".": {

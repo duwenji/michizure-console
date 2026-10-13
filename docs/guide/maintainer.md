@@ -57,7 +57,7 @@ flowchart LR
 | `conformance` | 任意のリストに対する準拠テスト | DES-001 |
 | `infra` | AWS CDK。環境ごとの設定は `infra/lib/config.ts` | ADR-001 |
 
-機械審査の Lambda（`validator`）は、SanpoGuide が公開する形式の確認（`io.github.duwenji.michizure:core-format`）と SanpoGuide のプロンプト・パック（`io.github.duwenji.sanpoguide:prompts`）を GitHub Packages から読み込みます（2026-10-12 に `station-format` から切り替え。SanpoGuide RFC-002）。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew publishToMavenLocal`）。
+機械審査の Lambda（`validator`）は、SanpoGuide が公開する形式の確認（`io.github.duwenji.yorisoi:core-format`）と SanpoGuide のプロンプト・パック（`io.github.duwenji.sanpoguide:prompts`）を GitHub Packages から読み込みます（2026-10-12 に `station-format` から切り替え。SanpoGuide RFC-002）。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew publishToMavenLocal`）。
 
 ## 2. 準備
 
@@ -71,8 +71,8 @@ flowchart LR
 | GitHub CLI | PR と CI の確認 |
 
 ```sh
-git clone https://github.com/duwenji/michizure-console.git
-cd michizure-console
+git clone https://github.com/duwenji/yorisoi-console.git
+cd yorisoi-console
 npm ci
 ```
 
@@ -148,11 +148,11 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
    ROOT_KEY_PASSPHRASE=… npm run root-key -w tools/root-key -- generate --out <フォルダ>
    ```
 
-   表示された `rootKey` を `cdk deploy -c rootPublicKey=…` に使い、`provider`（リストID）を控えます。合言葉は 16 文字以上。秘密鍵の写しを複数の場所に置きます。開発用の鍵は `~/.michizure-console/dev/` にあります（合言葉も同じ場所。開発用だけの扱い）
+   表示された `rootKey` を `cdk deploy -c rootPublicKey=…` に使い、`provider`（リストID）を控えます。合言葉は 16 文字以上。秘密鍵の写しを複数の場所に置きます。開発用の鍵は `~/.yorisoi-console/dev/` にあります（合言葉も同じ場所。開発用だけの扱い）
 2. **署名鍵と鍵セットを登録して公開する**: 運営の画面（[運営ガイド 5.2](operator.md#52-鍵セットを登録する)）で行うか、`tools/provision` で一度に行います
 
    ```sh
-   npm run provision -w tools/provision -- --env dev --root-key ~/.michizure-console/dev
+   npm run provision -w tools/provision -- --env dev --root-key ~/.yorisoi-console/dev
    ```
 
    `provision` は、スタックの出力から KMS の鍵を読んで登録し、ルート鍵で鍵セット（署名鍵の有効期間 180 日）に署名して登録し、公開の処理を 1 回呼びます。済んでいる手順は飛ばします
@@ -199,7 +199,7 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 | 警報の宛先 | **未設定**（`cdk deploy -c alarmEmail=…` か `config.ts` で設定する） | 配備前に設定する |
 | ログ | Lambda のログは 14 日 | 消さない |
 
-- 予算はタグ `project=michizure-console` の費用だけを数えます。請求の画面でコスト配分タグ `project` を一度有効にしてください（[費用](../operations/cost.md#一度だけ要る操作)）
+- 予算はタグ `project=yorisoi-console` の費用だけを数えます。請求の画面でコスト配分タグ `project` を一度有効にしてください（[費用](../operations/cost.md#一度だけ要る操作)）
 - 同じ AWS アカウントにほかのプロジェクトがあるので、請求の画面ではタグ `project` で絞り込みます
 
 ## 10. 障害の対応

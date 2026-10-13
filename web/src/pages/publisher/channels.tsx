@@ -1,6 +1,6 @@
 import qrcode from 'qrcode-generator';
 import { Fragment, useState, type FormEvent } from 'react';
-import type { Schemas } from '@michizure-console/api-types';
+import type { Schemas } from '@yorisoi-console/api-types';
 import { Link, useParams } from 'react-router';
 import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';

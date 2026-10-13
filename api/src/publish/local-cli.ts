@@ -1,5 +1,5 @@
-import { sha256Hex, utf8 } from '@michizure-console/protocol';
-import { makeTestProvider, sampleChannel } from '@michizure-console/protocol/testing';
+import { sha256Hex, utf8 } from '@yorisoi-console/protocol';
+import { makeTestProvider, sampleChannel } from '@yorisoi-console/protocol/testing';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { FolderStorage, MemoryStore, noCdn } from './local.js';

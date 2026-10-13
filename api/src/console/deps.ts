@@ -1,6 +1,6 @@
 import { ConditionalCheckFailedException, TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { appsFor, KNOWN_APPS, NO_APP_VERSION, type KnownApp, type SignedDocument } from '@michizure-console/protocol';
+import { appsFor, KNOWN_APPS, NO_APP_VERSION, type KnownApp, type SignedDocument } from '@yorisoi-console/protocol';
 import type { Trigger } from '../publish/ports.js';
 import { fail, type Caller } from './http.js';
 import { ulid, type CursorCodec } from './util.js';

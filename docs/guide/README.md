@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 対象 | michizure-console（SanpoGuide の第三者のチャンネルを審査して公開するシステム） |
+| 対象 | yorisoi-console（SanpoGuide の第三者のチャンネルを審査して公開するシステム） |
 | 版 | 1.1（2026-10-12） |
 | 前提の版 | 実装の順番 4（素材集と素材提供者）まで。[DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) |
 

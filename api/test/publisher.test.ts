@@ -1,8 +1,8 @@
 import { DynamoDBClient, TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import { KMSClient, SignCommand } from '@aws-sdk/client-kms';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
-import { b64url, generateEd25519, localSigner, signDocument, utf8, verifyChannelList, verifyDiscovery } from '@michizure-console/protocol';
-import { makeTestProvider, sampleChannel, type TestProvider } from '@michizure-console/protocol/testing';
+import { b64url, generateEd25519, localSigner, signDocument, utf8, verifyChannelList, verifyDiscovery } from '@yorisoi-console/protocol';
+import { makeTestProvider, sampleChannel, type TestProvider } from '@yorisoi-console/protocol/testing';
 import { mockClient } from 'aws-sdk-client-mock';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DynamoStore, kmsSigner } from '../src/publish/aws.js';

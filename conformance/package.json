@@ -1,5 +1,5 @@
 {
-  "name": "@michizure-console/conformance",
+  "name": "@yorisoi-console/conformance",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,6 +10,6 @@
     "serve": "tsx src/serve-cli.ts",
     "vectors": "tsx src/app-vectors.ts"
   },
-  "dependencies": { "@michizure-console/protocol": "0.1.0", "fflate": "^0.8.3" },
-  "devDependencies": { "@michizure-console/api": "0.1.0" }
+  "dependencies": { "@yorisoi-console/protocol": "0.1.0", "fflate": "^0.8.3" },
+  "devDependencies": { "@yorisoi-console/api": "0.1.0" }
 }
