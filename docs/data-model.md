@@ -270,7 +270,7 @@ stateDiagram-v2
 | `publisherId` | S | ○ | ULID |
 | `ownerSub` | S | ○ | 持ち主の Cognito の `sub`（M-1） |
 | `displayName` | S | ○ | リストの `publisherName` に使う。1〜40 文字 |
-| `contact` | S | ○ | 審査・移し替えの連絡先（Cognito のメールとは別に持つ。本人確認の「別の経路」の候補。ADR-001 未決事項 No.6） |
+| `contact` | S | ○ | 審査・移し替えの連絡先（Cognito のメールとは別に持つ。本人確認の「別の経路」の候補。ADR-001 未決事項 No.5） |
 | `status` | S | ○ | `pending_key` / `active` / `suspended` / `deleted` |
 | `pendingTransferId` | S | — | `requested` の移し替え（1 つだけ。あいだは申請を受け付けない） |
 | `activeAccountId` | S | — | 使っている鍵のアカウントID（`sg1…`） |
