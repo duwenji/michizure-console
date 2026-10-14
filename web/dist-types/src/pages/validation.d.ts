@@ -7,10 +7,13 @@ import type { Schemas } from '@yorisoi-console/api-types';
 export declare function ValidationView({ validation }: {
     validation: Schemas['Validation'] | null | undefined;
 }): import("react").JSX.Element;
-/** A minAppVersion no app has yet (DES-007 J-9): the material waits for an app that shows it. */
-export declare function StageNote({ appStage, minAppVersion }: {
+/**
+ * The version each app needs (DES-011 N-5). A version no app has yet (DES-007 J-9): the material
+ * waits for an app that shows it.
+ */
+export declare function StageNote({ appStage, minAppVersions }: {
     appStage?: number | undefined;
-    minAppVersion?: number | undefined;
+    minAppVersions?: Record<string, number> | undefined;
 }): import("react").JSX.Element | null;
 /**
  * What a channel is for and needs, and the apps it is offered in (DES-011 N-9). Nothing before

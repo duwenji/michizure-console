@@ -90,7 +90,7 @@ async function seedPublisher(status = 'active') {
     new PutCommand({
       TableName: deps.table,
       Item: {
-        PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, ownerSub: 'pub-1', displayName: '鎌倉歴史散歩の会',
+        PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, ownerSub: 'pub-1', displayName: '鎌倉歴史散歩の会',
         contact: 'kamakura@example.com', status, activeAccountId: 'sg1' + 'a'.repeat(32), channelCount: 1, rev: 1,
         createdAt: now.toISOString(), updatedAt: now.toISOString(), GSI2PK: 'PUBLISHERS', GSI2SK: now.toISOString(),
       },
@@ -100,14 +100,14 @@ async function seedPublisher(status = 'active') {
 }
 
 async function seedListedChannel(publisherId: string) {
-  const { id, publisherName: _n, ...entry } = sampleChannel();
+  const { id, publisherName: _n, media: _m, resourcesSize: _r, ...entry } = sampleChannel();
   const submissionId = ulid(now.getTime());
   await deps.db.send(
     new PutCommand({
       TableName: deps.table,
       Item: {
         PK: `CH#${id}`, SK: 'CH', type: 'channel', channelId: id, publisherId, status: 'active', rev: 4,
-        latestApproved: { ...entry, submissionId }, createdAt: now.toISOString(), updatedAt: now.toISOString(),
+        latestApproved: { ...entry, submissionId, appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [] }, createdAt: now.toISOString(), updatedAt: now.toISOString(),
         GSI1PK: `PUB#${publisherId}`, GSI1SK: `CH#${id}`, GSI2PK: 'LISTED', GSI2SK: `CH#${id}`,
       },
     }),

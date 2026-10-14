@@ -20,12 +20,11 @@ export interface PublicationRecord {
 
 /**
  * A listed channel: its entry, and what the publisher adds up into `media` and `resourcesSize`
- * from the collections listed now (DM-001 M-24, DES-009 M-4). Channels approved before DES-007
- * have no [material].
+ * from the collections listed now (DM-001 M-24, DES-009 M-4).
  */
 export interface ListedChannel {
-  entry: ChannelEntry;
-  material?: { ownPrefetchBytes: number; ownMedia: string[]; collections: string[] };
+  entry: Omit<ChannelEntry, 'media' | 'resourcesSize'>;
+  material: { ownPrefetchBytes: number; ownMedia: string[]; collections: string[] };
 }
 
 export interface SigningKeyRecord {

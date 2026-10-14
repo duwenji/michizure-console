@@ -33,8 +33,5 @@ export function appsFor(activities: readonly string[], requires: readonly string
     .map(([id]) => id);
 }
 
-/** What a channel written in format 1 is (API-003 G-6). */
-export const FORMAT1_ECOSYSTEM = { activities: ['walk'], genres: [] as string[], requires: [] as string[] };
-
 /** Version numbers no app has: what a channel or collection gets for an app that can't use it (API-002 P-21). */
 export const NO_APP_VERSION = 9999;

@@ -154,7 +154,7 @@ export function PublisherCollection() {
                 版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）、{c.latestApproved.media.join('・')}、タグ {c.latestApproved.tags.join('・') || '—'}、
                 利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} のチャンネル提供者`}、
                 使ってよいアプリ {c.latestApproved.grants.apps?.join('・') ?? 'すべてのアプリ'}、宣伝 <PromotionalNote declared={c.latestApproved.promotional} />
-                <div><StageNote appStage={c.latestApproved.appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>
+                <div><StageNote appStage={c.latestApproved.appStage} minAppVersions={c.latestApproved.minAppVersions} /></div>
               </>
             ) : '—'}
           </dd>

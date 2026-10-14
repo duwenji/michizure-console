@@ -35,7 +35,7 @@ function listCollection(json: Record<string, unknown>, listed: Record<string, un
       id: 'kamakura-audio-guide', version: 2, producer: 'sg1' + 'c'.repeat(32), producerName: '鎌倉市観光協会', name: '鎌倉音声ガイド', summary: '寺社の音声ガイド',
       media: ['text'], resourcesSize: zip.length, tags: ['history'], regions: ['xn7'], grants: { publishers: '*' },
       package: { url: `${base}/col/${sha256Hex(zip)}.zip`, sha256: sha256Hex(zip), size: zip.length, format: 1 },
-      minAppVersion: 9999, approvedAt: now.toISOString(), ...listed,
+      minAppVersions: { sanpoguide: 9999 }, approvedAt: now.toISOString(), ...listed,
     } as never,
   }];
 }
@@ -49,7 +49,7 @@ beforeEach(async () => {
   files = new Map();
   ({ server, url: base } = await serveFiles(async (path) => storage.public.get(path) ?? files.get(path)));
 
-  const pkg = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version: 3, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 2 }] })) });
+  const pkg = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ format: 1, activities: ['walk'], id: 'kamakura-history', version: 3, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 2 }] })) });
   const icon = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
   files.set(`pkg/${sha256Hex(pkg)}.zip`, pkg);
   files.set(`icons/${sha256Hex(icon)}.png`, icon);

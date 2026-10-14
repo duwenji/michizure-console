@@ -1,6 +1,6 @@
 import { GetCommand, QueryCommand, type QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import type { Schemas } from '@yorisoi-console/api-types';
-import { appsFor, FORMAT1_ECOSYSTEM, KNOWN_APPS } from '@yorisoi-console/protocol';
+import { appsFor, KNOWN_APPS } from '@yorisoi-console/protocol';
 import type { Deps } from './deps.js';
 import { fail, limit, type Request } from './http.js';
 import { jstDate } from './util.js';
@@ -12,9 +12,9 @@ export type Item = Record<string, unknown>;
 /** DM-001 M-2・M-19; an operator can change them per account. */
 export const DEFAULT_LIMITS = { channels: 5, collections: 5, uploadsPerDay: 20, ticketsPerDay: 10 };
 
-/** An account's roles (DM-001 M-16); one with none written is a publisher. */
+/** An account's roles (DM-001 M-16). */
 export function rolesOf(item: Item): ('publisher' | 'producer')[] {
-  return Array.isArray(item.roles) ? (item.roles as ('publisher' | 'producer')[]) : ['publisher'];
+  return item.roles as ('publisher' | 'producer')[];
 }
 
 export async function get(deps: Deps, PK: string, SK: string): Promise<Item | undefined> {
@@ -73,7 +73,7 @@ export async function channelView(deps: Deps, item: Item): Promise<Schemas['Chan
     pendingSubmissionId: (item.pendingSubmissionId as string | undefined) ?? null,
     latestApproved: (item.latestApproved as Schemas['LatestApproved'] | undefined) ?? null,
     listed: item.GSI2PK === 'LISTED',
-    ...(item.latestApproved ? { offeredIn: offeredIn(item.latestApproved as { activities?: string[]; requires?: string[] }) } : {}),
+    ...(item.latestApproved ? { offeredIn: offeredIn(item.latestApproved as { activities: string[]; requires: string[] }) } : {}),
     publisherChange: (item.publisherChange as Schemas['Channel']['publisherChange']) ?? null,
     revocations: (revocations.Items ?? []).map((r) => ({
       ...(r.versions ? { versions: r.versions as number[] } : {}),
@@ -155,8 +155,8 @@ export async function loadCollectionSubmission(deps: Deps, collectionId: string,
 
 /**
  * The names of the apps a channel is offered in (DES-011 N-9): for one of its activities, with what
- * it requires. A review or approval from before DES-011 is format 1's: walking, nothing required.
+ * it requires.
  */
-export function offeredIn(values: { activities?: string[]; requires?: string[] }): string[] {
-  return appsFor(values.activities ?? FORMAT1_ECOSYSTEM.activities, values.requires ?? FORMAT1_ECOSYSTEM.requires).map((id) => KNOWN_APPS[id]!.name);
+export function offeredIn(values: { activities: string[]; requires: string[] }): string[] {
+  return appsFor(values.activities, values.requires).map((id) => KNOWN_APPS[id]!.name);
 }

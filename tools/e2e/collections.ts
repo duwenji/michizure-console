@@ -110,7 +110,7 @@ const collectionZip = await signCollection(
   producer, collectionId, 1,
 );
 const channelJson = {
-  format: 1, id: channelId, version: 1, publisher: publisher.accountId, name: '素材集を使う', summary: '素材集の音声を流す', lang: 'ja', greeting: '確認です。',
+  format: 1, activities: ['walk'], id: channelId, version: 1, publisher: publisher.accountId, name: '素材集を使う', summary: '素材集の音声を流す', lang: 'ja', greeting: '確認です。',
   talk: { level: 'quiet', events: { spot: true, revisit: false, milestone: false, rest: false, start: true, finish: true } },
   spots: { prefer: ['shrine'], skip: [] }, guide: { length: 'short' }, mood: { tone: false, sound: 'auto' },
   collections: [{ as: 'kamakura', id: collectionId, minVersion: 1 }],
@@ -129,7 +129,7 @@ const seeded = [
   { PK: `COL#${collectionId}`, SK: 'COL', type: 'collection', kind: 'collection', collectionId, publisherId: producerId, status: 'active', rev: 1, pendingSubmissionId: colSid, createdAt: now, updatedAt: now, GSI1PK: `PUB#${producerId}`, GSI1SK: `COL#${collectionId}` },
   { PK: `COL#${collectionId}`, SK: `SUB#${colSid}`, type: 'submission', kind: 'collection', submissionId: colSid, collectionId, publisherId: producerId, accountId: producer.accountId, state: 'uploading', intakeKey: `intake-col/${collectionId}/${colSid}.zip`, ...(promotional ? { promotional: true } : {}), rev: 1, createdAt: now, updatedAt: now },
   { PK: `USER#${publisherSub}`, SK: 'USER', type: 'user', publisherId },
-  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, displayName: '通しの確認の配信元', status: 'active', activeAccountId: publisher.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
+  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, displayName: '通しの確認の配信元', status: 'active', activeAccountId: publisher.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
   { PK: `PUB#${publisherId}`, SK: `KEY#${publisher.accountId}`, type: 'publisher-key', accountId: publisher.accountId, status: 'active', boundAt: now },
   { PK: `CH#${channelId}`, SK: 'CH', type: 'channel', channelId, publisherId, status: 'active', rev: 1, pendingSubmissionId: chSid, createdAt: now, updatedAt: now, GSI1PK: `PUB#${publisherId}`, GSI1SK: `CH#${channelId}` },
   { PK: `CH#${channelId}`, SK: `SUB#${chSid}`, type: 'submission', submissionId: chSid, channelId, publisherId, accountId: publisher.accountId, state: 'uploading', intakeKey: `intake/${channelId}/${chSid}.zip`, iconIntakeKey: `intake/${channelId}/${chSid}.png`, rev: 1, createdAt: now, updatedAt: now },
@@ -191,9 +191,9 @@ try {
     // No app labels promotion on dev yet (promotionalMinAppVersions is empty): a version no app has.
     const marked = (await listBody()).collections?.find((c) => c.id === collectionId);
     for (const [what, e] of [['collection', marked], ['channel', listedCh]] as const) {
-      const ok = e?.promotional === true && e.minAppVersion === 9999 && Object.values((e.minAppVersions as Record<string, number> | undefined) ?? {}).every((v) => v === 9999);
+      const ok = e?.promotional === true && Object.values((e.minAppVersions as Record<string, number> | undefined) ?? {}).every((v) => v === 9999);
       if (!ok) process.exitCode = 1;
-      console.log(`  ${ok ? 'PASS' : 'FAIL'} ${what} promotional=${String(e?.promotional)} minAppVersion=${String(e?.minAppVersion)} minAppVersions=${JSON.stringify(e?.minAppVersions)}`);
+      console.log(`  ${ok ? 'PASS' : 'FAIL'} ${what} promotional=${String(e?.promotional)} minAppVersions=${JSON.stringify(e?.minAppVersions)}`);
     }
   }
 

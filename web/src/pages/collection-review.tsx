@@ -272,7 +272,7 @@ export function OperatorCollectionPage() {
           <dt>状態</dt>
           <dd>{c.listed ? <span className="tag active">公開中</span> : <span className={`tag ${c.status}`}>{c.status}</span>}</dd>
           <dt>公開中の版</dt>
-          <dd>{c.latestApproved ? <>版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />） <StageNote appStage={c.latestApproved.appStage} minAppVersion={c.latestApproved.minAppVersion} /></> : '—'}</dd>
+          <dd>{c.latestApproved ? <>版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />） <StageNote appStage={c.latestApproved.appStage} minAppVersions={c.latestApproved.minAppVersions} /></> : '—'}</dd>
           <dt>毎日の確認</dt>
           <dd>
             {c.externalCheck ? <><Time value={c.externalCheck.checkedAt} />{(c.externalCheck.failures ?? []).map((f) => <div key={f.resourceId} className="small"><code>{f.resourceId}</code> {f.status}</div>)}</> : '—'}

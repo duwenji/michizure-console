@@ -84,11 +84,6 @@ export function collectionMinVersions(deps: Pick<Deps, 'apps'>, stage: number, a
     .map(([id, app]) => [id, stageVersion(app, stage)]));
 }
 
-/** `minAppVersion` for the SanpoGuide that predates `minAppVersions` (DES-011 N-6, API-002 P-21). */
-export function legacyMinAppVersion(minAppVersions: Record<string, number>): number {
-  return minAppVersions.sanpoguide ?? NO_APP_VERSION;
-}
-
 /** What happened, for the publisher's email (API-001 C-14). No samples, operator ids or tokens. */
 export interface Notice {
   /** Identifies the notice, so a redelivered message is sent only once (CV-13). */

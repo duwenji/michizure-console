@@ -70,7 +70,7 @@ const asOperator = (method: string, path: string, options?: Parameters<typeof in
 async function approveVersion(version: number, key: PublisherKey) {
   const sid = ulid();
   const manifest = {
-    format: 1, id: channelId, version, publisher: key.accountId,
+    format: 1, activities: ['walk'], id: channelId, version, publisher: key.accountId,
     name: '移し替えの確認', summary: '鍵の移し替えの通しの確認', lang: 'ja', greeting: '確認です。',
     talk: { level: 'quiet', events: { spot: true, revisit: false, milestone: false, rest: false, start: true, finish: true } },
     spots: { prefer: ['temple'], skip: [] }, guide: { length: 'short' }, mood: { tone: false, sound: 'auto' },
@@ -109,7 +109,7 @@ try {
   await db.send(new PutCommand({ TableName: table, Item: { PK: `USER#${publisherSub}`, SK: 'USER', type: 'user', publisherId } }));
   await db.send(new PutCommand({
     TableName: table,
-    Item: { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, ownerSub: publisherSub, displayName: '移し替えの確認の配信元', contact: email, status: 'active', activeAccountId: keyA.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
+    Item: { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, ownerSub: publisherSub, displayName: '移し替えの確認の配信元', contact: email, status: 'active', activeAccountId: keyA.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
   }));
   await db.send(new PutCommand({ TableName: table, Item: { PK: `PUB#${publisherId}`, SK: `KEY#${keyA.accountId}`, type: 'publisher-key', accountId: keyA.accountId, publicKey: b64url.encode(keyA.publicKey), status: 'active', boundAt: now } }));
   await db.send(new PutCommand({ TableName: table, Item: { PK: `ACCOUNT#${keyA.accountId}`, SK: 'ACCOUNT', type: 'account', publisherId } }));

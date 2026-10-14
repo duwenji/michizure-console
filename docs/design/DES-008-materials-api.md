@@ -33,7 +33,7 @@
 | K-1 | 審査の操作（開始・戻す・判定）は、チャンネルと素材集で共通の処理にし、違い（キーの接頭辞、受付・保管の S3 の接頭辞、アイコンの有無、見本の有無、承認で写すもの）を小さな「種類の記述」で渡す | 状態の移り方と同時の書き込みの守り方（M-11）を 1 か所に保つ |
 | K-2 | 素材提供者の役割（C-15）は、アカウントの `roles` に `producer` を足すだけ（`If-Match`）。素材集の操作の入り口で、役割と `active` を確かめる共通の関数を使う（`role_required`・`publisher_not_active`）。`roles` のないアカウントは `["publisher"]` として読む | DM-001 M-16・移行メモ |
 | K-3 | 素材集の承認（C-17）: アカウントに `producerVerification` がなければ、要求の `verification` を必須にし、同じトランザクションで書く。表示名の変更（`PATCH /api/publisher`）で `producerVerification` を消す | DM-001 M-17、D-20 |
-| K-4 | 素材集の承認では、パッケージを公開用のバケットの `col/{sha256}.zip` に写し、申請の `listing` から `latestApproved` を作る（パッケージを開かない）。`minAppVersion` は段と版の対応表（K-6）から決める | DES-007 J-8 |
+| K-4 | 素材集の承認では、パッケージを公開用のバケットの `col/{sha256}.zip` に写し、申請の `listing` から `latestApproved` を作る（パッケージを開かない）。`minAppVersions` は段と版の対応表（K-6）から決める | DES-007 J-8 |
 | K-5 | **D-8 の確かめ直しと同時の書き込み**: 素材集の承認は、利用の記録を読み、`listing.resourceTypes` に記録の素材の ID と種類があることを確かめ（なければ `resource_in_use`）、読んだ利用の記録の `rev` を条件に入れる。チャンネルの承認は、使う素材集の項目の `rev` を条件に入れる。どちらかが後から書くと、もう一方の条件が外れて 412 になる | DM-001 M-22 の「`rev` の条件」。チャンネルと素材集の承認が同時に来ても、参照中の素材が消えない |
 | K-6 | 段と版の対応表（API-001 C-21）は環境ごとの設定（`infra/lib/config.ts` の `appStageVersions`。PR を通して変える）から環境変数 `APP_STAGE_VERSIONS`（JSON）で API の Lambda に渡す。アプリごとの値は [DES-011](DES-011-ecosystem.md) N-4。SanpoGuide は段 0・1（文字と画像）が versionCode 1、段 2・3 は対応するまで 9999 | DES-007 J-9 |
 | K-7 | **チャンネルの承認での素材集の確かめ直し**（API-001）: API は `core-format` を持たないので、機械審査が記録した `listing.collections`・`listing.uses` と、使う素材集の今の項目（`LISTED`・`status`・`latestApproved` の版・`grants`・`resourceTypes`）で確かめる。リストに載っていない・版が `minVersion` より古い・利用許諾が外れた・参照する素材がない、のどれかなら `invalid_state`（`detail` に理由）。通れば、利用の記録を書き直す（使わなくなった素材集の記録は消す） | 機械審査から承認までの間に、素材集が取り下げ・更新されることがある |

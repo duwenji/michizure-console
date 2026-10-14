@@ -85,7 +85,7 @@ class MaterialsReviewTest {
             """
             {
               "format": 1, "id": "kamakura-history", "version": 3, "publisher": "${publisher.account}",
-              "name": "鎌倉歴史散歩", "summary": "鎌倉の寺社と武士の歴史", "lang": "ja", "greeting": "歩きましょう。",
+              "name": "鎌倉歴史散歩", "summary": "鎌倉の寺社と武士の歴史", "lang": "ja", "activities": ["walk"], "greeting": "歩きましょう。",
               "talk": { "level": "normal", "events": { "spot": true, "revisit": true, "milestone": true, "rest": true, "start": true, "finish": true } },
               "spots": { "prefer": [], "skip": [] }, "guide": { "length": "normal" }, "mood": { "tone": true, "sound": "auto" }
             }
@@ -109,7 +109,7 @@ class MaterialsReviewTest {
     private fun catalog(grants: Grants = Grants.EVERYONE, zip: ByteArray = collectionZip(), listed: Boolean = true) = object : Catalog {
         override fun listed(collectionId: String) = if (!listed || collectionId != "kamakura-audio-guide") null else ListedCollection(
             collectionId, 2, producer.account, "", null, "鎌倉音声ガイド", "寺社の音声ガイド", listOf("text", "audio"), 1000,
-            listOf("history"), listOf("xn7"), grants, PackageRef("https://cdn.example.com/col/x.zip", hex(zip), zip.size, 1), 14, Instant.EPOCH,
+            listOf("history"), listOf("xn7"), grants, PackageRef("https://cdn.example.com/col/x.zip", hex(zip), zip.size, 1), Instant.EPOCH, mapOf("sanpoguide" to 14),
         )
         override fun pkg(listed: ListedCollection) = zip
     }

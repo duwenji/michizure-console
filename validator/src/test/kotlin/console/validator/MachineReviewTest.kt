@@ -26,6 +26,7 @@ class MachineReviewTest {
         {
           "format": 1, "id": "$id", "version": $version, "publisher": "$publisher",
           "name": "鎌倉歴史散歩", "summary": "鎌倉の寺社と武士の歴史を、語り部の口調で", "lang": "ja",
+          "activities": ["walk"],
           "greeting": "ここからは、鎌倉の歴史をたどりながら歩きましょう。",
           "talk": { "level": "normal",
                     "events": { "spot": true, "revisit": true, "milestone": true, "rest": false, "start": true, "finish": true } },
@@ -116,44 +117,33 @@ class MachineReviewTest {
 
     // ---- the ecosystem (DES-011) ----
 
-    private fun format2(vararg activities: String) = manifest().apply {
-        put("format", 2)
+    private fun forActivities(vararg activities: String) = manifest().apply {
         put("activities", org.json.JSONArray(activities.toList()))
         put("genres", org.json.JSONArray(listOf("history")))
         put("requires", JSONObject().put("features", org.json.JSONArray(listOf("slot:guide"))))
     }
 
     @Test
-    fun `a format 2 package records what the list copies for the apps (N-3)`() {
-        val outcome = MachineReview.review(upload, pkg(format2("walk", "cycle")), png()) as Outcome.Passed
+    fun `a package records what the list copies for the apps (N-3)`() {
+        val outcome = MachineReview.review(upload, pkg(forActivities("walk", "cycle")), png()) as Outcome.Passed
         assertEquals(listOf("walk", "cycle"), outcome.listing.activities)
         assertEquals(listOf("history"), outcome.listing.genres)
         assertEquals(listOf("slot:guide"), outcome.listing.requires)
         assertTrue(JSONObject(outcome.samplePrompts).getJSONArray("scenarios").length() > 0)
-        // Format 1 is a walking channel with no genre and no requirement (API-003 G-6).
-        val old = MachineReview.review(upload, pkg(), png()) as Outcome.Passed
-        assertEquals(listOf("walk"), old.listing.activities)
-        assertEquals(emptyList<String>(), old.listing.genres + old.listing.requires)
     }
 
     @Test
     fun `values outside the ecosystem's lists are turned away (API-003 V-24)`() {
-        assertEquals(listOf("bad_value"), codes(MachineReview.review(upload, pkg(format2("drive")), png())))
-        assertEquals(listOf("bad_manifest"), codes(MachineReview.review(upload, pkg(manifest().put("format", 2)), png())))
+        assertEquals(listOf("bad_value"), codes(MachineReview.review(upload, pkg(forActivities("drive")), png())))
+        assertEquals(listOf("bad_manifest"), codes(MachineReview.review(upload, pkg(manifest().apply { remove("activities") }), png())))
+        assertEquals(listOf("unsupported_format"), codes(MachineReview.review(upload, pkg(manifest().put("format", 2)), png())))
     }
 
     @Test
     fun `a channel not for walking has no samples until its activity has a representative app (N-8)`() {
-        val outcome = MachineReview.review(upload, pkg(format2("cycle")), png()) as Outcome.Passed
+        val outcome = MachineReview.review(upload, pkg(forActivities("cycle")), png()) as Outcome.Passed
         val samples = JSONObject(outcome.samplePrompts)
         assertEquals(0, samples.getJSONArray("scenarios").length())
         assertEquals("cycle", samples.getJSONArray("noRepresentativeApp").getString(0))
-    }
-
-    @Test
-    fun `format 1 is turned away once retired (N-2)`() {
-        val retired = upload.copy(format1Retired = true)
-        assertEquals(listOf("format_retired"), codes(MachineReview.review(retired, pkg(), png())))
-        assertTrue(MachineReview.review(retired, pkg(format2("walk")), png()) is Outcome.Passed)
     }
 }

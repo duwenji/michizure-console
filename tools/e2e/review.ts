@@ -51,7 +51,7 @@ const channelId = `e2e-review-${Date.now().toString(36)}`;
 const sid = ulid();
 const now = new Date().toISOString();
 const manifest = {
-  format: 1, id: channelId, version: 1, publisher: key.accountId,
+  format: 1, activities: ['walk'], id: channelId, version: 1, publisher: key.accountId,
   name: '通しの確認', summary: '承認までの通しの確認', lang: 'ja', greeting: '確認です。',
   talk: { level: 'quiet', events: { spot: true, revisit: false, milestone: false, rest: false, start: true, finish: true } },
   spots: { prefer: ['temple'], skip: [] }, guide: { length: 'short' }, mood: { tone: false, sound: 'auto' },
@@ -61,7 +61,7 @@ const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAA
 
 const seeded = [
   { PK: `USER#${publisherSub}`, SK: 'USER', type: 'user', publisherId },
-  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, displayName: '通しの確認の配信元', status: 'active', activeAccountId: key.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
+  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, displayName: '通しの確認の配信元', status: 'active', activeAccountId: key.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
   { PK: `CH#${channelId}`, SK: 'CH', type: 'channel', channelId, publisherId, status: 'active', rev: 1, pendingSubmissionId: sid, createdAt: now, updatedAt: now, GSI1PK: `PUB#${publisherId}`, GSI1SK: `CH#${channelId}` },
   {
     PK: `CH#${channelId}`, SK: `SUB#${sid}`, type: 'submission', submissionId: sid, channelId, publisherId, accountId: key.accountId,

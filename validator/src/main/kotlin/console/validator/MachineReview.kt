@@ -37,8 +37,6 @@ data class Upload(
     val latestApprovedVersion: Int?,
     /** The account's ids before it moved to a new key: a collection granted to one still counts (API-004 W-13). */
     val formerAccountIds: Set<String> = emptySet(),
-    /** Format 1 packages are no longer taken (DES-011 N-2). */
-    val format1Retired: Boolean = false,
 )
 
 /** One reason a submission failed, with API-003's code where there is one (API-001 `Validation`). */
@@ -173,7 +171,7 @@ object MachineReview {
         if (zip.size > MAX_PACKAGE) {
             findings += Finding("bad_archive", "${zip.size} bytes (max $MAX_PACKAGE)")
         } else {
-            // Every stage: the console checks it all, and the app version a channel needs is minAppVersion's job (J-1).
+            // Every stage: the console checks it all, and the app version a channel needs is minAppVersions' job (J-1).
             when (val result = StationValidator.checkArchive(zip, listedAs = null, verifier = JcaEd25519, mediaStage = StationValidator.ALL_STAGES)) {
                 is StationCheck.Rejected -> findings += Finding(result.code.json, result.detail)
                 is StationCheck.Ok -> {
@@ -185,9 +183,6 @@ object MachineReview {
                     }
                     upload.latestApprovedVersion?.let { latest ->
                         if (manifest.version <= latest) findings += Finding("version_not_newer", "version ${manifest.version} is not after the approved $latest")
-                    }
-                    if (manifest.format == 1 && upload.format1Retired) {
-                        findings += Finding("format_retired", "format 1 packages are no longer taken: write format 2 (API-003)")
                     }
                     val resolved = resolveCollections(upload, result, catalog)
                     collections = resolved.results
@@ -252,7 +247,8 @@ object MachineReview {
         val former = upload.formerAccountIds.map { from ->
             ListedChannel(
                 upload.channelId, 0, upload.accountId, "", PublisherChange(from, at, ""), "", "", null,
-                emptyList(), emptyList(), emptyList(), FileRef("", ""), PackageRef("", "", 0, 1), 0, at,
+                emptyList(), emptyList(), emptyList(), FileRef("", ""), PackageRef("", "", 0, 1), at,
+                emptyList(), 0, emptyList(), emptyList(), emptyList(), emptyMap(),
             )
         }
         return ChannelList("console", 0, at, at, "", former, emptyList(), collections, emptyList())

@@ -207,7 +207,7 @@ describe('reviewing collections', () => {
       listed: true, pendingSubmissionId: null,
       latestApproved: {
         version: 1, name: '鎌倉音声ガイド', media: ['audio', 'text'], tags: ['history'], regions: ['xn7'], grants: { publishers: '*' },
-        package: { url: `https://provider.example/col/${'ab'.repeat(32)}.zip`, size: 1000, format: 1 }, appStage: 2, minAppVersion: 9999,
+        package: { url: `https://provider.example/col/${'ab'.repeat(32)}.zip`, size: 1000, format: 1 }, appStage: 2, minAppVersions: { sanpoguide: 9999 },
       },
     });
     // The account knows it is checked; only operators see how.
@@ -287,7 +287,7 @@ describe('reviewing collections', () => {
       TableName: deps.table,
       Item: { PK: 'CH#kamakura-history', SK: 'CH', type: 'channel', channelId: 'kamakura-history', publisherId: 'PUBX', status: 'active', latestApproved: { name: '鎌倉歴史散歩' }, rev: 1 },
     }));
-    await deps.db.send(new PutCommand({ TableName: deps.table, Item: { PK: 'PUB#PUBX', SK: 'PUB', type: 'publisher', publisherId: 'PUBX', displayName: '鎌倉歴史散歩の会', status: 'active', rev: 1 } }));
+    await deps.db.send(new PutCommand({ TableName: deps.table, Item: { PK: 'PUB#PUBX', SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId: 'PUBX', displayName: '鎌倉歴史散歩の会', status: 'active', rev: 1 } }));
     await deps.db.send(new PutCommand({
       TableName: deps.table,
       Item: { PK: 'COL#kamakura-audio-guide', SK: 'USEDBY#kamakura-history', type: 'used-by', collectionId: 'kamakura-audio-guide', channelId: 'kamakura-history', publisherId: 'PUBX', channelVersion: 3, resources: { narration: 'audio' }, rev: 1 },
@@ -312,18 +312,18 @@ describe('channels using collections', () => {
   it('gives a version to the apps a collection is granted to (DES-011 N-5, N-6)', async () => {
     await approvedCollection({ ...LISTING, appStage: 0, grants: { publishers: '*', apps: ['sanpoguide'] } });
     const forSanpo = (await call(alice, 'GET', '/api/collections/kamakura-audio-guide')).body.latestApproved;
-    expect(forSanpo).toMatchObject({ grants: { publishers: '*', apps: ['sanpoguide'] }, minAppVersions: { sanpoguide: 1 }, minAppVersion: 1 });
+    expect(forSanpo).toMatchObject({ grants: { publishers: '*', apps: ['sanpoguide'] }, minAppVersions: { sanpoguide: 1 } });
   });
 
   it('gives the older SanpoGuide a version no app has when the collection isn’t granted to it (API-002 P-21)', async () => {
     await approvedCollection({ ...LISTING, appStage: 0, grants: { publishers: '*', apps: ['boat'] } });
     const elsewhere = (await call(alice, 'GET', '/api/collections/kamakura-audio-guide')).body.latestApproved;
-    expect(elsewhere).toMatchObject({ minAppVersions: {}, minAppVersion: 9999 });
+    expect(elsewhere).toMatchObject({ minAppVersions: {} });
   });
 
   const CHANNEL_LISTING = {
     appStage: 2, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 1 }], ownPrefetchBytes: 0, ownMedia: [],
-    uses: { 'kamakura-audio-guide': { narration: 'audio' } },
+    uses: { 'kamakura-audio-guide': { narration: 'audio' } }, activities: ['walk'], genres: [], requires: [],
   };
 
   /** Bob's channel submission that the machine review passed, using the collection. */
@@ -334,7 +334,7 @@ describe('channels using collections', () => {
     }
     const created = await call(bob, 'POST', '/api/channels/kamakura-history/submissions', { body: {} });
     const sid = created.body.submission.submissionId as string;
-    const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
+    const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ format: 1, activities: ['walk'], id: 'kamakura-history', version, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
     uploads.set(`intake/kamakura-history/${sid}.zip`, zip);
     await deps.db.send(new UpdateCommand({
       TableName: deps.table, Key: { PK: 'CH#kamakura-history', SK: `SUB#${sid}` },
@@ -360,14 +360,14 @@ describe('channels using collections', () => {
     expect((await approveChannel(await channelAwaiting(1))).status).toBe(200);
     expect(await usedBy()).toMatchObject({ channelId: 'kamakura-history', channelVersion: 1, resources: { narration: 'audio' }, rev: 1, GSI1PK: 'CH#kamakura-history' });
     const channel = await call(bob, 'GET', '/api/channels/kamakura-history');
-    expect(channel.body.latestApproved).toMatchObject({ minAppVersion: 9999, appStage: 2, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 1 }] });
+    expect(channel.body.latestApproved).toMatchObject({ minAppVersions: { sanpoguide: 9999 }, appStage: 2, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 1 }] });
     expect((await call(alice, 'GET', '/api/collections/kamakura-audio-guide/used-by')).body.items).toEqual([
       { channelId: 'kamakura-history', channelName: '鎌倉歴史散歩', channelVersion: 1, publisherName: '鎌倉歴史散歩の会', resources: ['narration'] },
     ]);
     // A version that no longer uses it drops the record (DM-001 M-22).
     expect((await approveChannel(await channelAwaiting(2, { ...CHANNEL_LISTING, appStage: 0, collections: [], uses: {} }))).status).toBe(200);
     expect(await usedBy()).toBeUndefined();
-    expect((await call(bob, 'GET', '/api/channels/kamakura-history')).body.latestApproved.minAppVersion).toBe(1);
+    expect((await call(bob, 'GET', '/api/channels/kamakura-history')).body.latestApproved.minAppVersions).toEqual({ sanpoguide: 1 });
   });
 
   it('check the collections again at approval (DES-008 K-7)', async () => {
@@ -489,11 +489,11 @@ describe('publishing with collections', () => {
     await call(bob, 'POST', '/api/channels', { body: { channelId: 'kamakura-history' } });
     const created = await call(bob, 'POST', '/api/channels/kamakura-history/submissions', { body: {} });
     const sid = created.body.submission.submissionId as string;
-    const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version: 1, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
+    const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ format: 1, activities: ['walk'], id: 'kamakura-history', version: 1, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
     uploads.set(`intake/kamakura-history/${sid}.zip`, zip);
     const listing = {
       appStage: 2, collections: [{ as: 'kamakura', id: 'kamakura-audio-guide', minVersion: 1 }], ownPrefetchBytes: 300, ownMedia: ['image'],
-      uses: { 'kamakura-audio-guide': { narration: 'audio' } },
+      uses: { 'kamakura-audio-guide': { narration: 'audio' } }, activities: ['walk'], genres: [], requires: [],
     };
     await deps.db.send(new UpdateCommand({
       TableName: deps.table, Key: { PK: 'CH#kamakura-history', SK: `SUB#${sid}` },
@@ -510,13 +510,13 @@ describe('publishing with collections', () => {
     const { record, list } = await publishList();
     expect(list.channels.map((c) => c.id)).toEqual(['kamakura-history']);
     const channel = list.channels[0]!;
-    expect(channel).toMatchObject({ media: ['audio', 'image', 'text'], resourcesSize: 300 + LISTING.resourcesSize, minAppVersion: 9999 });
+    expect(channel).toMatchObject({ media: ['audio', 'image', 'text'], resourcesSize: 300 + LISTING.resourcesSize, minAppVersions: { sanpoguide: 9999 } });
     // What approval keeps for itself stays out of the list.
     for (const field of ['appStage', 'collections', 'ownPrefetchBytes', 'ownMedia', 'submissionId']) expect(channel).not.toHaveProperty(field);
     expect(list.collections).toEqual([
       expect.objectContaining({
         id: 'kamakura-audio-guide', version: 1, producerName: '鎌倉市観光協会', media: ['audio', 'text'], resourcesSize: LISTING.resourcesSize,
-        tags: ['history'], regions: ['xn7'], grants: { publishers: '*' }, minAppVersion: 9999,
+        tags: ['history'], regions: ['xn7'], grants: { publishers: '*' }, minAppVersions: { sanpoguide: 9999 },
       }),
     ]);
     for (const field of ['resourceTypes', 'externalResources', 'appStage', 'submissionId']) expect(list.collections![0]).not.toHaveProperty(field);

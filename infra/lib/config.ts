@@ -30,11 +30,6 @@ export interface EnvConfig {
    */
   appStageVersions: Record<string, Record<number, number>>;
   /**
-   * The last moment format 1 channel packages are taken (SanpoGuide API-003 G-6, DES-011 N-2).
-   * Unset: no end.
-   */
-  format1AcceptUntil?: string;
-  /**
    * By app id: the version (versionCode) that first labels promotion (DES-012 R-5, SanpoGuide
    * ADR-002 D-36). Promotional channels and collections need at least it; an app without one gets a
    * version no app has. Set in production when the app is on Google Play.
