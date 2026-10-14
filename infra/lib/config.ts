@@ -30,14 +30,14 @@ export interface EnvConfig {
    */
   appStageVersions: Record<string, Record<number, number>>;
   /**
-   * The last moment format 1 channel packages are taken (SanpoGuide API-003 2.0 G-6, DES-011 N-2):
-   * the day SanpoGuide with format 2 is on Google Play, plus 90 days. Unset: no end yet.
+   * The last moment format 1 channel packages are taken (SanpoGuide API-003 G-6, DES-011 N-2).
+   * Unset: no end.
    */
   format1AcceptUntil?: string;
   /**
    * By app id: the version (versionCode) that first labels promotion (DES-012 R-5, SanpoGuide
    * ADR-002 D-36). Promotional channels and collections need at least it; an app without one gets a
-   * version no app has. Set when the app with ADR-002 T-14 is on Google Play.
+   * version no app has. Set in production when the app is on Google Play.
    */
   promotionalMinAppVersions: Record<string, number>;
   /** What this environment pays for (see docs/operations/cost.md). Production keeps every protection. */
@@ -64,14 +64,13 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     region: 'ap-northeast-1',
     providerName: 'SanpoGuide チャンネル（開発）',
     signingKeyIds: ['k-2026-10'],
-    // No sending domain in development: the notices are recorded, not sent (2026-10-04, the developer's decision).
+    // No sending domain in development: the notices are recorded, not sent.
     notify: { mode: 'log' },
-    // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
-    appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
-    // SanpoGuide versionCode 3 labels promotion (ADR-002 T-14). Development only, to try it before
-    // Google Play; production waits for the release (DES-012 未決事項 No.2, the developer's decision 2026-10-12).
-    promotionalMinAppVersions: { sanpoguide: 3 },
-    // Development keeps cost to the minimum (2026-10-04, the developer's decision).
+    // SanpoGuide versionCode 1 shows stage 0 and 1 (text and images); audio and video wait.
+    appStageVersions: { sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } },
+    // SanpoGuide versionCode 1 labels promotion. Production waits for Google Play (DES-012 未決事項 No.2).
+    promotionalMinAppVersions: { sanpoguide: 1 },
+    // Development keeps cost to the minimum.
     cost: {
       waf: false,
       pointInTimeRecovery: false,
@@ -87,8 +86,8 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     signingKeyIds: ['k-2026-10'],
     // Switch to { mode: 'ses', from: … } once the domain (T-7) and SES production access (T-8) are ready.
     notify: { mode: 'log' },
-    // Stage 1 (text and images) ships with SanpoGuide versionCode 2 (ADR-002 T-8, 2026-10-11).
-    appStageVersions: { sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } },
+    // SanpoGuide versionCode 1 shows stage 0 and 1 (text and images); audio and video wait.
+    appStageVersions: { sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } },
     promotionalMinAppVersions: {},
     cost: { waf: true, pointInTimeRecovery: true, cursorKey: 'secret' },
   },

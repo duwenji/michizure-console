@@ -3,8 +3,8 @@
 | 項目 | 内容 |
 |---|---|
 | 対象 | yorisoi-console（SanpoGuide の第三者のチャンネルを審査して公開するシステム） |
-| 版 | 1.1（2026-10-12） |
-| 前提の版 | 実装の順番 4（素材集と素材提供者）まで。[DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) |
+| 版 | 1.0 |
+| 前提 | [DES-001](../design/DES-001-publisher.md)〜[DES-012](../design/DES-012-promotional.md) の機能 |
 
 ## このシステムでできること
 
@@ -39,7 +39,7 @@ flowchart LR
 | （印なし） | 今使える |
 | 🚧 **予定** | 契約書（[API-001](../console-api.md)）で決まっているが、まだ作っていない。画面・操作の細部は変わることがある |
 
-2026-10-12 の時点で使えるのは、運営の画面（チャンネルと素材集の審査・鍵の移し替えを含む）、チャンネル提供者の画面（登録・鍵・鍵の移し替え・チャンネル・申請・機械の確認・試用チケット・審査の結果・取り消し・退会）、素材提供者の画面（素材集の登録・申請・身元の確認・使っているチャンネル・毎日の確認の結果）、チャンネル提供者・素材提供者へのメール（開発用は記録だけ）、開発・保守の道具です。アプリでの試用チケットの読み込みも、SanpoGuide 側で実装済みです（2026-10-04）。宣伝を含むチャンネル・素材集の申告は 🚧 予定です（[TODO](../TODO.md)）。
+使えるのは、運営の画面（チャンネルと素材集の審査・鍵の移し替えを含む）、チャンネル提供者の画面（登録・鍵・鍵の移し替え・チャンネル・申請・機械の確認・試用チケット・審査の結果・取り消し・退会）、素材提供者の画面（素材集の登録・申請・身元の確認・使っているチャンネル・毎日の確認の結果）、チャンネル提供者・素材提供者へのメール（開発用は記録だけ）、開発・保守の道具です。アプリでの試用チケットの読み込みも、SanpoGuide 側で実装済みです（2026-10-04）。宣伝を含むチャンネル・素材集の申告は 🚧 予定です（[TODO](../TODO.md)）。
 
 ## 環境
 
@@ -86,5 +86,5 @@ flowchart LR
 | [API-001](../console-api.md)・[OpenAPI](../api/console.openapi.yaml) | 管理 API の契約 |
 | SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) | 承認済みチャンネル・リストの形式（アプリとの約束） |
 | SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) | パッケージの形式 |
-| SanpoGuide [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか（1.0、2026-10-11 承認） |
+| SanpoGuide [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値と手順 |

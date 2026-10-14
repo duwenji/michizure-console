@@ -94,7 +94,7 @@ sealed interface Outcome {
     data class Failed(val findings: List<Finding>, val version: Int?, val collections: List<CollectionResult> = emptyList()) : Outcome
 }
 
-/** What the console knows about a collection submission (DM-001 1.3). */
+/** What the console knows about a collection submission (DM-001). */
 data class CollectionUpload(
     val collectionId: String,
     val submissionId: String,
@@ -187,7 +187,7 @@ object MachineReview {
                         if (manifest.version <= latest) findings += Finding("version_not_newer", "version ${manifest.version} is not after the approved $latest")
                     }
                     if (manifest.format == 1 && upload.format1Retired) {
-                        findings += Finding("format_retired", "format 1 packages are no longer taken: write format 2 (API-003 2.0)")
+                        findings += Finding("format_retired", "format 1 packages are no longer taken: write format 2 (API-003)")
                     }
                     val resolved = resolveCollections(upload, result, catalog)
                     collections = resolved.results

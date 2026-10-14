@@ -90,7 +90,7 @@ export class ConsoleStack extends Stack {
         // Honors the Cache-Control the publisher sets: 5 minutes for the lists, long for hashed files.
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
-      // With the custom domain (ADR-001 T-7), add its certificate and minimumProtocolVersion TLS_V1_2_2021;
+      // With the custom domain (ADR-001 T-2), add its certificate and minimumProtocolVersion TLS_V1_2_2021;
       // the default CloudFront certificate ignores that setting.
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
     });

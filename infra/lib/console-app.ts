@@ -159,7 +159,7 @@ export class ConsoleApp extends Construct {
         // Settled submissions are kept 90 days (DM-001 M-4); uploads that never got a result go after 30.
         { prefix: 'archive/', expiration: Duration.days(90) },
         { prefix: 'intake/', expiration: Duration.days(30) },
-        // Collections the same way, under their own prefixes (DM-001 1.3: their ids may equal a channel's).
+        // Collections the same way, under their own prefixes (DM-001: their ids may equal a channel's).
         { prefix: 'archive-col/', expiration: Duration.days(90) },
         { prefix: 'intake-col/', expiration: Duration.days(30) },
         { abortIncompleteMultipartUploadAfter: Duration.days(1) },
@@ -320,7 +320,7 @@ export class ConsoleApp extends Construct {
     intakeBucket.grantRead(consoleFn, 'intake/*');
     intakeBucket.grantDelete(consoleFn, 'intake/*');
     intakeBucket.grantPut(consoleFn, 'archive/*');
-    // Collections (DES-008): their own prefixes, and approved packages under col/ (DM-001 1.3).
+    // Collections (DES-008): their own prefixes, and approved packages under col/ (DM-001).
     intakeBucket.grantPut(consoleFn, 'intake-col/*');
     intakeBucket.grantRead(consoleFn, 'intake-col/*');
     intakeBucket.grantDelete(consoleFn, 'intake-col/*');

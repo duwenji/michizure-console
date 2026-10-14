@@ -1,5 +1,5 @@
 /**
- * The ecosystem's vocabulary (SanpoGuide API-003 2.0, ADR-003 E-9), as `core-format` holds it.
+ * The ecosystem's vocabulary (SanpoGuide API-003, ADR-003 E-9), as `core-format` holds it.
  * Values are added there first; keep these in step when the console takes a new core-format.
  */
 export const ACTIVITIES = ['walk', 'cycle'] as const;

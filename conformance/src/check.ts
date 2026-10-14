@@ -51,15 +51,15 @@ const TITLES: Record<CheckId, string> = {
   'V-20': 'collections a channel declares are listed, new enough and granted to its publisher',
   'V-21': 'media and resourcesSize are well-formed',
   'V-25': 'collections’ tags, regions and grants match their packages',
-  'V-27': 'channels’ activities, genres and requires match their packages (API-002 1.4)',
-  'V-29': 'minAppVersions name app ids with positive versions (API-002 1.4)',
+  'V-27': 'channels’ activities, genres and requires match their packages (API-002)',
+  'V-29': 'minAppVersions name app ids with positive versions (API-002)',
   // The console's own check (DES-012 R-8): API-002 P-16 has no number for it.
-  'C-P1': 'promotional is a boolean, and a channel declaring a promotional collection is promotional (API-002 1.3 P-16)',
+  'C-P1': 'promotional is a boolean, and a channel declaring a promotional collection is promotional (API-002 P-16)',
 };
 
 const MEDIA = new Set(['text', 'image', 'audio', 'video']);
 
-/** Grants as written and as listed: the same publishers and apps, in any order (API-004 1.5 I-11). */
+/** Grants as written and as listed: the same publishers and apps, in any order (API-004 I-11). */
 function sameGrants(a: unknown, b: { publishers: '*' | string[]; apps?: string[] }): boolean {
   if (typeof a !== 'object' || a === null) return false;
   const g = a as { publishers?: unknown; apps?: unknown };
@@ -210,7 +210,7 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
     if (list.channels.length === 0) set('V-07', 'skip', 'no channels');
     set('V-08', 'pass', 'list ≤ 1MB, packages ≤ 2MB, icons ≤ 100KB');
 
-    // API-002 1.2 (V-19, V-20, V-21, V-25): collections. A list from before 1.2 has none.
+    // API-002 (V-19, V-20, V-21, V-25): collections. A list without collections has none.
     const collections: CollectionEntry[] = list.collections ?? [];
     const colIds = collections.map((c) => c.id);
     const badCol = colIds.find((id) => !CHANNEL_ID.test(id));
@@ -272,7 +272,7 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
     }
     set('V-25', 'pass', `${collectionPackages.size} collections`);
 
-    // V-27 (API-002 1.4 P-19): what the list copies for the apps to choose by is what the package says.
+    // V-27 (API-002 P-19): what the list copies for the apps to choose by is what the package says.
     // A package in format 1 is a walking channel with no genre and no requirement (API-003 G-6).
     for (const [id, bytes] of channelPackages) {
       const entry = list.channels.find((c) => c.id === id)!;

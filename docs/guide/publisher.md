@@ -66,7 +66,7 @@ prompts/
 - 文章の合計は 4,000 字まで。UTF-8（BOM なし）、改行は LF（CR を含むと拒まれます）
 - 文章に `{{`、URL（`http://`・`https://`・`www.`）、見出し（`#` で始まる行）を書けません
 - 天気の急変・日の入り・施設の案内には指示を書けません。これらはどのチャンネルでもアプリが同じ言葉で知らせます
-- 素材ときっかけ（`resources`・`collections`・`selectors`・`cues`）も入れられます（[API-003「素材・きっかけ・見せ方」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)）。アプリが対応しているのは文字と画像（第 1 段、SanpoGuide の versionCode 2 から）までで、音声・映像を使うチャンネルは、対応したアプリが出るまで散策者に届きません
+- 素材ときっかけ（`resources`・`collections`・`selectors`・`cues`）も入れられます（[API-003「素材・きっかけ・見せ方」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)）。アプリが対応しているのは文字と画像（第 1 段）までで、音声・映像を使うチャンネルは、対応したアプリが出るまで散策者に届きません
 
 ### 3.2 channel.json
 
@@ -92,7 +92,7 @@ prompts/
 
 | 項目 | 決まり |
 |---|---|
-| `format` | `2`（2026-10-12 から）。`1` は、format 2 に対応した散策ガイドの公開から 90 日まで受け付けます（その後は `format_retired` で通りません。公開中の format 1 のチャンネルは、更新するまでそのまま届きます） |
+| `format` | `2`。`1`（過ごし方を書かない形式。散歩のチャンネルとして扱います）も受け付けます |
 | `activities` | このチャンネルが合う過ごし方: `walk`（散歩）・`cycle`（サイクリング）から 1〜4 個。語り手の文章がその過ごし方に合っているかは、人の審査で確かめます。チャンネルは、過ごし方が合うアプリにだけ届きます（今あるのは散歩の「散策ガイド」だけ） |
 | `genres` | 散策者が探すときの分類: `general`・`history`・`nature`・`food`・`shopping` から 0〜3 個 |
 | `requires.features` | これがないアプリでは成り立たない機能（`slot:guide`、`trigger:point`、`present:fullscreen` など。[API-003「機能」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)）。書いた機能を持たないアプリには届きません。書かない機能は、持たないアプリでは使われないだけです |

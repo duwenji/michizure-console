@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // The machine review (ADR-001 A-11): a Lambda that checks an uploaded package with the very code
 // the app uses (yorisoi core-format), and renders the review samples with SanpoGuide's prompt pack
-// (API-001 C-1; SanpoGuide RFC-002 R-12). Published by yorisoi-platform and yorisoi-sanpoguide (RFC-004).
+// (API-001 C-1). Published by yorisoi-platform and yorisoi-sanpoguide.
 plugins {
     kotlin("jvm") version "2.2.0"
 }
@@ -18,7 +18,7 @@ kotlin {
 
 dependencies {
     implementation("io.github.duwenji.yorisoi:core-format:1.0.0")
-    implementation("io.github.duwenji.yorisoi.sanpoguide:prompts:3.0.0")
+    implementation("io.github.duwenji.yorisoi.sanpoguide:prompts:1.0.0")
     // core-format leaves org.json to its users (Android ships one).
     implementation("org.json:json:20240303")
     implementation("com.amazonaws:aws-lambda-java-core:1.4.0")

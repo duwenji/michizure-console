@@ -165,7 +165,7 @@ export function verifyChannelList(value: unknown, keyset: Keyset, options: { now
   }
   if (body.provider !== keyset.provider) fail('provider_mismatch', `list is for ${body.provider}`);
   if (!Array.isArray(body.channels) || !Array.isArray(body.revoked)) fail('bad_document', 'list lacks channels or revoked');
-  // API-002 1.2: optional, but lists when present.
+  // API-002: optional, but lists when present.
   for (const field of ['collections', 'revokedCollections'] as const) {
     if (body[field] !== undefined && !Array.isArray(body[field])) fail('bad_document', `${field} is not a list`);
   }

@@ -4,7 +4,7 @@ yorisoi-console を 8 枚の図で説明する。図 1 で「誰が何を使い�
 
 - 何をするシステムか: SanpoGuide のアプリに第三者のチャンネルと素材集を届けるため、チャンネル提供者・素材提供者の申請を審査し、承認したものだけを署名したリスト（承認済みチャンネル・リスト）で公開する
 - アプリとの境界は SanpoGuide の [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来る
-- 規模（2026-10-12）: ソース 71 ファイル・約 10,440 行（TypeScript と Kotlin。テスト・生成した型・e2e を除く）、テスト 16 ファイル・約 2,920 行。Lambda 5 つ、画面 1 つ（運営・チャンネル提供者・素材提供者で共用）、管理 API 66 操作、DynamoDB のテーブル 1 つ、S3 のバケット 4 つ
+- 規模: ソース 71 ファイル・約 10,440 行（TypeScript と Kotlin。テスト・生成した型・e2e を除く）、テスト 16 ファイル・約 2,920 行。Lambda 5 つ、画面 1 つ（運営・チャンネル提供者・素材提供者で共用）、管理 API 66 操作、DynamoDB のテーブル 1 つ、S3 のバケット 4 つ
 
 **手で配置した図・凡例・コードから確かめた細部つきの版は [architecture.html](architecture.html)**（ブラウザで開く）。この Markdown 版は GitHub の上で読むためのもので、同じ構成を Mermaid で描いている。
 
@@ -19,7 +19,7 @@ flowchart LR
   subgraph USERS["利用者"]
     OP["運営<br/>審査・取り下げ・鍵の移し替えの承認"]
     PUB["チャンネル提供者<br/>チャンネルの申請・試用チケット"]
-    PROD["素材提供者<br/>素材集の申請（1.3）"]
+    PROD["素材提供者<br/>素材集の申請"]
     APPUSER["SanpoGuide のアプリ<br/>（散策者の端末）"]
   end
 
@@ -88,7 +88,7 @@ flowchart TB
     validator["validator<br/>機械審査の Lambda<br/>チャンネルと素材集"]
   end
   subgraph SG["SanpoGuide（別リポジトリ）"]
-    sf["core-format・prompts<br/>パッケージ・素材集の形式・確認、SanpoGuide のプロンプト<br/>（GitHub Packages。core-format 1.0.0 は yorisoi-platform、prompts 2.0.0 は yorisoi-sanpoguide が公開。yorisoi-platform RFC-004）"]
+    sf["core-format・prompts<br/>パッケージ・素材集の形式・確認、SanpoGuide のプロンプト<br/>（GitHub Packages。core-format は yorisoi-platform、prompts は yorisoi-sanpoguide が公開）"]
     app["アプリ"]
   end
 
@@ -130,7 +130,7 @@ flowchart TB
 
 - KMS は 4,096 バイトまでしか署名できないので、リストは本体ではなく要約に署名する（API-002 P-8）
 - 素材集も同じ形で縛られる。リストの `collections[]` が素材集のパッケージ（`/col/{sha256}.zip`）の SHA-256 を持ち、素材集の中には素材提供者の署名（素材提供者の鍵 = アカウントID）が入る（SanpoGuide API-004）
-- ルート鍵はリポジトリにも AWS にも置かない。開発用のルート鍵は開発者の端末の `~/.yorisoi-console/dev/`、本番のルート鍵はオフラインの端末で作る（T-5）
+- ルート鍵はリポジトリにも AWS にも置かない。開発用のルート鍵は開発者の端末の `~/.yorisoi-console/dev/`、本番のルート鍵はオフラインの端末で作る（ADR-001 T-1）
 - チャンネル提供者の鍵はチャンネル提供者のブラウザの中だけ。なくしたときは、運営の本人確認を経て新しい鍵に移す（図 4 の下）
 
 ## 図 4 · 申請から公開まで
@@ -175,7 +175,7 @@ sequenceDiagram
 - **取り下げ**: 運営が理由を付けて取り下げると、リストの `revoked` に 7 日載り、アプリは端末から消して理由を知らせる
 - **鍵の移し替え**: チャンネル提供者が新しい鍵を作って申し出て、運営が鍵とは別の経路で本人確認してから承認する。すべてのチャンネルと素材集が新しい鍵に移り、古い鍵の審査待ちの申請は差し戻される。新しい鍵の最初の版が承認されると、リストに `publisherChange`（素材集は `producerChange`）が 90 日載る
 - **素材集**: 素材提供者の申請も同じ流れ（受付は `intake-col/`、承認したパッケージは `col/{sha256}.zip`。アイコンと AI の見本はない）。チャンネルの承認のときに、使う素材集の版・素材を「利用の記録」に書く。素材集の取り下げ・新しい版・利用許諾の縮小のときは、使っているチャンネル提供者にメールで知らせる（DES-008）
-- **アプリの段**: 素材の種類ごとに、出せるアプリの版を決めている（`infra/lib/config.ts` の `appStageVersions`）。2026-10-11 に段 1（文字・画像）を SanpoGuide の versionCode 2 にした。段 2（音声）・段 3（映像）はまだ大きな仮の値で、そうした素材を使うチャンネルは今のアプリには出ない
+- **アプリの段**: 素材の種類ごとに、出せるアプリの版を決めている（`infra/lib/config.ts` の `appStageVersions`）。SanpoGuide は段 0・1（文字・画像）が versionCode 1。段 2（音声）・段 3（映像）は大きな仮の値で、そうした素材を使うチャンネルは、対応したアプリが出るまでどのアプリにも出ない
 
 ## 図 5 · 公開の Lambda: 何度呼ばれても、作るリストは 1 つずつ
 
@@ -201,7 +201,7 @@ flowchart LR
 
 - 内容が変わらなくても毎日作り直す。リストは 14 日で切れるので、毎日の公開が 2 日止まると警報が出る（図 7）
 - `seq` を条件に書くので、2 つの公開が重なっても `seq` が飛んだり戻ったりしない。古い `seq` のリストはアプリが拒む
-- リストには、チャンネルの `channels[]` と並んで、素材集の `collections[]`・`revokedCollections[]` を載せる（API-002 1.2）
+- リストには、チャンネルの `channels[]` と並んで、素材集の `collections[]`・`revokedCollections[]` を載せる（API-002）
 - 毎日の外部の素材の確認（DES-009 M-7）は公開が終わった後に行い、失敗しても公開は失敗にしない。機械審査と同じ規則で内側のアドレスを拒む（M-8）
 
 ## 図 6 · データの置き場所
@@ -213,7 +213,7 @@ flowchart TB
     d2["PUB#{id} — アカウント（チャンネル提供者・素材提供者の役割）・鍵・移し替え・1 日の数・一度きりの文字列"]
     d3["ACCOUNT#{sg1…} — アカウントIDの予約（二度と使わせない）"]
     d4["CH#{id} — チャンネル・申請・審査の記録・試用チケット・取り下げ"]
-    d4b["COL#{id} — 素材集・申請・審査の記録・取り下げ・利用の記録 USEDBY#（1.3）"]
+    d4b["COL#{id} — 素材集・申請・審査の記録・取り下げ・利用の記録 USEDBY#"]
     d5["KEYSET・SIGNKEY・PUBLICATION — 鍵セット・署名鍵・公開の記録"]
     d6["AUDIT#{yyyy-mm} — 操作の記録（消さない）"]
     d7["NOTICE#{id} — 送ったメールの印（30 日）"]
@@ -253,12 +253,12 @@ flowchart LR
 | | 開発用（dev） | 本番（prod） |
 |---|---|---|
 | AWS アカウント | 開発用（ap-northeast-1） | 本番用に分ける（未作成） |
-| ルート鍵 | 開発者の端末（`~/.yorisoi-console/dev/`） | オフラインの端末（T-5 の手順） |
+| ルート鍵 | 開発者の端末（`~/.yorisoi-console/dev/`） | オフラインの端末（ADR-001 T-1 の手順） |
 | 一覧のカーソルの鍵 | 配備のたびに作る（環境変数） | Secrets Manager |
 | WAF（Cognito） | なし | あり |
 | DynamoDB のポイントインタイムリカバリ | なし | あり |
 | ログの保持 | 14 日 | 期限なし |
-| メール | 記録だけ（`notify: log`） | ドメイン（T-7）と SES の準備（T-8）のあと `ses` |
+| メール | 記録だけ（`notify: log`） | ドメイン（ADR-001 T-2）と SES の準備（T-3）のあと `ses` |
 | 費用の上限の通知 | 月 5 USD | — |
 | アプリへの内蔵 | しない（散策者が URL とリストIDで足す） | 内蔵するリスト |
 

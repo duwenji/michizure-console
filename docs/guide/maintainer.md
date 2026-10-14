@@ -57,7 +57,7 @@ flowchart LR
 | `conformance` | 任意のリストに対する準拠テスト | DES-001 |
 | `infra` | AWS CDK。環境ごとの設定は `infra/lib/config.ts` | ADR-001 |
 
-機械審査の Lambda（`validator`）は、SanpoGuide が公開する形式の確認（`io.github.duwenji.yorisoi:core-format`）と SanpoGuide のプロンプト・パック（`io.github.duwenji.yorisoi.sanpoguide:prompts`）を GitHub Packages から読み込みます（2026-10-12 に `station-format` から切り替え。SanpoGuide RFC-002）。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew publishToMavenLocal`）。
+機械審査の Lambda（`validator`）は、SanpoGuide が公開する形式の確認（`io.github.duwenji.yorisoi:core-format`）と SanpoGuide のプロンプト・パック（`io.github.duwenji.yorisoi.sanpoguide:prompts`）を GitHub Packages から読み込みます。読むには `read:packages` のトークンが要ります（CI は `GITHUB_TOKEN`。手元は `~/.gradle/gradle.properties` に `gpr.user`・`gpr.key` を書くか、SanpoGuide で `./gradlew publishToMavenLocal`）。
 
 ## 2. 準備
 
@@ -116,7 +116,7 @@ CONSOLE_URL=https://d21uyuovpio5a.cloudfront.net npm run dev -w web   # http://l
 
 ## 4. 変更の進め方
 
-- 設計の判断は、文書（ADR・API・DM・DES）を書いて開発者の承認を得てから実装します（`docs/skill-logs/` に経緯）
+- 設計の判断は、文書（ADR・API・DM・DES）を書いて開発者の承認を得てから実装します
 - `main` に直接入れず、ブランチから PR を出します。CI（型の確認・テスト・画面のビルド・`cdk synth`）が通ることを確かめます
 - テキストの改行は LF に固定しています（`.gitattributes`）。署名やハッシュはバイト単位で比べるためです
 
@@ -135,7 +135,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
 
 - **配備の前に必ず `cdk diff` を見ます**。`[-]`（削除）や置き換えがあれば、意図したものか確かめます。DynamoDB のテーブル、KMS の鍵、Cognito のユーザープールの置き換えは、データ・鍵・利用者を失います
 - `rootPublicKey` を間違えると、公開の処理が鍵セットを拒み、公開できなくなります（署名を誤って出すことはありません）
-- 本番（`-c env=prod`）はまだ配備しません。本番用のアカウント、本番のルート鍵（T-5）、独自ドメイン（T-7）、SES（T-8）がそろってから
+- 本番（`-c env=prod`）はまだ配備しません。本番用のアカウント、本番のルート鍵（ADR-001 T-1）、独自ドメイン（ADR-001 T-2）、SES（ADR-001 T-3）がそろってから
 - 開発用のカーソルの鍵は合成のたびに変わるので、配備すると画面の「さらに読み込む」の続きが切れます（読み込み直せば直る）
 
 ## 6. リストの初期設定
@@ -233,7 +233,6 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 | [DM-001](../data-model.md) | テーブルの項目・キー・状態の移り方を変えるとき |
 | [API-001](../console-api.md)・[OpenAPI](../api/console.openapi.yaml) | 管理 API を変えるとき（OpenAPI が入出力の正本） |
 | [DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) | 実装の判断と検証の結果（素材集は DES-007〜DES-010） |
-| [TODO](../TODO.md) | 次にやること、実装の順番、決めたこと |
+| [TODO](../TODO.md) | 残っている作業 |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値、手順、費用 |
-| `docs/skill-logs/` | 判断の経緯 |
 | SanpoGuide の API-002・API-003・API-004・審査基準 | アプリとの約束（リスト・パッケージ・素材集・審査） |

@@ -1,6 +1,6 @@
 import type { Schemas } from '@yorisoi-console/api-types';
 /**
- * The machine review's outcome as API-001 1.1 C-19 gives it, for producers and operators alike:
+ * The machine review's outcome as API-001 C-19 gives it, for producers and operators alike:
  * the errors, how each declared collection resolved (channels), each outside resource, the
  * resources listed channels still use (D-8), and warnings that don't fail it.
  */

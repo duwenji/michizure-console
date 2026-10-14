@@ -209,7 +209,7 @@ export async function approveKeyTransfer(deps: Deps, req: Request): Promise<Resp
   const returned: string[] = [];
   const archives: string[] = [];
   const message = 'チャンネル提供者の鍵が移し替えられたため差し戻しました。新しい鍵で署名し直して申請してください。';
-  // Its collections move with it, as its channels do (DM-001 1.3, API-002 P-13).
+  // Its collections move with it, as its channels do (DM-001, API-002 P-13).
   for (const col of collections) {
     const collectionId = String(col.collectionId);
     const sets: string[] = [];

@@ -55,21 +55,21 @@ export interface ChannelEntry {
   package: { url: string; sha256: string; size: number; format: number };
   minAppVersion: number;
   approvedAt: string;
-  /** The kinds of material it uses, with its collections' (API-002 1.2 P-14). */
+  /** The kinds of material it uses, with its collections' (API-002 P-14). */
   media?: string[];
   /** Bytes fetched ahead when the channel is chosen, its collections included (P-14). */
   resourcesSize?: number;
-  /** API-002 1.4 P-19: as the package writes them; absent means `["walk"]`, `[]`, `[]` (API-003 G-6). */
+  /** API-002 P-19: as the package writes them; absent means `["walk"]`, `[]`, `[]` (API-003 G-6). */
   activities?: string[];
   genres?: string[];
   requires?: string[];
-  /** API-002 1.4 P-20: the version each app needs, by app id. */
+  /** API-002 P-20: the version each app needs, by app id. */
   minAppVersions?: Record<string, number>;
-  /** API-002 1.3 P-16: declared, or declaring a promotional collection; absent means false. */
+  /** API-002 P-16: declared, or declaring a promotional collection; absent means false. */
   promotional?: boolean;
 }
 
-/** One entry of `collections[]` (API-002 1.2 P-10・P-15). */
+/** One entry of `collections[]` (API-002 P-10・P-15). */
 export interface CollectionEntry {
   id: string;
   version: number;
@@ -82,14 +82,14 @@ export interface CollectionEntry {
   resourcesSize: number;
   tags: string[];
   regions?: string[];
-  /** `apps` (API-004 1.5 I-11): the apps that may use it; absent means every app. */
+  /** `apps` (API-004 I-11): the apps that may use it; absent means every app. */
   grants: { publishers: '*' | string[]; apps?: string[] };
   package: { url: string; sha256: string; size: number; format: number };
   minAppVersion: number;
   approvedAt: string;
-  /** API-002 1.4 P-20. */
+  /** API-002 P-20. */
   minAppVersions?: Record<string, number>;
-  /** API-002 1.3 P-16: made to promote; absent means false. */
+  /** API-002 P-16: made to promote; absent means false. */
   promotional?: boolean;
 }
 
@@ -109,7 +109,7 @@ export interface ChannelList {
   expiresAt: string;
   channels: ChannelEntry[];
   revoked: RevokedEntry[];
-  /** API-002 1.2; absent in lists from before it. */
+  /** API-002; absent when the list leaves it out. */
   collections?: CollectionEntry[];
   /** Kept apart from `revoked`: collection ids are another namespace (P-11). */
   revokedCollections?: RevokedEntry[];

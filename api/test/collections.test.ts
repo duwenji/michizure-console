@@ -13,7 +13,7 @@ import { DISCOVERY_PATH, LIST_PATH, MemoryStorage, noCdn, publish } from '../src
 import type { Trigger } from '../src/publish/ports.js';
 import { freshTable, startDynamoLocal } from './dynamo-local.js';
 
-// DES-008 4b-1: the producer role, collections, their submissions and their review (API-001 1.1).
+// DES-008: the producer role, collections, their submissions and their review (API-001).
 
 const alice: Caller = { sub: 'sub-alice', roles: ['publisher'] };
 const bob: Caller = { sub: 'sub-bob', roles: ['publisher'] };
@@ -297,10 +297,10 @@ describe('reviewing collections', () => {
   });
 });
 
-// ---- DES-008 4b-2: channels that use collections ----
+// ---- DES-008: channels that use collections ----
 
 describe('channels using collections', () => {
-  /** A collection approved by alice, as 4b-1 leaves it. */
+  /** A collection approved by alice. */
   async function approvedCollection(listing: object = LISTING) {
     await account(alice, '鎌倉市観光協会');
     await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } });

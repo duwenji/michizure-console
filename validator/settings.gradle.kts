@@ -8,8 +8,8 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        // core-format from yorisoi-platform, SanpoGuide's prompt pack from yorisoi-sanpoguide (ADR-001 T-4,
-        // yorisoi-platform RFC-004 R-4・R-5). Both are public repositories. Reading GitHub Packages needs a token with read:packages: $GITHUB_TOKEN in CI,
+        // core-format from yorisoi-platform, SanpoGuide's prompt pack from yorisoi-sanpoguide.
+        // Both are public repositories. Reading GitHub Packages needs a token with read:packages: $GITHUB_TOKEN in CI,
         // or gpr.user / gpr.key in ~/.gradle/gradle.properties. Without one, only locally published
         // ones are used (asking without a token fails).
         val gprUser = providers.gradleProperty("gpr.user").orElse(providers.environmentVariable("GITHUB_ACTOR")).orNull

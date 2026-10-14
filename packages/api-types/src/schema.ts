@@ -428,7 +428,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** 見本用のプロンプト（station-format が組み立てたもの） */
+        /** 見本用のプロンプト（プロンプト・パックで組み立てたもの） */
         get: operations["getSamplePrompts"];
         put?: never;
         post?: never;

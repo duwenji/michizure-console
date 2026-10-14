@@ -34,7 +34,7 @@ const ROUTES: [string, string, Handler][] = [
   ['POST', '/api/publisher/key-transfers', transfer.requestKeyTransfer],
   ['GET', '/api/publisher/key-transfers', transfer.listMyKeyTransfers],
   ['POST', '/api/publisher/key-transfers/{transferId}/cancel', transfer.cancelKeyTransfer],
-  // The producer (API-001 1.1, DES-008).
+  // The producer (API-001, DES-008).
   ['POST', '/api/publisher/roles/producer', col.enableProducerRole],
   ['POST', '/api/collections', col.registerCollection],
   ['GET', '/api/collections', col.listMyCollections],

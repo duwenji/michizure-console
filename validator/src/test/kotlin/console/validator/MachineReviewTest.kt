@@ -93,7 +93,7 @@ class MachineReviewTest {
     }
 
     @Test
-    fun `station-format's own checks come through with their codes`() {
+    fun `core-format's own checks come through with their codes`() {
         assertEquals(listOf("bad_signature"), codes(MachineReview.review(upload, pkg(tamper = true), png())))
         assertEquals(listOf("bad_archive"), codes(MachineReview.review(upload, "not a zip".toByteArray(), png())))
         val failed = MachineReview.review(upload, pkg(manifest().put("talk", JSONObject().put("level", "loud"))), png())

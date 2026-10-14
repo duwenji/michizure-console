@@ -41,7 +41,7 @@ const list = await signChannelList(
       sampleChannel({ id: 'tokyo-nature', version: 1, publisher, name: '東京の自然', summary: '公園と水辺', minAppVersion: 99 }),
     ],
     revoked: [{ id: 'old-channel', versions: [1, 2], reason: '審査基準に反する内容が見つかったため', revokedAt: '2026-10-01T00:00:00.000Z' }],
-    // API-002 1.2 (DES-009 M-11): a collection, and one taken off the list.
+    // API-002 (DES-009 M-11): a collection, and one taken off the list.
     collections: [
       {
         id: 'kamakura-audio-guide', version: 2, producer: 'sg1' + 'c'.repeat(32), producerName: '鎌倉市観光協会',
