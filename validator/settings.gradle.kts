@@ -31,14 +31,14 @@ dependencyResolutionManagement {
                     username = gprUser
                     password = gprKey
                 }
-                content { includeGroup("io.github.duwenji.sanpoguide") }
+                content { includeGroup("io.github.duwenji.yorisoi.sanpoguide") }
             }
         }
         // Built locally (`./gradlew publishToMavenLocal` in yorisoi-platform and yorisoi-sanpoguide).
         mavenLocal {
             content {
                 includeGroup("io.github.duwenji.yorisoi")
-                includeGroup("io.github.duwenji.sanpoguide")
+                includeGroup("io.github.duwenji.yorisoi.sanpoguide")
             }
         }
     }

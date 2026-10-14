@@ -9,7 +9,7 @@ import io.github.duwenji.yorisoi.core.format.material.Grants
 import io.github.duwenji.yorisoi.core.format.material.MaterialType
 import io.github.duwenji.yorisoi.core.format.material.Regions
 import io.github.duwenji.yorisoi.core.format.material.ResourceLocation
-import io.github.duwenji.sanpoguide.prompt.ReviewSamples
+import io.github.duwenji.yorisoi.sanpoguide.prompt.ReviewSamples
 import io.github.duwenji.yorisoi.core.format.ChannelList
 import io.github.duwenji.yorisoi.core.format.CollectionReferences
 import io.github.duwenji.yorisoi.core.format.CollectionStatus
