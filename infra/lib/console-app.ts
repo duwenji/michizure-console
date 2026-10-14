@@ -56,7 +56,7 @@ const lambdaDefaults = (repoRoot: string): Partial<nodejs.NodejsFunctionProps> =
 /**
  * The console the operators (and later the publishers) use: Cognito with managed login,
  * the console API behind API Gateway's JWT authorizer, and the SPA on CloudFront with `/api/*`
- * sent to the API (ADR-001 A-3, A-4 as revised in 1.2, A-18; API-001 C-5, C-7).
+ * sent to the API (ADR-001 A-3, A-4, A-18; API-001 C-5, C-7).
  */
 export class ConsoleApp extends Construct {
   /** The console API, which also signs test tickets (the stack lets it sign in the key policy). */
@@ -72,7 +72,7 @@ export class ConsoleApp extends Construct {
     if (!existsSync(`${props.webDist}/index.html`)) throw new Error(`build the SPA first (npm run build -w web): ${props.webDist}`);
     if (!existsSync(props.validatorZip)) throw new Error(`build the machine review first (cd validator && ./gradlew build): ${props.validatorZip}`);
 
-    // ---- Cognito (ADR-001 A-4, 1.2: one pool, TOTP MFA for everyone) ----
+    // ---- Cognito (ADR-001 A-4: one pool, TOTP MFA for everyone) ----
     const userPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: `yorisoi-console-${config.name}`,
       // Publishers register themselves (D-7); operators are created by an administrator.
