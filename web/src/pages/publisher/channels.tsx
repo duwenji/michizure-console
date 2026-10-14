@@ -155,7 +155,7 @@ export function PublisherChannel() {
           <dt>公開中の版</dt>
           <dd>
             {c.latestApproved ? <>版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）</> : '—'}
-            {c.latestApproved && <div className="small"><StageNote appStage={(c.latestApproved as { appStage?: number }).appStage} minAppVersion={c.latestApproved.minAppVersion} /></div>}
+            {c.latestApproved && <div className="small"><StageNote appStage={(c.latestApproved as { appStage?: number }).appStage} minAppVersions={c.latestApproved.minAppVersions} /></div>}
             {c.latestApproved && (
               <div className="small">
                 <EcosystemNote activities={c.latestApproved.activities ?? ['walk']} genres={c.latestApproved.genres} requires={c.latestApproved.requires} offeredIn={c.offeredIn} />

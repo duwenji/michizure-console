@@ -34,7 +34,7 @@
 | M-2 | `packages/protocol` の型とリストの作成・確かめに、`collections[]`・`revokedCollections[]`・`channels[].media`・`resourcesSize` を足す。`format` は 1（API-002 P-12）。配列は空でも毎回書く | 知らない項目はアプリが無視する |
 | M-3 | 素材集の項目は、素材集の `latestApproved` から作る（承認時に計算済み。DM-001 M-24）。リストに出さないもの（`submissionId`・`resourceTypes`・`externalResources`・`appStage`）は落とす。`producerChange` はチャンネルと同じく、`until` があって過ぎておらず、載せる版の素材提供者と違うときだけ載せる | API-002 P-13 |
 | M-4 | チャンネルの `resourcesSize` は「自身の前もっての取得の大きさ」＋「宣言した素材集のうち、今リストに載っているものの `resourcesSize`」。`media` は「自身の素材の種類」と「その素材集の `media`」を合わせたもの（素材集の中で参照しない種類も含むので、多めに出る）。`ownMedia` などのないチャンネルは、どちらも載せない | DM-001 M-24。素材集の版が変わると、次の公開で値が変わる |
-| M-5 | チャンネルの `minAppVersion` は承認時の値のまま（公開のたびに計算し直さない）。D-8 で、参照している素材の種類は変わらないため | 承認時に素材集の中身まで数えている（DES-008 K-7） |
+| M-5 | チャンネルの `minAppVersions` は承認時の値のまま（公開のたびに計算し直さない）。D-8 で、参照している素材の種類は変わらないため | 承認時に素材集の中身まで数えている（DES-008 K-7） |
 | M-6 | 公開の記録に `collectionCount`・`revokedCollectionCount` を足す | API-001 `Publication` |
 | M-7 | **毎日の外部の素材の確認**（M-21）は、公開の Lambda の毎日の実行（`daily`）の、公開が終わった後に行う。公開中の素材集の `externalResources` の URL に HEAD を送り、取得できるかと大きさ（`Content-Length`）だけを確かめる。結果を素材集の `externalCheck` に書き、前回にはなかった不具合があれば、素材提供者に `collection.external_failed` を知らせる。確認の失敗は公開を失敗にしない | 公開を遅らせない・止めない |
 | M-8 | **M-7 の SSRF への備え**は、機械審査（DES-007 J-6）と同じ規則を TypeScript で書く（名前を引いて内側・特別なアドレスを拒む。Node の `net.BlockList`。リダイレクトは追わない。HTTPS だけ）。同じ例（18 種類のアドレス）でテストする | 公開の Lambda は Node なので、Kotlin の実装をそのまま使えない。同じ規則を 2 か所に書くことになる（未決事項 No.1） |

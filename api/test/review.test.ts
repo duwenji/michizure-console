@@ -81,7 +81,9 @@ async function call(caller: Caller, method: string, path: string, options: { bod
 }
 
 /** A publisher with a channel and a submission the machine review passed, as stages 3a and 3b leave it. */
-async function awaitingReview(version = 1, listing?: Record<string, unknown>, promotional?: boolean) {
+const WALK_LISTING = { appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {}, activities: ['walk'], genres: [], requires: [] };
+
+async function awaitingReview(version = 1, listing: Record<string, unknown> = WALK_LISTING, promotional?: boolean) {
   const reg = await call(alice, 'POST', '/api/publisher', { body: { displayName: '鎌倉歴史散歩の会', contact: 'k@example.com' } }).catch(() => undefined);
   if (reg?.status === 201) {
     const key = generateEd25519();
@@ -93,18 +95,18 @@ async function awaitingReview(version = 1, listing?: Record<string, unknown>, pr
   }
   const created = await call(alice, 'POST', '/api/channels/kamakura-history/submissions', { body: { description: '鎌倉の寺社', tags: ['history'], ...(promotional !== undefined ? { promotional } : {}) } });
   const sid = created.body.submission.submissionId as string;
-  const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
+  const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ format: 1, activities: ['walk'], id: 'kamakura-history', version, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
   uploads.set(`intake/kamakura-history/${sid}.zip`, zip);
   records.set(`samples/${sid}/prompts.json`, JSON.stringify({ generatedBy: 'prompts 1.0.0', scenarios: [{ id: 'start-morning-sunny', label: '開始', system: 's', user: 'u' }] }));
   await deps.db.send(
     new UpdateCommand({
       TableName: deps.table, Key: { PK: 'CH#kamakura-history', SK: `SUB#${sid}` },
-      UpdateExpression: `SET #s = :s, version = :v, sha256 = :h, #size = :z, iconSha256 = :i, validation = :val, samplesKey = :k, submittedAt = :t, GSI2PK = :q, GSI2SK = :o, rev = :r${listing ? ', listing = :l' : ''} REMOVE #ttl`,
+      UpdateExpression: `SET #s = :s, version = :v, sha256 = :h, #size = :z, iconSha256 = :i, validation = :val, samplesKey = :k, submittedAt = :t, GSI2PK = :q, GSI2SK = :o, rev = :r, listing = :l REMOVE #ttl`,
       ExpressionAttributeNames: { '#s': 'state', '#size': 'size', '#ttl': 'ttl' },
       ExpressionAttributeValues: {
         ':s': 'awaiting_review', ':v': version, ':h': sha256Hex(zip), ':z': zip.length, ':i': 'cd'.repeat(32), ':val': { ok: true, errors: [] },
         ':k': `samples/${sid}/prompts.json`, ':t': new Date(clock).toISOString(), ':q': 'QUEUE#REVIEW', ':o': `${new Date(clock).toISOString()}#kamakura-history`, ':r': 2,
-        ...(listing ? { ':l': listing } : {}),
+        ':l': listing,
       },
     }),
   );
@@ -163,9 +165,9 @@ describe('deciding', () => {
     const channel = await call(alice, 'GET', '/api/channels/kamakura-history');
     expect(channel.body).toMatchObject({
       listed: true, pendingSubmissionId: null,
-      latestApproved: { version: 1, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: ['ja'], description: '鎌倉の寺社', tags: ['history'], minAppVersion: 1 },
+      latestApproved: { version: 1, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: ['ja'], description: '鎌倉の寺社', tags: ['history'], minAppVersions: { sanpoguide: 1 } },
     });
-    // Reviewed before DES-011: a format 1 walking channel, for SanpoGuide (N-3, N-5).
+    // A walking channel, for SanpoGuide (N-3, N-5).
     expect(channel.body.latestApproved).toMatchObject({ activities: ['walk'], genres: [], requires: [], minAppVersions: { sanpoguide: 1 }, package: { format: 1 } });
     expect((await call(operator, 'GET', '/api/admin/review-queue')).body.items).toEqual([]);
 
@@ -233,13 +235,13 @@ describe('the ecosystem (DES-011)', () => {
     appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {}, activities, genres: ['history'], requires,
   });
 
-  it("gives a version to each app the channel is for, and SanpoGuide's as minAppVersion (N-5, N-6)", async () => {
+  it('gives a version to each app the channel is for (N-5)', async () => {
     const sid = await awaitingReview(1, listing(['walk', 'cycle'], ['slot:guide']));
     await call(operator, 'POST', `${base(sid)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${base(sid)}/approve`, { body: {}, ifMatch: 3 });
     const channel = await call(alice, 'GET', '/api/channels/kamakura-history');
     expect(channel.body.latestApproved).toMatchObject({
-      activities: ['walk', 'cycle'], genres: ['history'], requires: ['slot:guide'], minAppVersions: { sanpoguide: 1 }, minAppVersion: 1,
+      activities: ['walk', 'cycle'], genres: ['history'], requires: ['slot:guide'], minAppVersions: { sanpoguide: 1 },
     });
   });
 
@@ -248,11 +250,11 @@ describe('the ecosystem (DES-011)', () => {
     await call(operator, 'POST', `${base(sid)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${base(sid)}/approve`, { body: {}, ifMatch: 3 });
     const channel = await call(alice, 'GET', '/api/channels/kamakura-history');
-    expect(channel.body.latestApproved).toMatchObject({ activities: ['cycle'], minAppVersions: {}, minAppVersion: 9999 });
+    expect(channel.body.latestApproved).toMatchObject({ activities: ['cycle'], minAppVersions: {} });
     const needsSound = await awaitingReview(2, listing(['walk'], ['present:play']));
     await call(operator, 'POST', `${base(needsSound)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${base(needsSound)}/approve`, { body: {}, ifMatch: 3 });
-    expect((await call(alice, 'GET', '/api/channels/kamakura-history')).body.latestApproved).toMatchObject({ minAppVersions: {}, minAppVersion: 9999 });
+    expect((await call(alice, 'GET', '/api/channels/kamakura-history')).body.latestApproved).toMatchObject({ minAppVersions: {} });
   });
 });
 

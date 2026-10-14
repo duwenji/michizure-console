@@ -1403,7 +1403,7 @@ components:
         roles:
           type: array
           items: { type: string, enum: [publisher, producer] }
-          description: アカウントの役割（M-16）。roles のないアカウントは [publisher]
+          description: アカウントの役割（M-16）
         producerVerified: { type: boolean, description: 素材提供者の身元が確かめられているか（C-17） }
         producerVerification:
           allOf: [{ $ref: '#/components/schemas/Verification' }]
@@ -1489,7 +1489,7 @@ components:
     LatestApproved:
       type: object
       description: リストの channels[] の 1 件になる内容（DM-001 M-8）
-      required: [submissionId, version, publisher, name, summary, lang, icon, package, minAppVersion, approvedAt]
+      required: [submissionId, version, publisher, name, summary, lang, icon, package, activities, genres, requires, minAppVersions, approvedAt]
       properties:
         submissionId: { $ref: '#/components/schemas/Ulid' }
         version: { type: integer, minimum: 1 }
@@ -1507,9 +1507,8 @@ components:
             url: { type: string, format: uri }
             sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
         package: { $ref: '#/components/schemas/ListedPackage' }
-        minAppVersion: { type: integer, description: SanpoGuide の版（DES-011 N-6） }
         minAppVersions: { $ref: '#/components/schemas/MinAppVersions' }
-        activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities（format 1 は walk） }
+        activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities }
         genres: { type: array, items: { type: string } }
         requires: { type: array, items: { type: string }, description: パッケージの requires.features }
         promotional: { type: boolean, description: DES-012 R-3。承認した版の申告（偽は書かない）。リストでは宣伝の素材集の宣言でも真になる（R-4） }
@@ -1662,7 +1661,7 @@ components:
         description: { type: string }
         tags: { type: array, items: { type: string } }
         regions: { type: array, items: { type: string } }
-        activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities（format 1 は walk） }
+        activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities }
         genres: { type: array, items: { type: string } }
         requires: { type: array, items: { type: string }, description: パッケージの requires.features }
         offeredIn: { $ref: '#/components/schemas/OfferedIn' }
@@ -1757,7 +1756,7 @@ components:
     CollectionLatestApproved:
       type: object
       description: リストの collections[] の 1 件になる内容（DM-001 M-24）
-      required: [submissionId, version, producer, name, summary, media, resourcesSize, tags, grants, package, minAppVersion, approvedAt]
+      required: [submissionId, version, producer, name, summary, media, resourcesSize, tags, grants, package, minAppVersions, approvedAt]
       properties:
         submissionId: { $ref: '#/components/schemas/Ulid' }
         version: { type: integer, minimum: 1 }
@@ -1779,7 +1778,6 @@ components:
             apps: { type: array, items: { type: string }, description: DES-011 N-7。使ってよいアプリの ID（ないときはすべてのアプリ） }
         package: { $ref: '#/components/schemas/ListedPackage' }
         appStage: { type: integer }
-        minAppVersion: { type: integer, description: SanpoGuide の版（DES-011 N-6） }
         minAppVersions: { $ref: '#/components/schemas/MinAppVersions' }
         promotional: { type: boolean, description: DES-012 R-3。承認した版の申告（偽は書かない） }
         approvedAt: { type: string, format: date-time }

@@ -1,4 +1,4 @@
-# DES-011 エコシステムへの対応（format 2・アプリごとの版・素材集の利用アプリ）
+# DES-011 エコシステムへの対応（過ごし方・アプリごとの版・素材集の利用アプリ）
 
 ## 文書情報
 
@@ -18,8 +18,8 @@
 
 SanpoGuide の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)（付き添いアプリのエコシステム）で、チャンネル・素材集はアプリをまたいで使うものになった。管理システムはエコシステムで 1 つ、リストも 1 本（E-17）で、アプリが端末で絞り込む。契約:
 
-- [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): `format: 2`（`activities`・`genres`・`requires.features`）。審査は一覧にない値を拒む（G-3）。format 1 は散歩のチャンネルとして読む（G-6）
-- [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): リストの `channels[].activities`・`genres`・`requires`（P-19）、`minAppVersions`（P-20）、`minAppVersions` を読まないアプリへの備え（P-21）
+- [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): `activities`・`genres`・`requires.features`。審査は一覧にない値を拒む（G-3）
+- [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): リストの `channels[].activities`・`genres`・`requires`（P-19）、`minAppVersions`（P-20）
 - [API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 素材集の `grants.apps`（I-11）
 
 本書は、管理システムがこれをどう実装するかを決める。
@@ -30,25 +30,23 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/d
 |---|---|---|
 | SanpoGuide ADR-003 | E-17（リストは 1 本）、E-18・E-26（機械審査はコアだけ、見本は過ごし方ごとの代表アプリ）、E-25（アプリの除外はしない） | 本書で実装 |
 | SanpoGuide API-003 | G-1〜G-7、V-24 | 本書で実装 |
-| SanpoGuide API-002 | P-19〜P-21、V-27・V-29・V-30 | 本書で実装 |
+| SanpoGuide API-002 | P-19・P-20、V-27・V-29 | 本書で実装 |
 | SanpoGuide API-004 | I-11、W-20 | 本書で実装 |
 
 ## 方針・決定事項
 
 | No. | 判断 | 理由 |
 |---|---|---|
-| N-1 | **validator** は `core-format` とプロンプト・パックを使う。確かめ方は既定の `Strictness.REVIEW`（format 1・2 を読み、一覧にない値を拒む）。記録に残す `validatorVersion` は、依存の版を上げるたびに上げる | 審査は共通の一覧で厳しく確かめる（G-3） |
-| N-2 | **format 1 の受け付けの期限**を設定 `format1AcceptUntil`（日時。未設定は期限なし）で決められるようにする。期限を過ぎた format 1 の申請（新規・更新）は、機械審査で `format_retired` として落とす。公開中の format 1 のチャンネルはそのまま載せる | G-6。format 1 をやめるときに、配備だけで切り替えられる |
-| N-3 | **絞り込みの情報**: 機械審査がパッケージの `activities`・`genres`・`requires.features` を書かれたとおりに記録し（format 1 は `["walk"]`・`[]`・`[]`）、承認が `latestApproved` に写し、公開がリストの `channels[]` に載せる（P-19）。これらのない項目は format 1 の読み方で載せる | パッケージから写すだけにして、運営の入力を挟まない |
+| N-1 | **validator** は `core-format` とプロンプト・パックを使う。確かめ方は既定の `Strictness.REVIEW`（一覧にない値を拒む）。記録に残す `validatorVersion` は、依存の版を上げるたびに上げる | 審査は共通の一覧で厳しく確かめる（G-3） |
+| N-3 | **絞り込みの情報**: 機械審査がパッケージの `activities`・`genres`・`requires.features` を書かれたとおりに記録し、承認が `latestApproved` に写し、公開がリストの `channels[]` に載せる（P-19） | パッケージから写すだけにして、運営の入力を挟まない |
 | N-4 | **登録したアプリ**の一覧を設定に置く: `apps: { [id]: { activity, features, stageVersions } }`。最初は `sanpoguide`（`walk`、録音の再生を除く機能、`appStageVersions` の値） | アプリごとの版（P-20）と、提供者に見せる「出るアプリ」（N-8）の元 |
-| N-5 | **`minAppVersions`**（P-20）: チャンネルは、登録したアプリのうち `activity` がチャンネルの `activities` にあり、`features` が `requires` を含むものについて、`stageVersions[チャンネルのアプリの段]`（なければ 9999）を載せる。合わないアプリは載せない。素材集は、`grants.apps` が含むアプリ（ないときはすべて）について同じく載せる。承認のときに計算する（`minAppVersion` と同じ。DES-009 M-5） | アプリごとに versionCode と対応する段が違う |
-| N-6 | **`minAppVersion`**（`minAppVersions` を読まないアプリのため）は、`minAppVersions.sanpoguide` の値。SanpoGuide が合わないチャンネル・`grants.apps` が SanpoGuide を含まない素材集では 9999（どのアプリにもない版。P-21） | `minAppVersions` も `grants.apps` も読まないアプリが、合わないものを使わないように |
+| N-5 | **`minAppVersions`**（P-20）: チャンネルは、登録したアプリのうち `activity` がチャンネルの `activities` にあり、`features` が `requires` を含むものについて、`stageVersions[チャンネルのアプリの段]`（なければ 9999）を載せる。合わないアプリは載せない。素材集は、`grants.apps` が含むアプリ（ないときはすべて）について同じく載せる。承認のときに計算する（DES-009 M-5） | アプリごとに versionCode と対応する段が違う |
 | N-7 | **素材集の `grants.apps`**: 機械審査が `core-format` で読み（知らないアプリの ID は拒む）、承認が `latestApproved.grants` に写し、公開がリストの `collections[].grants` に写す（`publishers` と同じ道）。チャンネルが素材集を参照するときの確かめ（API-004 手順 3）では、アプリを見ない（チャンネルはアプリをまたぐため。合わないアプリでは、その候補が使われないだけ） | I-11・W-20 |
 | N-8 | **審査の見本**（E-26）: AI に話させる見本は、`activities` に `walk` があるとき、SanpoGuide のプロンプト・パックで作る。`walk` がないチャンネル（`cycle` だけのもの）は、代表のアプリがまだないので見本を作らず、運営の画面に「この過ごし方の代表アプリはまだありません。語り手の文章を読んで確かめてください」と出す | サイクリングのアプリができるまで、見本を作るプロンプトがない |
 | N-9 | **画面**: 運営の審査の画面と、チャンネル提供者のチャンネルの画面に、過ごし方・ジャンル・必要な機能と、**このチャンネルが出るアプリ**（N-5 で版を載せるアプリの名前。0 なら「今はどのアプリにも出ません」と出す）を出す。素材提供者の素材集の画面と運営の素材集の審査の画面に、使ってよいアプリ（`grants.apps`。なければ「すべてのアプリ」）を出す | E-18（「このチャンネルが出るアプリ」を出す） |
-| N-10 | **`packages/protocol`・準拠テスト**: リストの型に `activities`・`genres`・`requires`・`minAppVersions`、素材集の `grants.apps`・`minAppVersions` を持つ。準拠テストで V-27（`activities`・`genres`・`requires` がパッケージの値と一致）と、`minAppVersions` の形（アプリの ID → 正の整数）を確かめる。アプリのテスト用の文書（`app-vectors.ts`）に format 2 のチャンネルを入れる | P-19・P-20 |
-| N-11 | **データモデル**: `latestApproved` と申請の `listing` に `activities`・`genres`・`requires`・`minAppVersions`、素材集の `latestApproved.grants.apps` を持つ。ない項目は format 1 の読み方・`grants.apps` なしとして扱う | — |
-| N-12 | **利用ガイド**: チャンネル提供者のガイドに format 2 の 3 つの項目を、素材提供者のガイドに `grants.apps` を書く | 申請する人が書けるように |
+| N-10 | **`packages/protocol`・準拠テスト**: リストの型に `activities`・`genres`・`requires`・`minAppVersions`、素材集の `grants.apps`・`minAppVersions` を持つ。準拠テストで V-27（`activities`・`genres`・`requires` がパッケージの値と一致）と、`minAppVersions` の形（アプリの ID → 正の整数）を確かめる。アプリのテスト用の文書（`app-vectors.ts`）に、過ごし方を宣言したチャンネルを入れる | P-19・P-20 |
+| N-11 | **データモデル**: `latestApproved` と申請の `listing` に `activities`・`genres`・`requires`・`minAppVersions`、素材集の `latestApproved.grants.apps` を持つ | — |
+| N-12 | **利用ガイド**: チャンネル提供者のガイドに `activities`・`genres`・`requires` を、素材提供者のガイドに `grants.apps` を書く | 申請する人が書けるように |
 
 ## 未決事項・リスク
 

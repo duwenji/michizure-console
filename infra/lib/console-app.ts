@@ -372,8 +372,6 @@ export class ConsoleApp extends Construct {
         RECORDS_BUCKET: props.recordsBucket.bucketName,
         PUBLIC_BUCKET: props.publicBucket.bucketName,
         JAVA_TOOL_OPTIONS: '-XX:+TieredCompilation -XX:TieredStopAtLevel=1',
-        // Format 1 packages are taken until then (DES-011 N-2); unset, without an end.
-        ...(config.format1AcceptUntil ? { FORMAT1_ACCEPT_UNTIL: config.format1AcceptUntil } : {}),
       },
     });
     props.table.grantReadWriteData(validator);

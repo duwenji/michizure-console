@@ -93,9 +93,9 @@ DES-011・DES-012 による。
 |---|---|---|
 | C-23 | 宣伝の申告（DES-012 R-1・R-2、DM-001 M-30） | チャンネル・素材集の申請の要求に `promotional`（真偽値、省略は偽）。真偽値でなければ `400 invalid_request`。運営の操作で書き換える手段は作らない（宣伝なのに申告がなければ差し戻す） |
 | C-24 | 申請・チャンネル・素材集の表示（DES-011 N-9、DES-012 R-6） | 申請（`Submission`）に `activities`・`genres`・`requires`（機械審査の後）・`offeredIn`（このチャンネルが出るアプリの ID）・`promotional`。チャンネルに `offeredIn`。`latestApproved` に `activities`・`genres`・`requires`・`minAppVersions`・`promotional`。素材集の申請に `promotional`、素材集の `latestApproved` に `grants.apps`・`minAppVersions`・`promotional` |
-| C-25 | 機械審査（DES-011 N-2・N-8） | 期限（DM-001 M-29）を過ぎた format 1 の申請は、`validation.errors` に `format_retired`。`walk` を含まないチャンネルは見本を作らず、`sample-prompts` の応答の `scenarios` が空で `noRepresentativeApp`（チャンネルの `activities`）が付く |
+| C-25 | 機械審査（DES-011 N-8） | `walk` を含まないチャンネルは見本を作らず、`sample-prompts` の応答の `scenarios` が空で `noRepresentativeApp`（チャンネルの `activities`）が付く |
 | C-26 | 通知（C-20 に追加。DES-012 R-7） | 宣伝でなかった素材集が宣伝の版で承認されたとき、使うチャンネル提供者への `collection.updated` に「チャンネルもリストで『宣伝を含む』と示される」ことを書き添える |
-| C-27 | 設定（C-21 の改訂。DM-001 M-27・M-29・M-31） | CDK の環境ごとの設定に、アプリの ID ごとの `appStageVersions`、`promotionalMinAppVersions`、`format1AcceptUntil` を置く。変えるときは PR を通して配備する。運営の画面からは変えない |
+| C-27 | 設定（C-21 の改訂。DM-001 M-27・M-31） | CDK の環境ごとの設定に、アプリの ID ごとの `appStageVersions`、`promotionalMinAppVersions` を置く。変えるときは PR を通して配備する。運営の画面からは変えない |
 
 ### 全体の流れ
 
@@ -304,7 +304,7 @@ sequenceDiagram
 ```
 
 - アカウントに身元の記録（`producerVerification`）がなければ `verification` が必須（C-17）。あれば省け、送っても上書きしない（表示名を変えて記録が消えたときだけ書く）
-- 承認すると、`tags`・`regions`・`media`・`resourcesSize`・`grants`・`minAppVersion` を計算して `latestApproved` に写し（M-24）、公開の Lambda を呼ぶ。利用の記録にあるチャンネル提供者に知らせる（C-20）
+- 承認すると、`tags`・`regions`・`media`・`resourcesSize`・`grants`・`minAppVersions` を計算して `latestApproved` に写し（M-24）、公開の Lambda を呼ぶ。利用の記録にあるチャンネル提供者に知らせる（C-20）
 
 ### POST …/test-tickets
 

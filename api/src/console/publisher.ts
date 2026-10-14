@@ -1,7 +1,7 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import { QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import type { ProblemCode, Schemas } from '@yorisoi-console/api-types';
-import { CHANNEL_ID, FORMAT1_ECOSYSTEM, accountId, b64url, providerId, utf8, verifyEd25519 } from '@yorisoi-console/protocol';
+import { CHANNEL_ID, accountId, b64url, providerId, utf8, verifyEd25519 } from '@yorisoi-console/protocol';
 import { auditItem, type Deps } from './deps.js';
 import { fail, flag, ifMatch, json, noContent, object, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { DEFAULT_LIMITS, channelView, get, loadChannel, loadPublisher, offeredIn, page, publisherView, type Item } from './shared.js';
@@ -71,7 +71,7 @@ export function submissionView(item: Item): Schemas['Submission'] {
     ...(item.tags ? { tags: item.tags as string[] } : {}),
     ...(item.regions ? { regions: item.regions as string[] } : {}),
     // What the machine review read from the package (DES-011 N-3, N-9); nothing before it ran.
-    ...ecosystemOf(item.listing as { activities?: string[]; genres?: string[]; requires?: string[] } | undefined),
+    ...ecosystemOf(item.listing as { activities: string[]; genres: string[]; requires: string[] } | undefined),
     ...(item.note !== undefined ? { note: String(item.note) } : {}),
     promotional: item.promotional === true,
     sha256: (item.sha256 as string | undefined) ?? null,
@@ -86,11 +86,10 @@ export function submissionView(item: Item): Schemas['Submission'] {
   };
 }
 
-function ecosystemOf(listing: { activities?: string[]; genres?: string[]; requires?: string[] } | undefined) {
+function ecosystemOf(listing: { activities: string[]; genres: string[]; requires: string[] } | undefined) {
   if (!listing) return {};
-  const activities = listing.activities ?? FORMAT1_ECOSYSTEM.activities;
-  const requires = listing.requires ?? FORMAT1_ECOSYSTEM.requires;
-  return { activities, genres: listing.genres ?? FORMAT1_ECOSYSTEM.genres, requires, offeredIn: offeredIn({ activities, requires }) };
+  const { activities, genres, requires } = listing;
+  return { activities, genres, requires, offeredIn: offeredIn({ activities, requires }) };
 }
 
 function textList(o: Record<string, unknown>, key: string, max: number, pattern: RegExp): string[] | undefined {
@@ -113,7 +112,7 @@ export async function registerPublisher(deps: Deps, req: Request): Promise<Respo
   const publisherId = ulid(deps.now().getTime());
   const item = {
     PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, ownerSub: req.caller.sub, displayName, contact,
-    status: 'pending_key', channelCount: 0, rev: 1, createdAt: now, updatedAt: now, GSI2PK: 'PUBLISHERS', GSI2SK: now,
+    roles: ['publisher'], status: 'pending_key', channelCount: 0, rev: 1, createdAt: now, updatedAt: now, GSI2PK: 'PUBLISHERS', GSI2SK: now,
   };
   await transact(
     deps,

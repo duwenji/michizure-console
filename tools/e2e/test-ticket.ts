@@ -29,7 +29,7 @@ const sha = sha256Hex(pkg);
 const now = new Date().toISOString();
 const items = [
   { PK: `USER#${sub}`, SK: 'USER', type: 'user', publisherId },
-  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, displayName: 'e2e', status: 'active', activeAccountId: account, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
+  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, displayName: 'e2e', status: 'active', activeAccountId: account, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
   { PK: `CH#${channelId}`, SK: 'CH', type: 'channel', channelId, publisherId, status: 'active', rev: 1, pendingSubmissionId: sid },
   { PK: `CH#${channelId}`, SK: `SUB#${sid}`, type: 'submission', submissionId: sid, channelId, publisherId, accountId: account, state: 'awaiting_review', intakeKey: `intake/${channelId}/${sid}.zip`, sha256: sha, size: pkg.length, version: 1, validation: { ok: true, errors: [] }, rev: 2, createdAt: now, updatedAt: now },
 ];

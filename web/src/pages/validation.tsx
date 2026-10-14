@@ -41,13 +41,18 @@ export function ValidationView({ validation }: { validation: Schemas['Validation
   );
 }
 
-/** A minAppVersion no app has yet (DES-007 J-9): the material waits for an app that shows it. */
-export function StageNote({ appStage, minAppVersion }: { appStage?: number | undefined; minAppVersion?: number | undefined }) {
-  if (appStage === undefined && minAppVersion === undefined) return null;
+/**
+ * The version each app needs (DES-011 N-5). A version no app has yet (DES-007 J-9): the material
+ * waits for an app that shows it.
+ */
+export function StageNote({ appStage, minAppVersions }: { appStage?: number | undefined; minAppVersions?: Record<string, number> | undefined }) {
+  if (appStage === undefined && minAppVersions === undefined) return null;
+  const versions = Object.entries(minAppVersions ?? {});
+  const usable = versions.filter(([, v]) => v < 9999);
   return (
     <span>
-      {appStage !== undefined && `アプリの段 ${appStage}、`}必要なアプリの版 {minAppVersion ?? '—'}
-      {(minAppVersion ?? 0) >= 9999 && <span className="muted">（素材に対応したアプリが出るまで、アプリの一覧に出ません）</span>}
+      {appStage !== undefined && `アプリの段 ${appStage}、`}必要なアプリの版 {usable.length ? usable.map(([app, v]) => `${app} ${v}`).join('・') : '—'}
+      {usable.length === 0 && <span className="muted">（対応したアプリが出るまで、アプリの一覧に出ません）</span>}
     </span>
   );
 }

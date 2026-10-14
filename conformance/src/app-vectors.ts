@@ -38,7 +38,7 @@ const list = await signChannelList(
     provider, seq: 7, issuedAt: new Date('2026-10-03T03:00:00.000Z'), expiresAt: new Date('2026-10-17T03:00:00.000Z'),
     channels: [
       sampleChannel({ publisher, description: '寺社と武士の歴史', tags: ['history'], regions: ['xn7'], publisherChange: { from: 'sg1' + 'a'.repeat(32), at: '2026-10-02T09:00:00.000Z', reason: '配信元の鍵の紛失' } }),
-      sampleChannel({ id: 'tokyo-nature', version: 1, publisher, name: '東京の自然', summary: '公園と水辺', minAppVersion: 99 }),
+      sampleChannel({ id: 'tokyo-nature', version: 1, publisher, name: '東京の自然', summary: '公園と水辺', minAppVersions: { sanpoguide: 99 } }),
     ],
     revoked: [{ id: 'old-channel', versions: [1, 2], reason: '審査基準に反する内容が見つかったため', revokedAt: '2026-10-01T00:00:00.000Z' }],
     // API-002 (DES-009 M-11): a collection, and one taken off the list.
@@ -49,7 +49,7 @@ const list = await signChannelList(
         name: '鎌倉音声ガイド', summary: '寺社の音声ガイド', media: ['audio', 'text'], resourcesSize: 2_489_120, tags: ['faith', 'history'], regions: ['xn7'],
         grants: { publishers: [publisher] },
         package: { url: 'https://cdn.example.com/col/x.zip', sha256: '2'.repeat(64), size: 9120, format: 1 },
-        minAppVersion: 14, approvedAt: '2026-10-02T09:00:00.000Z',
+        minAppVersions: { sanpoguide: 14 }, approvedAt: '2026-10-02T09:00:00.000Z',
       },
     ],
     revokedCollections: [{ id: 'old-collection', versions: [1], reason: '権利者からの申し立てによる', revokedAt: '2026-10-01T00:00:00.000Z' }],

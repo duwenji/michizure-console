@@ -50,8 +50,6 @@ class Handler(
     private val intakeBucket: String = env("INTAKE_BUCKET"),
     private val recordsBucket: String = env("RECORDS_BUCKET"),
     private val publicBucket: String = env("PUBLIC_BUCKET"),
-    /** DES-011 N-2: format 1 packages are taken until then; null, without an end. */
-    private val format1AcceptUntil: java.time.Instant? = System.getenv("FORMAT1_ACCEPT_UNTIL")?.let(java.time.Instant::parse),
     private val fetcher: ExternalFetcher = HttpsFetcher(),
     private val clock: () -> Instant = Instant::now,
 ) : RequestHandler<S3Event, String> {
@@ -88,8 +86,7 @@ class Handler(
         val latest = channel?.get("latestApproved")?.m()?.get("version")?.n()?.toInt()
         val accountId = sub.str("accountId").orEmpty()
         val former = channel?.str("publisherId")?.let(::accountIdsOf)?.minus(accountId).orEmpty()
-        val retired = format1AcceptUntil?.let { clock().isAfter(it) } ?: false
-        val upload = Upload(channelId, submissionId, accountId, latest, former, format1Retired = retired)
+        val upload = Upload(channelId, submissionId, accountId, latest, former)
         val outcome = MachineReview.review(upload, zip, icon, DynamoCatalog())
         val now = iso(clock())
         return try {
@@ -287,8 +284,8 @@ class Handler(
                 grants = la["grants"]?.m()?.get("publishers")?.let { p -> if (p.s() == "*") Grants.EVERYONE else Grants(p.l().mapNotNull { it.s() }.toSet()) }
                     ?: Grants(emptySet()),
                 pkg = PackageRef(pkg.str("url").orEmpty(), pkg.str("sha256").orEmpty(), pkg.num("size").toInt(), pkg.num("format").toInt()),
-                minAppVersion = la.num("minAppVersion").toInt(),
                 approvedAt = approvedAt,
+                minAppVersions = la.getValue("minAppVersions").m().mapValues { it.value.n().toInt() },
             )
         }
 

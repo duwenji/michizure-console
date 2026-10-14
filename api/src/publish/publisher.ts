@@ -63,7 +63,6 @@ async function pickSigningKey(deps: PublishDeps, keys: SigningKeyEntry[], revoke
  */
 export function withMaterial(listed: ListedChannel, collections: Map<string, CollectionEntry>): ChannelEntry {
   const { entry, material } = listed;
-  if (!material) return entry;
   const used = material.collections.map((id) => collections.get(id)).filter((c): c is CollectionEntry => c !== undefined);
   return {
     ...entry,
@@ -74,20 +73,19 @@ export function withMaterial(listed: ListedChannel, collections: Map<string, Col
 
 /** A channel that declares a promotional collection listed now is promotional too (DES-012 R-4). */
 export function withPromotion(listed: ListedChannel, channel: ChannelEntry, collections: Map<string, CollectionEntry>): ChannelEntry {
-  const declared = listed.material?.collections ?? [];
+  const declared = listed.material.collections;
   return !channel.promotional && declared.some((id) => collections.get(id)?.promotional) ? { ...channel, promotional: true } : channel;
 }
 
 /**
  * Raises what a promotional entry needs to the versions that label promotion (DES-012 R-5, API-002
- * P-17). `minAppVersion` follows SanpoGuide's, as approval sets it (DES-011 N-6).
+ * P-17).
  */
 export function promotedVersions<T extends ChannelEntry | CollectionEntry>(entry: T, promotionalMinAppVersions: Record<string, number>): T {
   if (!entry.promotional) return entry;
   const needs = (app: string, version: number) => Math.max(version, promotionalMinAppVersions[app] ?? NO_APP_VERSION);
-  if (!entry.minAppVersions) return { ...entry, minAppVersion: needs('sanpoguide', entry.minAppVersion) };
   const minAppVersions = Object.fromEntries(Object.entries(entry.minAppVersions).map(([app, v]) => [app, needs(app, v)]));
-  return { ...entry, minAppVersions, minAppVersion: minAppVersions.sanpoguide ?? NO_APP_VERSION };
+  return { ...entry, minAppVersions };
 }
 
 /**

@@ -30,7 +30,7 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/d
 
 | No. | 判断 | 理由 |
 |---|---|---|
-| J-1 | validator は、チャンネルを `mediaStage = ALL_STAGES` で確かめる。結果の `appStage` に、素材集の中身まで数えた段（`MediaStage.required(media, resolution::types)`）を入れる | 管理システムはすべての段を確かめ、アプリの版の制限は `minAppVersion` で行う（API-003 M-1） |
+| J-1 | validator は、チャンネルを `mediaStage = ALL_STAGES` で確かめる。結果の `appStage` に、素材集の中身まで数えた段（`MediaStage.required(media, resolution::types)`）を入れる | 管理システムはすべての段を確かめ、アプリの版の制限は `minAppVersions` で行う（API-003 M-1） |
 | J-2 | チャンネルが宣言した素材集は、機械審査の時点で公開中のもの（DynamoDB の `LISTED` の `COL#`）を読み、公開用のバケットの `col/{sha256}.zip` を `CollectionValidator` で確かめてから、`CollectionReferences.resolve` で解決する。結果を `validation.collections` に入れ、1 つでも使えなければ不合格 | API-001 C-19。リストに載るものと同じデータで判断する |
 | J-3 | 素材集の申請は、S3 の `intake-col/` へのアップロードで起動する（アイコンはないので、パッケージが届いた時点で確かめる）。チャンネルと同じ Lambda で、キーの接頭辞で分ける | 1 つの Lambda で済む（DES-004 J-1） |
 | J-4 | 素材集の機械審査: `CollectionValidator`（署名・形式・素材）、素材集 ID・`producer`（申請したときのアカウントの今の鍵）・版（M-5）の一致、外部の素材（J-5）、D-8（J-6）、利用許諾の縮小（J-7）。結果は `validation` の `errors`・`external`・`inUse`・`warnings` に入れる | DM-001 M-20・M-22、API-001 C-19 |

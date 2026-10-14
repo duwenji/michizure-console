@@ -148,7 +148,7 @@ describe('promotion (DES-012)', () => {
   const collection = (promotional?: boolean) => ({
     id: 'shop-ads', version: 1, producer: 'sg1' + 'c'.repeat(32), producerName: '商店街', name: 'お店', summary: '紹介', media: ['text'], resourcesSize: 10,
     tags: [], grants: { publishers: '*' as const }, package: { url: 'https://x/c.zip', sha256: '0'.repeat(64), size: 1, format: 1 },
-    minAppVersion: 1, minAppVersions: { sanpoguide: 1 }, approvedAt: now.toISOString(), ...(promotional ? { promotional } : {}),
+    minAppVersions: { sanpoguide: 1 }, approvedAt: now.toISOString(), ...(promotional ? { promotional } : {}),
   });
 
   it('marks a channel that declares a promotional collection listed now (R-4)', () => {
@@ -161,12 +161,9 @@ describe('promotion (DES-012)', () => {
 
   it('raises a promotional entry to the versions that label promotion, and a version no app has without one (R-5)', () => {
     const raised = promotedVersions({ ...collection(true), minAppVersions: { sanpoguide: 2, boat: 3 } }, { sanpoguide: 7 });
-    expect(raised).toMatchObject({ minAppVersions: { sanpoguide: 7, boat: 9999 }, minAppVersion: 7 });
+    expect(raised).toMatchObject({ minAppVersions: { sanpoguide: 7, boat: 9999 } });
     // Never lowered.
-    expect(promotedVersions({ ...collection(true), minAppVersions: { sanpoguide: 9 } }, { sanpoguide: 7 })).toMatchObject({ minAppVersion: 9 });
-    // Approved before DES-011: only minAppVersion, SanpoGuide's.
-    const { minAppVersions: _m, ...older } = collection(true);
-    expect(promotedVersions(older, {})).toMatchObject({ minAppVersion: 9999 });
+    expect(promotedVersions({ ...collection(true), minAppVersions: { sanpoguide: 9 } }, { sanpoguide: 7 })).toMatchObject({ minAppVersions: { sanpoguide: 9 } });
     expect(promotedVersions(collection(), {})).toEqual(collection());
   });
 
@@ -174,6 +171,6 @@ describe('promotion (DES-012)', () => {
     store.channels = [{ entry: { ...sampleChannel(), promotional: true, minAppVersions: { sanpoguide: 1 } } }];
     deps.config.promotionalMinAppVersions = { sanpoguide: 4 };
     await publish(deps, 'manual');
-    expect(published().body.channels[0]).toMatchObject({ promotional: true, minAppVersion: 4, minAppVersions: { sanpoguide: 4 } });
+    expect(published().body.channels[0]).toMatchObject({ promotional: true, minAppVersions: { sanpoguide: 4 } });
   });
 });

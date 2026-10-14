@@ -72,7 +72,7 @@ prompts/
 
 ```json
 {
-  "format": 2,
+  "format": 1,
   "id": "kamakura-history",
   "version": 3,
   "publisher": "sg1…（あなたのアカウントID）",
@@ -92,7 +92,7 @@ prompts/
 
 | 項目 | 決まり |
 |---|---|
-| `format` | `2`。`1`（過ごし方を書かない形式。散歩のチャンネルとして扱います）も受け付けます |
+| `format` | `1` |
 | `activities` | このチャンネルが合う過ごし方: `walk`（散歩）・`cycle`（サイクリング）から 1〜4 個。語り手の文章がその過ごし方に合っているかは、人の審査で確かめます。チャンネルは、過ごし方が合うアプリにだけ届きます（今あるのは散歩の「散策ガイド」だけ） |
 | `genres` | 散策者が探すときの分類: `general`・`history`・`nature`・`food`・`shopping` から 0〜3 個 |
 | `requires.features` | これがないアプリでは成り立たない機能（`slot:guide`、`trigger:point`、`present:fullscreen` など。[API-003「機能」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)）。書いた機能を持たないアプリには届きません。書かない機能は、持たないアプリでは使われないだけです |

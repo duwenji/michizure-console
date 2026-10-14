@@ -257,7 +257,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 素材提供者の役割を有効にする（1.1、C-15） */
+        /** 素材提供者の役割を有効にする（C-15） */
         post: operations["enableProducerRole"];
         delete?: never;
         options?: never;
@@ -820,7 +820,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** アカウントの素材集（1.1） */
+        /** アカウントの素材集 */
         get: operations["listPublisherCollections"];
         put?: never;
         post?: never;
@@ -1081,7 +1081,7 @@ export interface components {
             channels: number;
             /** @description 1.1 */
             collections?: number;
-            /** @description チャンネルと素材集の申請を合わせた数（1.1、M-19） */
+            /** @description チャンネルと素材集の申請を合わせた数（M-19） */
             uploadsToday: number;
             ticketsToday: number;
         };
@@ -1093,9 +1093,9 @@ export interface components {
             status: components["schemas"]["PublisherStatus"];
             statusReason?: string;
             activeAccountId?: components["schemas"]["AccountId"] | null;
-            /** @description アカウントの役割（1.1、M-16）。1.0 のアカウントは [publisher] */
+            /** @description アカウントの役割（M-16） */
             roles?: ("publisher" | "producer")[];
-            /** @description 素材提供者の身元が確かめられているか（1.1、C-17） */
+            /** @description 素材提供者の身元が確かめられているか（C-17） */
             producerVerified?: boolean;
             /** @description 身元の確認の記録（運営にだけ返す） */
             producerVerification?: components["schemas"]["Verification"];
@@ -1186,14 +1186,12 @@ export interface components {
                 sha256: string;
             };
             package: components["schemas"]["ListedPackage"];
-            /** @description SanpoGuide の版（DES-011 N-6） */
-            minAppVersion: number;
-            minAppVersions?: components["schemas"]["MinAppVersions"];
-            /** @description DES-011 N-3。パッケージの activities（format 1 は walk） */
-            activities?: string[];
-            genres?: string[];
+            minAppVersions: components["schemas"]["MinAppVersions"];
+            /** @description DES-011 N-3。パッケージの activities */
+            activities: string[];
+            genres: string[];
             /** @description パッケージの requires.features */
-            requires?: string[];
+            requires: string[];
             /** @description DES-012 R-3。承認した版の申告（偽は書かない）。リストでは宣伝の素材集の宣言でも真になる（R-4） */
             promotional?: boolean;
             /** Format: date-time */
@@ -1257,7 +1255,7 @@ export interface components {
             }[];
             /** @description 必要なアプリの段（API-003 確認の手順 10。1.1 からは使う素材集の中身も数える） */
             appStage?: number;
-            /** @description （1.1、チャンネル）宣言した素材集ごとの解決の結果（C-19） */
+            /** @description （チャンネル）宣言した素材集ごとの解決の結果（C-19） */
             collections?: {
                 as: string;
                 collectionId: components["schemas"]["CollectionId"];
@@ -1267,19 +1265,19 @@ export interface components {
                 code?: string;
                 detail?: string;
             }[];
-            /** @description （1.1、素材集）外部の素材ごとの確認（M-20） */
+            /** @description （素材集）外部の素材ごとの確認（M-20） */
             external?: {
                 resourceId: string;
                 ok: boolean;
                 detail?: string;
             }[];
-            /** @description （1.1、素材集）公開中のチャンネルが参照している素材を消した・種類を変えた（D-8・M-22） */
+            /** @description （素材集）公開中のチャンネルが参照している素材を消した・種類を変えた（D-8・M-22） */
             inUse?: {
                 channelId: components["schemas"]["ChannelId"];
                 resourceId: string;
                 detail: string;
             }[];
-            /** @description （1.1）拒まないが知らせること（例 grants_narrowed） */
+            /** @description 拒まないが知らせること（例 grants_narrowed） */
             warnings?: {
                 code: string;
                 detail: string;
@@ -1316,7 +1314,7 @@ export interface components {
             description?: string;
             tags?: string[];
             regions?: string[];
-            /** @description DES-011 N-3。パッケージの activities（format 1 は walk） */
+            /** @description DES-011 N-3。パッケージの activities */
             activities?: string[];
             genres?: string[];
             /** @description パッケージの requires.features */
@@ -1415,9 +1413,7 @@ export interface components {
             };
             package: components["schemas"]["ListedPackage"];
             appStage?: number;
-            /** @description SanpoGuide の版（DES-011 N-6） */
-            minAppVersion: number;
-            minAppVersions?: components["schemas"]["MinAppVersions"];
+            minAppVersions: components["schemas"]["MinAppVersions"];
             /** @description DES-012 R-3。承認した版の申告（偽は書かない） */
             promotional?: boolean;
             /** Format: date-time */

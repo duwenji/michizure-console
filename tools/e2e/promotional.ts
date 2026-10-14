@@ -120,7 +120,7 @@ const collectionZip = await signCollection(
   producer, collectionId, 1,
 );
 const channelJson = {
-  format: 1, id: channelId, version: 1, publisher: publisher.accountId, name: '小町通りの買い物', summary: 'お店の紹介を聞きながら歩く', lang: 'ja', greeting: '小町通りへようこそ。',
+  format: 1, activities: ['walk'], id: channelId, version: 1, publisher: publisher.accountId, name: '小町通りの買い物', summary: 'お店の紹介を聞きながら歩く', lang: 'ja', greeting: '小町通りへようこそ。',
   talk: { level: 'quiet', events: { spot: true, revisit: false, milestone: false, rest: false, start: true, finish: true } },
   spots: { prefer: ['shop'], skip: [] }, guide: { length: 'short' }, mood: { tone: false, sound: 'auto' },
   collections: [{ as: 'ads', id: collectionId, minVersion: 1 }],
@@ -137,7 +137,7 @@ const seeded = [
   // Declared promotional by the producer (DES-012 R-1).
   { PK: `COL#${collectionId}`, SK: `SUB#${colSid}`, type: 'submission', kind: 'collection', submissionId: colSid, collectionId, publisherId: producerId, accountId: producer.accountId, state: 'uploading', intakeKey: `intake-col/${collectionId}/${colSid}.zip`, promotional: true, rev: 1, createdAt: now, updatedAt: now },
   { PK: `USER#${publisherSub}`, SK: 'USER', type: 'user', publisherId },
-  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, displayName: '鎌倉お買い物案内', status: 'active', activeAccountId: publisher.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
+  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, displayName: '鎌倉お買い物案内', status: 'active', activeAccountId: publisher.accountId, channelCount: 1, rev: 2, createdAt: now, updatedAt: now },
   { PK: `PUB#${publisherId}`, SK: `KEY#${publisher.accountId}`, type: 'publisher-key', accountId: publisher.accountId, status: 'active', boundAt: now },
   { PK: `CH#${channelId}`, SK: 'CH', type: 'channel', channelId, publisherId, status: 'active', rev: 1, pendingSubmissionId: chSid, createdAt: now, updatedAt: now, GSI1PK: `PUB#${publisherId}`, GSI1SK: `CH#${channelId}` },
   // Not declared: the list marks it for the collection it declares (R-4).
@@ -184,7 +184,7 @@ try {
   for (const [what, e] of [['collection', listedCol], ['channel', listedCh]] as const) {
     const marked = e?.promotional === true;
     ok &&= marked;
-    console.log(`  ${marked ? 'PASS' : 'FAIL'} ${what} promotional=${String(e?.promotional)} minAppVersion=${String(e?.minAppVersion)} minAppVersions=${JSON.stringify(e?.minAppVersions)}`);
+    console.log(`  ${marked ? 'PASS' : 'FAIL'} ${what} promotional=${String(e?.promotional)} minAppVersions=${JSON.stringify(e?.minAppVersions)}`);
   }
 
   // 4. The conformance checks.

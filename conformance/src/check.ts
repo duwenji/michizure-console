@@ -1,6 +1,5 @@
 import {
   ACCOUNT_ID,
-  FORMAT1_ECOSYSTEM,
   CHANNEL_ID,
   LIMITS,
   ProtocolError,
@@ -273,29 +272,23 @@ export async function checkProvider(baseUrl: string, options: CheckOptions = {})
     set('V-25', 'pass', `${collectionPackages.size} collections`);
 
     // V-27 (API-002 P-19): what the list copies for the apps to choose by is what the package says.
-    // A package in format 1 is a walking channel with no genre and no requirement (API-003 G-6).
     for (const [id, bytes] of channelPackages) {
       const entry = list.channels.find((c) => c.id === id)!;
       // A package that isn't the one listed is V-07's to report.
       if (sha256Hex(bytes) !== entry.package.sha256) continue;
       const manifest = jsonIn(bytes, 'channel.json');
       if (!manifest) { set('V-27', 'fail', `${id}: no channel.json`); continue; }
-      const format = (manifest.format as number | undefined) ?? 1;
-      const format2 = format === 2;
+      const format = manifest.format as number | undefined;
       const written = {
-        activities: format2 ? (manifest.activities as string[] | undefined) ?? [] : FORMAT1_ECOSYSTEM.activities,
-        genres: format2 ? (manifest.genres as string[] | undefined) ?? [] : FORMAT1_ECOSYSTEM.genres,
-        requires: format2 ? ((manifest.requires as { features?: string[] } | undefined)?.features ?? []) : FORMAT1_ECOSYSTEM.requires,
+        activities: (manifest.activities as string[] | undefined) ?? [],
+        genres: (manifest.genres as string[] | undefined) ?? [],
+        requires: (manifest.requires as { features?: string[] } | undefined)?.features ?? [],
       };
-      const listed = {
-        activities: entry.activities ?? FORMAT1_ECOSYSTEM.activities,
-        genres: entry.genres ?? FORMAT1_ECOSYSTEM.genres,
-        requires: entry.requires ?? FORMAT1_ECOSYSTEM.requires,
-      };
+      const listed = { activities: entry.activities, genres: entry.genres, requires: entry.requires };
       for (const field of ['activities', 'genres', 'requires'] as const) {
         if (!sameList(written[field], listed[field])) set('V-27', 'fail', `${id}: ${field} ${listed[field].join(',')} but the package has ${written[field].join(',')}`);
       }
-      if (entry.package.format !== format) set('V-27', 'fail', `${id}: package.format ${entry.package.format} but the package is format ${format}`);
+      if (entry.package.format !== format) set('V-27', 'fail', `${id}: package.format ${entry.package.format} but the package is format ${String(format)}`);
     }
     set('V-27', channelPackages.size ? 'pass' : 'skip', `${channelPackages.size} channels`);
 

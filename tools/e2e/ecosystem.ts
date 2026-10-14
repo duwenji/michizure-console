@@ -13,10 +13,10 @@ import { checkProvider } from '../../conformance/src/check.js';
 import { createKey, signPackage } from '../../web/src/publisher-crypto.js';
 
 /**
- * DES-011 on the dev environment: two format 2 channels, one for walking and cycling and one for
- * cycling only, pass the machine review and are approved and listed. The list must carry their
- * activities, genres and requires, `minAppVersions` only for SanpoGuide on the first, and
- * `minAppVersion` 9999 on the second (API-002 P-19〜P-21). Then the conformance checks (V-27, V-29).
+ * DES-011 on the dev environment: two channels, one for walking and cycling and one for cycling
+ * only, pass the machine review and are approved and listed. The list must carry their activities,
+ * genres and requires, and `minAppVersions` only for SanpoGuide on the first (API-002 P-19・P-20).
+ * Then the conformance checks (V-27, V-29).
  *
  * `--keep` leaves them listed so SanpoGuide (the emulator) can be checked to offer only the first;
  * `--cleanup` removes them afterwards.
@@ -84,7 +84,7 @@ const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAA
 
 const seeded: { PK: string; SK: string; [k: string]: unknown }[] = [
   { PK: `USER#${publisherSub}`, SK: 'USER', type: 'user', publisherId },
-  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', publisherId, displayName: 'エコシステムの通しの確認', status: 'active', activeAccountId: key.accountId, channelCount: channels.length, rev: 2, createdAt: now, updatedAt: now },
+  { PK: `PUB#${publisherId}`, SK: 'PUB', type: 'publisher', roles: ['publisher'], publisherId, displayName: 'エコシステムの通しの確認', status: 'active', activeAccountId: key.accountId, channelCount: channels.length, rev: 2, createdAt: now, updatedAt: now },
   ...channels.flatMap(({ channelId, sid }) => [
     { PK: `CH#${channelId}`, SK: 'CH', type: 'channel', channelId, publisherId, status: 'active', rev: 1, pendingSubmissionId: sid, createdAt: now, updatedAt: now, GSI1PK: `PUB#${publisherId}`, GSI1SK: `CH#${channelId}` },
     {
@@ -102,8 +102,8 @@ try {
   const s3 = new S3Client({ region });
   for (const c of channels) {
     const manifest = {
-      format: 2, id: c.channelId, version: 1, publisher: key.accountId,
-      name: c.name, summary: 'format 2 の通しの確認', lang: 'ja', greeting: '確認です。',
+      format: 1, id: c.channelId, version: 1, publisher: key.accountId,
+      name: c.name, summary: 'エコシステムの通しの確認', lang: 'ja', greeting: '確認です。',
       activities: c.activities, genres: c.genres, requires: { features: c.requires },
       talk: { level: 'quiet', events: { spot: true, revisit: false, milestone: false, rest: false, start: true, finish: true } },
       spots: { prefer: ['temple'], skip: [] }, guide: { length: 'short' }, mood: { tone: false, sound: 'auto' },
@@ -140,7 +140,7 @@ try {
   }
 
   // 3. Wait until the list carries both, then compare what it says with DES-011 N-3・N-5・N-6.
-  type Listed = { id: string; activities?: string[]; genres?: string[]; requires?: string[]; minAppVersion: number; minAppVersions?: Record<string, number>; package: { format: number } };
+  type Listed = { id: string; activities?: string[]; genres?: string[]; requires?: string[]; minAppVersions: Record<string, number>; package: { format: number } };
   let listed: Listed[] = [];
   for (let t = Date.now(); listed.length < channels.length && Date.now() - t < 120_000; await sleep(3000)) {
     const doc = await (await fetch(`${providerUrl}/v1/channels.json?${Date.now()}`)).json();
@@ -148,12 +148,12 @@ try {
     listed = (body.channels as Listed[]).filter((l) => state.channelIds.includes(l.id));
   }
   const expected: Record<string, Partial<Listed>> = {
-    [channels[0].channelId]: { activities: ['walk', 'cycle'], genres: ['history'], requires: ['slot:guide'], minAppVersion: 1, minAppVersions: { sanpoguide: 1 } },
-    [channels[1].channelId]: { activities: ['cycle'], genres: ['nature'], requires: [], minAppVersion: 9999, minAppVersions: {} },
+    [channels[0].channelId]: { activities: ['walk', 'cycle'], genres: ['history'], requires: ['slot:guide'], minAppVersions: { sanpoguide: 1 } },
+    [channels[1].channelId]: { activities: ['cycle'], genres: ['nature'], requires: [], minAppVersions: {} },
   };
   for (const l of listed) {
     const want = expected[l.id];
-    const got = { activities: l.activities, genres: l.genres, requires: l.requires, minAppVersion: l.minAppVersion, minAppVersions: l.minAppVersions ?? {} };
+    const got = { activities: l.activities, genres: l.genres, requires: l.requires, minAppVersions: l.minAppVersions };
     const match = JSON.stringify(got) === JSON.stringify(want) && l.package.format === 2;
     ok &&= match;
     console.log(`  ${match ? 'PASS' : 'FAIL'} listed ${l.id} ${JSON.stringify({ ...got, format: l.package.format })}`);

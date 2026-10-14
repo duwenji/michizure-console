@@ -11,7 +11,7 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { FORMAT1_ECOSYSTEM, type ChannelEntry, type CollectionEntry, type RevokedEntry, type Signer, type SignedDocument } from '@yorisoi-console/protocol';
+import { type ChannelEntry, type CollectionEntry, type RevokedEntry, type Signer, type SignedDocument } from '@yorisoi-console/protocol';
 import type { ExternalFailure, ExternalTarget } from './external.js';
 import {
   SeqConflictError,
@@ -31,13 +31,13 @@ export const seqKey = (seq: number) => `SEQ#${String(seq).padStart(10, '0')}`;
 interface ChannelItem {
   channelId: string;
   publisherId: string;
-  latestApproved?: Omit<ChannelEntry, 'id' | 'publisherName' | 'publisherChange'> & {
+  latestApproved?: Omit<ChannelEntry, 'id' | 'publisherName' | 'publisherChange' | 'media' | 'resourcesSize'> & {
     submissionId: string;
-    // Since DES-007: kept for the publisher to add up, never listed as they are (DES-009 M-4).
-    appStage?: number;
-    collections?: { as: string; id: string; minVersion: number }[];
-    ownPrefetchBytes?: number;
-    ownMedia?: string[];
+    // Kept for the publisher to add up, never listed as they are (DES-009 M-4).
+    appStage: number;
+    collections: { as: string; id: string; minVersion: number }[];
+    ownPrefetchBytes: number;
+    ownMedia: string[];
   };
   publisherChange?: { from: string; at: string; reason: string; until?: string };
 }
@@ -95,15 +95,11 @@ export class DynamoStore implements PublicationStore {
         const change = shownChange(i.publisherChange, approved.publisher, now);
         const entry = {
           id: i.channelId,
-          // Approved before DES-011: what a format 1 channel is (API-003 G-6, DES-011 N-3).
-          ...FORMAT1_ECOSYSTEM,
           ...approved,
           publisherName: names.get(i.publisherId) ?? '',
           ...(change ? { publisherChange: change } : {}),
-        } as ChannelEntry;
-        return ownMedia
-          ? { entry, material: { ownPrefetchBytes: ownPrefetchBytes ?? 0, ownMedia, collections: (collections ?? []).map((c) => c.id) } }
-          : { entry };
+        };
+        return { entry, material: { ownPrefetchBytes, ownMedia, collections: collections.map((c) => c.id) } };
       })
       .sort((a, b) => a.entry.id.localeCompare(b.entry.id));
   }

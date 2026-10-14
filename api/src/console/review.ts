@@ -1,8 +1,8 @@
 import { QueryCommand, type TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import type { Schemas } from '@yorisoi-console/api-types';
-import { FORMAT1_ECOSYSTEM, sha256Hex, utf8 } from '@yorisoi-console/protocol';
+import { sha256Hex, utf8 } from '@yorisoi-console/protocol';
 import { unzipSync } from 'fflate';
-import { auditItem, channelMinVersions, collectionMinVersions, legacyMinAppVersion, notifyAfter, type Deps, type Notice } from './deps.js';
+import { auditItem, channelMinVersions, collectionMinVersions, notifyAfter, type Deps, type Notice } from './deps.js';
 import { fail, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { loadSubmission, submissionView, transact } from './publisher.js';
 import { collectionSubmissionView, collectionView, get, loadChannel, loadCollection, loadCollectionSubmission, loadPublisher, page, type Item } from './shared.js';
@@ -217,10 +217,11 @@ interface ChannelListing {
   ownPrefetchBytes: number;
   ownMedia: string[];
   /** By collection id: the resources the channel names in it, with their types. */
-  uses: Record<string, Record<string, string>>;  /** As the package writes them (DES-011 N-3); absent in reviews from before it. */
-  activities?: string[];
-  genres?: string[];
-  requires?: string[];
+  uses: Record<string, Record<string, string>>;
+  /** As the package writes them (DES-011 N-3). */
+  activities: string[];
+  genres: string[];
+  requires: string[];
 }
 
 /**
@@ -298,16 +299,13 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
 
   const zip = await deps.readUpload(String(sub.intakeKey));
   if (sha256Hex(zip) !== sub.sha256) fail('invalid_state', 'the uploaded package differs from what the machine review checked');
-  // A submission the machine review passed before DES-007 has no listing: no material, stage 0.
-  const listing = (sub.listing as ChannelListing | undefined) ?? { appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {} };
+  const listing = (sub.listing as ChannelListing | undefined) ?? fail('invalid_state', 'the machine review recorded nothing to list');
   const used = await recheckCollections(deps, String(sub.publisherId), listing);
   const manifest = JSON.parse(utf8.decode(unzipSync(zip, { filter: (f) => f.name === 'channel.json' })['channel.json']!)) as {
-    format?: number; name: string; summary: string; lang: string;
+    format: number; name: string; summary: string; lang: string;
   };
-  // What the list copies for the apps to choose by (API-002 P-19); a review from before DES-011 is format 1's (API-003 G-6).
-  const activities = listing.activities ?? FORMAT1_ECOSYSTEM.activities;
-  const genres = listing.genres ?? FORMAT1_ECOSYSTEM.genres;
-  const requires = listing.requires ?? FORMAT1_ECOSYSTEM.requires;
+  // What the list copies for the apps to choose by (API-002 P-19).
+  const { activities, genres, requires } = listing;
   const minAppVersions = channelMinVersions(deps, listing.appStage, activities, requires);
   const { packageUrl, iconUrl } = await deps.publishApproved({
     packageKey: String(sub.intakeKey), packageSha256: String(sub.sha256), iconKey: String(sub.iconIntakeKey), iconSha256: String(sub.iconSha256),
@@ -320,9 +318,8 @@ export async function approveSubmission(deps: Deps, req: Request): Promise<Respo
     ...(sub.description ? { description: String(sub.description) } : {}),
     ...(sub.tags ? { tags: sub.tags } : {}), ...(sub.regions ? { regions: sub.regions } : {}),
     icon: { url: iconUrl, sha256: String(sub.iconSha256) },
-    package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: manifest.format ?? 1 },
-    activities, genres, requires, minAppVersions,
-    minAppVersion: legacyMinAppVersion(minAppVersions), approvedAt: at,
+    package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: manifest.format },
+    activities, genres, requires, minAppVersions, approvedAt: at,
     // This version's declaration (DES-012 R-3); the publisher adds its collections' (R-4).
     ...(sub.promotional === true ? { promotional: true } : {}),
     // What the publisher adds up each time it lists the channel (DM-001 M-24).
@@ -485,7 +482,7 @@ export async function approveCollectionSubmission(deps: Deps, req: Request): Pro
     tags: listing.tags, regions: listing.regions, grants: listing.grants,
     package: { url: packageUrl, sha256: String(sub.sha256), size: Number(sub.size), format: 1 },
     resourceTypes: listing.resourceTypes, externalResources: listing.externalResources,
-    appStage: listing.appStage, minAppVersions, minAppVersion: legacyMinAppVersion(minAppVersions), approvedAt: at,
+    appStage: listing.appStage, minAppVersions, approvedAt: at,
     ...(sub.promotional === true ? { promotional: true } : {}),
   };
   const decision = { action: 'approve', at, ...(message ? { message } : {}) };

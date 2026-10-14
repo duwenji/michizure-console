@@ -93,12 +93,11 @@ SanpoGuide ADR-003（付き添いアプリのエコシステム）と ADR-002（
 
 | No. | 論点 | 決定 |
 |---|---|---|
-| M-26 | 絞り込みの情報（DES-011 N-3・N-11） | 機械審査が、パッケージの `activities`・`genres`・`requires.features` を申請の `listing` に書かれたとおりに記録し（format 1 は `["walk"]`・`[]`・`[]`）、承認が `latestApproved` に写す。これらのない項目は format 1 の読み方で扱う |
-| M-27 | アプリごとの版（DES-011 N-4〜N-6） | 段と版の対応表を、アプリの ID ごとの設定 `appStageVersions`（`{ sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } }`）にする。アプリの名前・過ごし方・機能は `packages/protocol` の `KNOWN_APPS`。承認は `latestApproved.minAppVersions`（アプリの ID → 版）を計算する: チャンネルは過ごし方と必要な機能が合うアプリだけ、素材集は `grants.apps` が含むアプリ（ないときはすべて）。`minAppVersion` は `minAppVersions.sanpoguide`、なければ 9999（`minAppVersions` を読まないアプリのため。API-002 P-21） |
+| M-26 | 絞り込みの情報（DES-011 N-3・N-11） | 機械審査が、パッケージの `activities`・`genres`・`requires.features` を申請の `listing` に書かれたとおりに記録し、承認が `latestApproved` に写す |
+| M-27 | アプリごとの版（DES-011 N-4〜N-6） | 段と版の対応表を、アプリの ID ごとの設定 `appStageVersions`（`{ sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } }`）にする。アプリの名前・過ごし方・機能は `packages/protocol` の `KNOWN_APPS`。承認は `latestApproved.minAppVersions`（アプリの ID → 版）を計算する: チャンネルは過ごし方と必要な機能が合うアプリだけ、素材集は `grants.apps` が含むアプリ（ないときはすべて） |
 | M-28 | 素材集の利用アプリ（DES-011 N-7） | 機械審査が `grants.apps` を読み、承認が `latestApproved.grants.apps` に写す。チャンネルが素材集を参照するときの確かめでは、アプリを見ない |
-| M-29 | format 1 の受け付けの期限（DES-011 N-2） | 設定 `format1AcceptUntil`（日時。未設定は期限なし）。過ぎてからの format 1 の申請は、機械審査が `format_retired` で落とす。公開中の format 1 のチャンネルはそのまま |
 | M-30 | 宣伝の申告（DES-012 R-1・R-3・R-9） | 申請（チャンネル・素材集）の `promotional`（真のときだけ書く）。承認が真のときだけ `latestApproved.promotional` に写す。版ごとに申告し、前の版から引き継がない。運営は書き換えない（R-2） |
-| M-31 | 宣伝の印と版の引き上げ（DES-012 R-4・R-5） | テーブルには持たず、公開のときに決める: チャンネルは自分の申告か、`collections` で宣言した素材集のうちリストにある宣伝のものがあれば `promotional`。宣伝のものは、設定 `promotionalMinAppVersions`（アプリの ID → 版。ないアプリは 9999）まで `minAppVersions` を上げ、`minAppVersion` も追従させる |
+| M-31 | 宣伝の印と版の引き上げ（DES-012 R-4・R-5） | テーブルには持たず、公開のときに決める: チャンネルは自分の申告か、`collections` で宣言した素材集のうちリストにある宣伝のものがあれば `promotional`。宣伝のものは、設定 `promotionalMinAppVersions`（アプリの ID → 版。ないアプリは 9999）まで `minAppVersions` を上げる |
 
 ## 概念モデル（ERD）
 
@@ -278,7 +277,7 @@ stateDiagram-v2
 | `limits` | M | — | 運営が変えた上限（`channels`・`collections`・`uploadsPerDay`・`ticketsPerDay`）。ないものは既定値（M-2・M-19） |
 | `suspendedReason` | S | — | 停止の理由 |
 | `deletedAt` | S | — | 退会した日時。退会すると `displayName`・`contact` を消す（M-15） |
-| `roles` | SS | ○ | `publisher`・`producer` のどれか（M-16）。1.2 までの項目は `publisher` だけとして読む |
+| `roles` | SS | ○ | `publisher`・`producer` のどれか（M-16）。登録のときは `publisher` |
 | `collectionCount` | N | — | 持っている素材集の数（取り下げたものも数える。M-19） |
 | `producerVerification` | M | — | 運営が記録した身元の確認（`method`・`detail`・`verifiedAt`・`operatorSub`。M-17・D-20）。表示名を変えると消す |
 
@@ -315,13 +314,12 @@ stateDiagram-v2
 | `name`・`summary`・`description`・`lang`・`tags`・`regions` | `channel.json` と申請の画面から |
 | `icon` | `{ url, sha256 }`（公開用のバケットの `/icons/{sha256}.png`） |
 | `package` | `{ url, sha256, size, format }`（`/pkg/{sha256}.zip`） |
-| `minAppVersion` | 機械審査が出した、必要なアプリの段から決める（段と版の対応表から。M-23） |
 | `approvedAt` | 承認した日時 |
 | `appStage` | 承認時に、リストに載っていた素材集の中身まで数えたアプリの段 |
 | `collections` | 宣言した素材集 `[{ as, id, minVersion }]`。公開のたびに `resourcesSize`・`media` を足し合わせるのに使う（M-24） |
 | `ownPrefetchBytes`・`ownMedia` | チャンネル自身の素材の前もっての取得の大きさと種類（M-24） |
-| `activities`・`genres`・`requires` | パッケージの値（M-26）。ない項目は format 1 の読み方 |
-| `minAppVersions` | アプリの ID → 必要な版（M-27）。`minAppVersion` は SanpoGuide の値 |
+| `activities`・`genres`・`requires` | パッケージの値（M-26） |
+| `minAppVersions` | アプリの ID → 必要な版。機械審査が出した必要なアプリの段から決める（M-23・M-27） |
 | `promotional` | 承認した版の申告。真のときだけ（M-30） |
 
 ### 素材集（COL）
@@ -348,7 +346,7 @@ stateDiagram-v2
 | `package` | `{ url, sha256, size, format }`（公開用のバケットの `/col/{sha256}.zip`） |
 | `resourceTypes` | 素材の ID と種類の対応。次の版の D-8 の確認と、チャンネルの段の計算に使う |
 | `externalResources` | 外部の素材の `[{ resourceId, url, size }]`（M-21 の確認の対象） |
-| `minAppVersion`・`appStage` | 素材の種類から決めた段と、その版（M-23） |
+| `minAppVersions`・`appStage` | 素材の種類から決めた段と、アプリごとの版（M-23・M-27） |
 | `minAppVersions` | `grants.apps` が含むアプリ（ないときはすべて）の ID → 必要な版（M-27） |
 | `promotional` | 承認した版の申告。真のときだけ（M-30） |
 | `approvedAt` | 承認した日時 |
@@ -510,8 +508,7 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 - 新しいシステムなので、移行するデータはない
 - 項目に属性を足すのは互換性のある変更。読むときの検証は、知らない属性を無視する
 - キーの形（PK・SK・GSI）を変えるときは、新しい形で書き、古い形の項目を一括で書き直すスクリプトを用意する。運営の担当者が 1 人で件数が少ないうちは、メンテナンス時間を取って行ってよい
-- 申請・`latestApproved` に `activities`・`genres`・`requires`・`minAppVersions`・`promotional` がなければ、format 1 の読み方・`minAppVersion` だけ・宣伝なしとして扱う（M-26・M-27・M-30）
-- アカウントの項目に `roles` がなければ `["publisher"]` として扱い、次に書くときに `roles` を書く
+- `promotional` がない申請・`latestApproved` は宣伝なし（M-30）
 - 複数メンバーのチャンネル提供者（M-1 の将来）は、`PUB#{publisherId}` / `MEMBER#{sub}` の項目を足し、ユーザーの項目を「どのチャンネル提供者のメンバーか」に変えて対応する。`ownerSub` は最初のメンバーになる
 
 ## 検証観点

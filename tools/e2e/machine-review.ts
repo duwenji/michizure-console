@@ -20,7 +20,7 @@ const enc = new TextEncoder();
 const { key } = await createKey('e2e-check-passphrase');
 const channelId = `e2e-check-${Date.now().toString(36)}`;
 const manifest = {
-  format: 1, id: channelId, version: 1, publisher: key.accountId,
+  format: 1, activities: ['walk'], id: channelId, version: 1, publisher: key.accountId,
   name: '動作確認', summary: '機械審査の通しの確認', lang: 'ja', greeting: '確認です。',
   talk: { level: 'quiet', events: { spot: true, revisit: false, milestone: false, rest: false, start: true, finish: true } },
   spots: { prefer: ['temple'], skip: [] }, guide: { length: 'short' }, mood: { tone: false, sound: 'auto' },

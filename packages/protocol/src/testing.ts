@@ -64,8 +64,13 @@ export function sampleChannel(overrides: Partial<ChannelEntry> = {}): ChannelEnt
     lang: ['ja'],
     icon: { url: 'https://cdn.example.com/icons/x.png', sha256: '0'.repeat(64) },
     package: { url: 'https://cdn.example.com/pkg/x.zip', sha256: '0'.repeat(64), size: 1, format: 1 },
-    minAppVersion: 1,
     approvedAt: '2026-10-02T09:00:00.000Z',
+    media: [],
+    resourcesSize: 0,
+    activities: ['walk'],
+    genres: [],
+    requires: [],
+    minAppVersions: { sanpoguide: 1 },
     ...overrides,
   };
 }
