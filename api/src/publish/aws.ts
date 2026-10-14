@@ -85,7 +85,7 @@ export class DynamoStore implements PublicationStore {
   }
 
   async listedChannels(now: Date): Promise<ListedChannel[]> {
-    // Collections share the partition (DM-001 1.3): only the channels, by their sort key (DES-009 M-1).
+    // Collections share the partition (DM-001): only the channels, by their sort key (DES-009 M-1).
     const items = await this.queryAll<ChannelItem>('LISTED', 'CH#');
     const names = await this.publisherNames([...new Set(items.map((i) => i.publisherId))]);
     return items

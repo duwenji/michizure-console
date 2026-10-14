@@ -1,6 +1,6 @@
 # 配備の手順
 
-ADR-001 の構成を AWS に配備し、承認済みチャンネル・リストを出せる状態にする手順。運営の画面ができるまでは、署名鍵と鍵セットの登録を `tools/provision` で行う。
+ADR-001 の構成を AWS に配備し、承認済みチャンネル・リストを出せる状態にする手順。署名鍵と鍵セットの登録は、運営の画面か `tools/provision` で行う。
 
 ## 開発用（dev）
 
@@ -8,16 +8,15 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 |---|---|
 | AWS アカウント | 140023390410（SSO プロファイル `sanpo-dev`） |
 | リージョン | ap-northeast-1 |
-| スタック | `MichizureConsole-dev`（`yorisoi-console` への改名（ADR-001 T-10）で `YorisoiConsole-dev` に作り直す。未実施。それまで下の手順のスタック名・URL は改名前のもの） |
+| スタック | `MichizureConsole-dev`（`YorisoiConsole-dev` での作り直しは未実施。下の手順のスタック名・URL はこのスタックのもの） |
 | リストID | `sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv` |
 | ルート鍵の公開鍵 | `YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagFVjECEI` |
 | 公開 URL | https://dp0n4y2yro06i.cloudfront.net |
-| 初回の配備 | 2026-10-03（準拠テスト合格）。2026-10-12 に `michizure-console` への改名（ADR-001 T-9）で、スタック `MichizureConsole-dev` を作り直した（ルート鍵は同じなのでリストIDは変わらない。URL・ユーザープールは新しくなった） |
-| 運営の画面 | https://d21uyuovpio5a.cloudfront.net（2026-10-12 作り直し） |
+| 運営の画面 | https://d21uyuovpio5a.cloudfront.net |
 | ログイン | https://michizure-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_9kOvLsKwS`） |
 | 運営 | tofumiyoshi@gmail.com（`operator` グループ） |
 
-開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.yorisoi-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は T-5 の手順書に従い、オフラインの端末で作る。
+開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.yorisoi-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は ADR-001 T-1 の手順書に従い、オフラインの端末で作る。
 
 ### 手順
 
@@ -64,4 +63,4 @@ CONSOLE_URL=https://d21uyuovpio5a.cloudfront.net npm run dev -w web   # http://l
 
 ## 本番用（prod）
 
-未配備。本番用のアカウント、本番のルート鍵（T-5）、独自ドメイン（T-7）がそろってから。
+未配備。本番用のアカウント、本番のルート鍵（ADR-001 T-1）、独自ドメイン（ADR-001 T-2）がそろってから。

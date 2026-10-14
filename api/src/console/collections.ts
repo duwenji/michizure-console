@@ -8,7 +8,7 @@ import {
 } from './shared.js';
 import { jstDate, ulid } from './util.js';
 
-// The producer's side of collections (API-001 1.1 C-15〜C-18, DES-008 4b-1). The operator's
+// The producer's side of collections (API-001 C-15〜C-18, DES-008). The operator's
 // review of them is in review.ts, sharing the channel's steps.
 
 type TransactItems = NonNullable<ConstructorParameters<typeof TransactWriteCommand>[0]['TransactItems']>;

@@ -48,7 +48,7 @@ export async function sha256(data: Uint8Array): Promise<Uint8Array> {
 
 const hex = (data: Uint8Array) => Array.from(data, (b) => b.toString(16).padStart(2, '0')).join('');
 
-/** `sg1` + base32(SHA-256(public key)), first 32 characters: the same as the server and station-format. */
+/** `sg1` + base32(SHA-256(public key)), first 32 characters: the same as the server and core-format. */
 export async function accountIdOf(publicKey: Uint8Array): Promise<string> {
   return 'sg1' + base32(await sha256(publicKey)).slice(0, 32);
 }
@@ -148,7 +148,7 @@ export interface SignedPackage {
   files: string[];
 }
 
-/** What a `signature.json` signs: a channel (API-003 F-6) or a collection (API-004 1.2). */
+/** What a `signature.json` signs: a channel (API-003 F-6) or a collection (API-004). */
 interface PackageKind {
   manifest: 'channel.json' | 'collection.json';
   type: 'channel-package' | 'collection-package';
@@ -207,7 +207,7 @@ export async function signPackage(zip: Uint8Array, key: PublisherKey, expect: { 
   return { ...signed, channel: expect.channel };
 }
 
-/** A collection package (API-004 1.2, DES-010 N-3): the same, as its producer. */
+/** A collection package (API-004, DES-010 N-3): the same, as its producer. */
 export async function signCollectionPackage(zip: Uint8Array, key: PublisherKey, expect: { collection: string }): Promise<{ zip: Uint8Array; version: number; files: string[] }> {
   return signAs(
     { manifest: 'collection.json', type: 'collection-package', subjectKey: 'collection', ownerKey: 'producer', what: '素材集' },

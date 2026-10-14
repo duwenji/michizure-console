@@ -1,34 +1,19 @@
 # TODO
 
-## 次にやること（2026-10-12 時点）
+チャンネル管理システムで残っている作業。できている機能は [README](../README.md) と [利用ガイド](guide/README.md)、構成は [architecture.md](architecture.md) にある。
 
-1. 試用チケットで、素材集・基準を使うチャンネルをアプリで通しで確かめる（SanpoGuide 側。チャンネル提供者の鍵ファイルが届いてから）
-2. ルート鍵・署名鍵の手順書（T-5）、独自ドメイン（T-7）、SES のサンドボックスの解除（T-8）。そのあと本番の `notify` を `ses` にする（DES-006 J-12・J-13）
-3. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.6）
+## 本番の準備
 
-済んだこと: エコシステムへの対応（SanpoGuide ADR-003 T-7）のすべて。ADR-001 1.3・DM-001 1.4・API-001 1.2 の改訂（2026-10-13 承認、PR #33）と、`yorisoi-console` への改名（ADR-001 T-9、2026-10-12、PR #34）を含む。宣伝を含むチャンネル・素材集（[DES-012](design/DES-012-promotional.md)、SanpoGuide ADR-002 T-13、2026-10-12。開発用に配備し通しの確認済み。`promotionalMinAppVersions` は SanpoGuide の T-14 の版が出たら設定する）。エコシステムへの対応（DES-011、PR #27、2026-10-12。開発用に配備し、format 2 のチャンネルで SanpoGuide（エミュレータ）との通しの確認済み）。アプリ側の第三者のチャンネルの取り込みと試用チケットの読み込み（SanpoGuide ADR-001 T-5、2026-10-04）。審査基準の承認（SanpoGuide channel-review-policy.md 1.0、2026-10-11）。アプリの第 1 段（文字・画像）への対応（`appStageVersions` の段 1 を 2 に、PR #23、2026-10-11）
+1. ルート鍵・署名鍵の手順書（[ADR-001](adr/ADR-001-aws-architecture.md) T-1）
+2. 独自ドメイン（ADR-001 T-2）と、SES のサンドボックスの解除（T-3）。そのあと本番の `notify` を `ses` にする（DES-006 J-12・J-13）
+3. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.5）
+4. 本番の `promotionalMinAppVersions` に、SanpoGuide を Google Play に出したときの版を書く（DES-012 未決事項 No.2）
 
-## 実装の順番（ADR-001 T-6）
+## 開発用の環境
 
-1. CDK の土台（開発用・本番用のアカウント）、公開の Lambda、ルート鍵の CLI、準拠テスト — **実装済（2026-10-03、DES-001）。開発用に配備し、CloudFront の URL で準拠テストに合格（2026-10-03）**
-2. 運営の画面（審査・承認・取り下げ、AI の見本） — **審査以外を実装済（2026-10-04、DES-002）。開発用に配備し、開発者が画面を確認**。**審査（3c）を実装済（2026-10-04、DES-005。AI は OpenAI と DeepSeek）。開発用に配備し、本物の AWS で通しの確認済み**
-3. チャンネル提供者の画面（申請・試用チケット・鍵の移し替え） — **3a（登録・鍵・チャンネル・申請・取り消し・退会）を実装済（2026-10-04、DES-003）。開発用に配備し、開発者が画面を確認**。station-format 1.1.0（ZIP の展開とチャンネル提供者の署名の確認）を公開済み。**3b（機械審査・試用チケット）を実装済（2026-10-04、DES-004）。開発用に配備し、本物の AWS で通しの確認済み**。**3d（鍵の移し替え・チャンネル提供者へのメール）を実装済（2026-10-04、DES-006。開発用のメールは記録だけ）。開発用に配備し、本物の AWS で通しの確認済み**
+- [ ] 開発用のスタックを `YorisoiConsole-dev` で作り直す（今は `MichizureConsole-dev`。[配備の手順](operations/deploy.md)）
+- [ ] `appStageVersions`・`promotionalMinAppVersions` を SanpoGuide の versionCode 1 に合わせた設定を配備する
 
-4. 素材の素材提供者と素材集（SanpoGuide ADR-002 T-6。DM-001 1.3・API-001 1.1 は 2026-10-11 承認済み） — **4a 機械審査を実装済（2026-10-11、[DES-007](design/DES-007-materials-review.md)。単体テストまで。開発用への配備は 4b と一緒に）**。4b API（[DES-008](design/DES-008-materials-api.md)。**4b-1・4b-2 実装済（2026-10-11、単体テストまで）**）→ **4c 公開を実装済（2026-10-11、[DES-009](design/DES-009-materials-publish.md)。4b-1 で入った「素材集がチャンネルのリストに混ざる」不具合の修正を含む）**→ **4d 画面を実装済（2026-10-11、[DES-010](design/DES-010-materials-screens.md)。開発用に配備し、2026-10-11 に開発者が画面で確認済み）**。**4a〜4c は 2026-10-11 に開発用に配備し、本物の AWS で通しの確認済み（`tools/e2e/collections.ts`）**
+## 確かめること
 
-## 決めたこと（2026-10-03）
-
-- 別リポジトリ。AWS の API Gateway・Lambda・DynamoDB。画面は SPA。リストの URL は公開する。秘密鍵で署名する
-- リストは要約に署名する（KMS の 4,096 バイトの制限。API-002 P-8）
-- ログインは Cognito
-- チャンネル提供者が鍵をなくしたら、運営の判断で別の鍵に移せる
-- 審査の見本は、運営の API キーでブラウザから AI を呼んで作る
-- 本番用の AWS アカウントを分ける。リージョンは ap-northeast-1
-- 準拠テストは本リポジトリに置く
-- `station-format` を GitHub Packages に公開した（`com.example.sanpoguide:station-format:1.0.0`。SanpoGuide RFC-001）。プロンプト・組み込みのチャンネル・審査の見本（`ReviewSamples`）を含む。ZIP の展開とチャンネル提供者の署名の確認は、機械審査の実装の前に station-format に足す
-- validator の station-format を `io.github.duwenji.sanpoguide:station-format:2.0.0` に切り替えた（2026-10-11、SanpoGuide RFC-001 1.1。アプリの識別子に合わせて group とパッケージ名が変わった）
-- validator の読み先を、SanpoGuide のリポジトリの分割に合わせて切り替えた（2026-10-13、yorisoi-platform RFC-004 手順 4）: `core-format` は yorisoi-platform の 1.0.0（2.0.0 ではなく 1.0.0 から始めた）、プロンプト・パック `prompts:2.0.0` は yorisoi-sanpoguide。SanpoGuide の文書へのリンクは、移った先の yorisoi-platform に直した
-- チャンネル提供者は誰でも登録できる。悪用への備えは ADR-001 A-18
-- ADR-001（AWS の構成）を承認（1.0）。SanpoGuide の API-002 1.1・ADR-001 1.1 も承認
-- 管理 API [API-001](console-api.md)（[OpenAPI](api/console.openapi.yaml)、48 操作）を承認（1.0）。エラーは RFC 9457、`If-Match` 必須、鍵の移し替えはチャンネル提供者ごと、チャンネル提供者は自分で退会できる、判定・取り下げ・移し替えの結果は SES でメールする（ADR-001 1.1 A-19）。DM-001 も 1.1 に改訂
-- データモデル [DM-001](data-model.md) を承認（1.0）。1 ユーザー = 1 チャンネル提供者、上限はチャンネル 5・審査待ち 1/チャンネル・申請 20/日・試用チケット 10/日、操作の記録は期限なし、承認されなかったパッケージは 90 日、`revoked` は 7 日
+- [ ] 試用チケットで、素材集・基準を使うチャンネルをアプリで通しで確かめる（SanpoGuide 側。チャンネル提供者の鍵ファイルが届いてから）

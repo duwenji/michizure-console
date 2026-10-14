@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: SanpoGuide チャンネル管理システム 管理 API
-  version: 1.1.0
+  version: 1.0.0
   summary: チャンネル提供者と運営が SPA から使う API（yorisoi-console API-001）
   description: |
-    [console-api.md](../console-api.md)（API-001 1.1）を機械で読める形にしたもの。
+    [console-api.md](../console-api.md)（API-001）を機械で読める形にしたもの。
     方針・状態・権限の根拠は契約書が正本で、食い違いがあれば契約書に合わせてこのファイルを直す。
 
     - 利用者は同じリポジトリの SPA だけ。SPA と同じ CloudFront の `/api/*` で提供する
@@ -336,7 +336,7 @@ paths:
     post:
       tags: [publisher]
       operationId: enableProducerRole
-      summary: 素材提供者の役割を有効にする（1.1、C-15）
+      summary: 素材提供者の役割を有効にする（C-15）
       parameters: [{ $ref: '#/components/parameters/IfMatch' }]
       responses:
         '200': { $ref: '#/components/responses/Publisher' }
@@ -519,7 +519,7 @@ paths:
     get:
       tags: [review]
       operationId: getSamplePrompts
-      summary: 見本用のプロンプト（station-format が組み立てたもの）
+      summary: 見本用のプロンプト（プロンプト・パックで組み立てたもの）
       responses:
         '200':
           description: 場面ごとのプロンプト
@@ -855,7 +855,7 @@ paths:
     get:
       tags: [admin-publishers]
       operationId: listPublisherCollections
-      summary: アカウントの素材集（1.1）
+      summary: アカウントの素材集
       responses:
         '200': { $ref: '#/components/responses/CollectionList' }
         default: { $ref: '#/components/responses/Error' }
@@ -1385,7 +1385,7 @@ components:
       properties:
         channels: { type: integer }
         collections: { type: integer, description: 1.1 }
-        uploadsToday: { type: integer, description: チャンネルと素材集の申請を合わせた数（1.1、M-19） }
+        uploadsToday: { type: integer, description: チャンネルと素材集の申請を合わせた数（M-19） }
         ticketsToday: { type: integer }
     Publisher:
       type: object
@@ -1403,8 +1403,8 @@ components:
         roles:
           type: array
           items: { type: string, enum: [publisher, producer] }
-          description: アカウントの役割（1.1、M-16）。1.0 のアカウントは [publisher]
-        producerVerified: { type: boolean, description: 素材提供者の身元が確かめられているか（1.1、C-17） }
+          description: アカウントの役割（M-16）。roles のないアカウントは [publisher]
+        producerVerified: { type: boolean, description: 素材提供者の身元が確かめられているか（C-17） }
         producerVerification:
           allOf: [{ $ref: '#/components/schemas/Verification' }]
           description: 身元の確認の記録（運営にだけ返す）
@@ -1594,7 +1594,7 @@ components:
         appStage: { type: integer, description: 必要なアプリの段（API-003 確認の手順 10。1.1 からは使う素材集の中身も数える） }
         collections:
           type: array
-          description: （1.1、チャンネル）宣言した素材集ごとの解決の結果（C-19）
+          description: （チャンネル）宣言した素材集ごとの解決の結果（C-19）
           items:
             type: object
             required: [as, collectionId, status]
@@ -1606,7 +1606,7 @@ components:
               detail: { type: string }
         external:
           type: array
-          description: （1.1、素材集）外部の素材ごとの確認（M-20）
+          description: （素材集）外部の素材ごとの確認（M-20）
           items:
             type: object
             required: [resourceId, ok]
@@ -1616,7 +1616,7 @@ components:
               detail: { type: string }
         inUse:
           type: array
-          description: （1.1、素材集）公開中のチャンネルが参照している素材を消した・種類を変えた（D-8・M-22）
+          description: （素材集）公開中のチャンネルが参照している素材を消した・種類を変えた（D-8・M-22）
           items:
             type: object
             required: [channelId, resourceId, detail]
@@ -1626,7 +1626,7 @@ components:
               detail: { type: string }
         warnings:
           type: array
-          description: （1.1）拒まないが知らせること（例 grants_narrowed）
+          description: 拒まないが知らせること（例 grants_narrowed）
           items:
             type: object
             required: [code, detail]

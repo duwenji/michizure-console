@@ -32,7 +32,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * The machine-review Lambda (ADR-001 A-11, DES-007): S3 calls it for each file under `intake/`
- * (channels) and `intake-col/` (collections, DM-001 1.3).
+ * (channels) and `intake-col/` (collections, DM-001).
  *
  * A channel's package and icon both raise events, possibly at once: when both are there it reviews
  * them, resolving the collections it uses against those listed now (DES-007 J-2), and moves the
@@ -172,7 +172,7 @@ class Handler(
         },
     )
 
-    // ---- collections (DM-001 1.3) ----
+    // ---- collections (DM-001) ----
 
     private fun processCollection(collectionId: String, submissionId: String): String {
         val sub = getItem("COL#$collectionId", "SUB#$submissionId") ?: return "no submission for $collectionId/$submissionId"

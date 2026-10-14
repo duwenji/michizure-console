@@ -86,7 +86,7 @@ describe('a provider published by this system', () => {
   });
 });
 
-describe('the checks catch a broken provider (API-002 1.2)', () => {
+describe('the checks catch a broken provider (API-002)', () => {
   it('V-19: a collection package changed after approval', async () => {
     const [col] = store.collections;
     store.collections = [{ entry: { ...col!.entry, package: { ...col!.entry.package, size: col!.entry.package.size + 1 } } }];
@@ -128,7 +128,7 @@ describe('the checks catch a broken provider (API-002 1.2)', () => {
     expect(failed(await statuses())).toEqual(['V-25']);
   });
 
-  it('V-25: the apps a collection is granted to, in any order (API-004 1.5)', async () => {
+  it('V-25: the apps a collection is granted to, in any order (API-004)', async () => {
     listCollection(collectionJson({ grants: { publishers: '*', apps: ['sanpoguide', 'cycle'] } }), { grants: { publishers: '*', apps: ['cycle', 'sanpoguide'] } });
     await republish();
     expect(failed(await statuses())).toEqual([]);
@@ -137,7 +137,7 @@ describe('the checks catch a broken provider (API-002 1.2)', () => {
     expect(failed(await statuses())).toEqual(['V-25']);
   });
 
-  it('V-27: activities, genres or requires that differ from the package (API-002 1.4)', async () => {
+  it('V-27: activities, genres or requires that differ from the package (API-002)', async () => {
     store.channels[0]!.entry = { ...store.channels[0]!.entry, activities: ['cycle'] };
     await republish();
     expect(failed(await statuses())).toEqual(['V-27']);

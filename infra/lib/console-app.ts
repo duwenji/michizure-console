@@ -56,7 +56,7 @@ const lambdaDefaults = (repoRoot: string): Partial<nodejs.NodejsFunctionProps> =
 /**
  * The console the operators (and later the publishers) use: Cognito with managed login,
  * the console API behind API Gateway's JWT authorizer, and the SPA on CloudFront with `/api/*`
- * sent to the API (ADR-001 A-3, A-4 as revised in 1.2, A-18; API-001 C-5, C-7).
+ * sent to the API (ADR-001 A-3, A-4, A-18; API-001 C-5, C-7).
  */
 export class ConsoleApp extends Construct {
   /** The console API, which also signs test tickets (the stack lets it sign in the key policy). */
@@ -72,7 +72,7 @@ export class ConsoleApp extends Construct {
     if (!existsSync(`${props.webDist}/index.html`)) throw new Error(`build the SPA first (npm run build -w web): ${props.webDist}`);
     if (!existsSync(props.validatorZip)) throw new Error(`build the machine review first (cd validator && ./gradlew build): ${props.validatorZip}`);
 
-    // ---- Cognito (ADR-001 A-4, 1.2: one pool, TOTP MFA for everyone) ----
+    // ---- Cognito (ADR-001 A-4: one pool, TOTP MFA for everyone) ----
     const userPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: `yorisoi-console-${config.name}`,
       // Publishers register themselves (D-7); operators are created by an administrator.
@@ -159,7 +159,7 @@ export class ConsoleApp extends Construct {
         // Settled submissions are kept 90 days (DM-001 M-4); uploads that never got a result go after 30.
         { prefix: 'archive/', expiration: Duration.days(90) },
         { prefix: 'intake/', expiration: Duration.days(30) },
-        // Collections the same way, under their own prefixes (DM-001 1.3: their ids may equal a channel's).
+        // Collections the same way, under their own prefixes (DM-001: their ids may equal a channel's).
         { prefix: 'archive-col/', expiration: Duration.days(90) },
         { prefix: 'intake-col/', expiration: Duration.days(30) },
         { abortIncompleteMultipartUploadAfter: Duration.days(1) },
@@ -320,7 +320,7 @@ export class ConsoleApp extends Construct {
     intakeBucket.grantRead(consoleFn, 'intake/*');
     intakeBucket.grantDelete(consoleFn, 'intake/*');
     intakeBucket.grantPut(consoleFn, 'archive/*');
-    // Collections (DES-008): their own prefixes, and approved packages under col/ (DM-001 1.3).
+    // Collections (DES-008): their own prefixes, and approved packages under col/ (DM-001).
     intakeBucket.grantPut(consoleFn, 'intake-col/*');
     intakeBucket.grantRead(consoleFn, 'intake-col/*');
     intakeBucket.grantDelete(consoleFn, 'intake-col/*');

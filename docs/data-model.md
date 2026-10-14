@@ -10,15 +10,13 @@
 | 関連Skill | 020_data-model-design-unified |
 | 作成日 | 2026-10-03 |
 | 作成者 | Claude（開発者との検討） |
-| 承認者 | 開発者（1.0〜1.1: 2026-10-03、1.2: 2026-10-04、1.3: 2026-10-11、1.4: 2026-10-13） |
+| 承認者 | 開発者 |
 | ステータス | 承認済 |
-| 版 | 1.4 |
+| 版 | 1.0 |
 
 ## 目的・背景
 
-[ADR-001](adr/ADR-001-aws-architecture.md) A-6 で、データは DynamoDB の 1 テーブルに置き、パッケージ・アイコン・リストの本体は S3 に置くと決めた。本書は、そのテーブルの項目の種類、キー、インデックス、状態の移り方、上限（A-18）を決める（ADR-001 T-2）。
-
-1.3 では、SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者の切り出し）に合わせて、素材提供者の役割と素材集（申請・審査・公開・取り下げ）、チャンネルが素材集を使う記録（依存）を足す（ADR-002 T-6）。
+[ADR-001](adr/ADR-001-aws-architecture.md) A-6 で、データは DynamoDB の 1 テーブルに置き、パッケージ・アイコン・リストの本体は S3 に置くと決めた。本書は、そのテーブルの項目の種類、キー、インデックス、状態の移り方、上限（A-18）を決める。素材提供者の役割と素材集（申請・審査・公開・取り下げ）、チャンネルが素材集を使う記録（依存）は、SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者）による。
 
 DynamoDB では、取り出し方（アクセスパターン）からキーを決める。本書は、先にアクセスパターンを挙げ、それを満たすキーを決める。
 
@@ -31,7 +29,7 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 - 書き込みの単位（トランザクション）と、同時に書かれたときの守り方
 
 非スコープ:
-- 管理システムの API（ADR-001 T-3。本書のアクセスパターンを入力にする）
+- 管理システムの API（[API-001](console-api.md)。本書のアクセスパターンを入力にする）
 - リストとパッケージの形式（SanpoGuide の API-002・API-003）
 - Cognito のユーザー属性の詳細（メールアドレスなどは Cognito が持ち、本テーブルには複製しない）
 
@@ -44,12 +42,12 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 | SanpoGuide API-003 | `channel.json` の `id`・`version`・`publisher`、エラーコード | 申請に保存する |
 | SanpoGuide channel-review-policy.md | 判定（承認・差し戻し・却下）、取り下げ | 審査の記録・取り下げにする |
 | SanpoGuide ADR-002 | D-7（素材集の審査と公開）、D-8（参照中の素材の ID を消す更新を拒む）、D-9（利用許諾）、D-12（取り下げ）、D-14（同じアカウント）、D-17（素材集の ID と鍵の移し替え）、D-18（依存の把握と知らせ）、D-19（退会）、D-20（身元の確認）、D-22（外部の素材の確認） | 1.3 でデータにする |
-| SanpoGuide API-002 1.2 | P-10〜P-15（`collections[]`・`revokedCollections[]`・`producerChange`・`media`・`resourcesSize`・`tags`・`regions`・`grants`） | 公開の Lambda が 1.3 のデータから作る |
-| SanpoGuide API-004 1.3 | 素材集の形式、`CollectionReferences`（手順 3・4）、`Regions` | 機械審査が station-format 2.1.0 で行う |
+| SanpoGuide API-002 | P-10〜P-15（`collections[]`・`revokedCollections[]`・`producerChange`・`media`・`resourcesSize`・`tags`・`regions`・`grants`） | 公開の Lambda が本書のデータから作る |
+| SanpoGuide API-004 | 素材集の形式、`CollectionReferences`（手順 3・4）、`Regions` | 機械審査が `core-format` で行う |
 
 ## 方針・決定事項
 
-### 決定事項（2026-10-03、開発者の回答）
+### 前提の決定
 
 | No. | 論点 | 決定 |
 |---|---|---|
@@ -58,7 +56,7 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 | M-3 | 操作の記録 | 同じテーブルに期限なしで残す |
 | M-4 | 承認されなかったパッケージ | 受付用の S3 に、その結果が出てから 90 日残して消す。承認したものは公開用のバケットに残る |
 
-### 設計の決定（Claude の提案を開発者が承認。2026-10-03）
+### 設計の決定
 
 | No. | 論点 | 決定案 |
 |---|---|---|
@@ -66,41 +64,41 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 | M-6 | チャンネルID | SanpoGuide のリストの中で一意（API-002）。最初に登録したチャンネル提供者が持ち、別のチャンネル提供者は同じ ID を使えない。取り下げたチャンネルの ID も再利用しない |
 | M-7 | チャンネル提供者のアカウントID（`sg1…`） | 1 つのアカウントIDを紐づけられるのは 1 つのチャンネル提供者だけ。外した（移し替えた）アカウントIDも、別のチャンネル提供者に紐づけ直せない |
 | M-8 | リストに載せる内容 | チャンネルの項目に、最新の承認済みの版の「リストに載せる内容」を写しておく。公開の Lambda はそれを集めるだけで、パッケージを開かない |
-| M-9 | 取り下げ | 取り下げると、そのチャンネルはリストから消える。前の承認済みの版に自動では戻さない（新しい版の承認が要る）。リストの `revoked` には、取り下げから 7 日載せる（開発者の決定）。7 日を過ぎてから初めてリストを取得した端末でも、リストに載っていないチャンネルは使わない（API-002 P-5）。違いは、パッケージを消して理由を知らせるかどうかだけ |
+| M-9 | 取り下げ | 取り下げると、そのチャンネルはリストから消える。前の承認済みの版に自動では戻さない（新しい版の承認が要る）。リストの `revoked` には、取り下げから 7 日載せる。7 日を過ぎてから初めてリストを取得した端末でも、リストに載っていないチャンネルは使わない（API-002 P-5）。違いは、パッケージを消して理由を知らせるかどうかだけ |
 | M-10 | チャンネル提供者の停止 | 停止中は申請・試用チケット・鍵の紐づけを受け付けない。公開中のチャンネルはそのまま（止めるなら取り下げを別に行う。ADR-001 A-18 ④） |
 | M-11 | 同時に書かれたときの守り方 | 状態が変わる項目には `rev`（書くたびに 1 増やす）を持たせ、条件付き書き込みで後勝ちの上書きを防ぐ。状態の移り方は、移る前の状態を条件にして守る |
 | M-12 | 時刻と ID | 時刻は UTC の ISO 8601（ミリ秒まで）。1 日の上限は日本時間の日付で数える。新しく作る ID は ULID（作った順に並ぶ） |
 | M-13 | 公開の記録の本体 | リストの本体（署名済み）は、公開用のバケットのほかに、記録用のバケットに `seq` ごとに期限なしで残す。DynamoDB には `seq`・SHA-256・保存場所だけを持つ |
-| M-14 | 鍵の移し替えの単位（1.1） | チャンネル提供者ごと。チャンネル提供者が使う鍵は 1 つなので、承認するとすべてのチャンネルが一緒に移る（API-001 C-11） |
-| M-15 | 退会（1.1） | チャンネル提供者を `deleted` にして表示名・連絡先を消す。操作の記録・アカウントIDの予約・チャンネル ID は残し、再利用させない（API-001 C-4） |
+| M-14 | 鍵の移し替えの単位 | チャンネル提供者ごと。チャンネル提供者が使う鍵は 1 つなので、承認するとすべてのチャンネルが一緒に移る（API-001 C-11） |
+| M-15 | 退会 | チャンネル提供者を `deleted` にして表示名・連絡先を消す。操作の記録・アカウントIDの予約・チャンネル ID は残し、再利用させない（API-001 C-4） |
 
-### 素材の素材提供者の決定（1.3、2026-10-11。Claude の提案を開発者が承認）
+### 素材の素材提供者の決定
 
 | No. | 論点 | 決定 |
 |---|---|---|
-| M-16 | アカウントの形 | 今のチャンネル提供者の項目（`PUB#`）を「アカウント」として扱い、`roles`（`publisher`・`producer`）を持たせる。鍵・停止・退会・鍵の移し替えは役割に共通（ADR-002 D-14）。キーの形は変えない（移行なし）。文書と画面では、役割を言うときに「チャンネル提供者」「素材提供者」、両方を言うときに「アカウント」と呼ぶ |
+| M-16 | アカウントの形 | チャンネル提供者の項目（`PUB#`）を「アカウント」として扱い、`roles`（`publisher`・`producer`）を持たせる。鍵・停止・退会・鍵の移し替えは役割に共通（ADR-002 D-14）。文書と画面では、役割を言うときに「チャンネル提供者」「素材提供者」、両方を言うときに「アカウント」と呼ぶ |
 | M-17 | 素材提供者の役割を有効にする方法 | アカウントの持ち主が自分で有効にできる（D-7 と同じく開かれている）。身元は、最初の素材集を承認するときに運営が確かめて `producerVerification` に記録する。記録がないアカウントの素材集は承認できない。表示名を変えると記録を消し、次の承認で確かめ直す（D-20） |
 | M-18 | 素材集のデータ | チャンネル・申請と同じ形の項目を、`COL#{collectionId}` の下に別に作る（素材集・申請・審査の記録・取り下げ）。素材集の ID はチャンネルの ID と別の名前空間で、最初に登録したアカウントが持ち、再利用しない（D-17）。審査待ちの列は 1 本（`QUEUE#REVIEW`）で、項目の `kind`（`channel` / `collection`）で見分ける |
-| M-19 | 上限 | 素材集は 1 アカウント 5 つ（取り下げたものも数える）。審査待ちの申請は 1 素材集につき 1 つ。申請の回数（1 日 20 回）はチャンネルと素材集で合わせて数える。素材集の試用チケットは作らない（API-004 の未決事項 No.5） |
+| M-19 | 上限 | 素材集は 1 アカウント 5 つ（取り下げたものも数える）。審査待ちの申請は 1 素材集につき 1 つ。申請の回数（1 日 20 回）はチャンネルと素材集で合わせて数える。素材集の試用チケットは作らない（API-004 の未決事項） |
 | M-20 | 外部の素材の確認（申請時） | 機械審査で外部の素材を流し読みし、大きさと SHA-256 を確かめる。中身は保存しない。審査する人は元の URL で見る・聴く |
 | M-21 | 外部の素材の確認（毎日、D-22） | 毎日の公開の処理で、公開中の素材集とチャンネルの外部の素材の URL に HEAD を送り、取得できるかと大きさだけを確かめる。結果は項目の `externalCheck` に残し、新しく見つかった不具合は持ち主にメールで知らせる。ハッシュを確かめ直すのは申請時だけ |
 | M-22 | 依存の記録（D-8・D-18） | チャンネルの承認時に、使う素材集ごとに「利用の記録」（`COL#{collectionId}` / `USEDBY#{channelId}`）を書く。中身は参照している素材の ID とその種類。チャンネルの新しい版の承認で書き直し、取り下げ・退会で消す。素材集の申請では、機械審査と承認の 2 回、利用の記録にある素材の ID が残り、種類が変わっていないことを確かめる（D-8）。基準（`selectors`）で選ぶ使い方は記録しない（ID を指さないため） |
-| M-23 | 必要なアプリの版 | （1.4 で M-27 に改訂）アプリの段（1〜3）とアプリの版（`versionCode`）の対応表を設定に置き、段から `minAppVersion` を決める。チャンネルの段は、承認時にリストに載っている素材集の中身まで数える（station-format の `MediaStage` と `CollectionReferences`）。素材集の段は、素材の種類から決める |
+| M-23 | 必要なアプリの段 | チャンネルの段（素材の種類から決まる 0〜3）は、承認時にリストに載っている素材集の中身まで数える（`core-format` の `MediaStage` と `CollectionReferences`）。素材集の段は、素材の種類から決める。段からアプリの版を決める方法は M-27 |
 | M-24 | リストに載せる値の計算 | 素材集の `tags`・`regions`・`media`・`resourcesSize`・`grants` は承認時に計算して写す（M-8 と同じ）。チャンネルの `resourcesSize` は、素材集の版で変わるので、公開のたびに「チャンネル自身の分」と「宣言した素材集の `resourcesSize`」を足して出す。チャンネルの `media` も同じく公開のたびに合わせる |
 | M-25 | 取り下げ・退会・停止 | 素材集の取り下げはリストの `revokedCollections` に 7 日載せる（M-9 と同じ）。退会すると、公開中の素材集も自動で取り下げる（D-19）。停止中は素材集の申請も止める。公開中の素材集はそのまま（M-10 と同じ）。素材集の取り下げ・更新・利用許諾の縮小は、利用の記録にあるチャンネル提供者にメールで知らせる（D-18） |
 
-### エコシステムと宣伝の決定（1.4、2026-10-12。DES-011・DES-012 の実装に合わせて Claude が提案し、開発者が承認）
+### エコシステムと宣伝の決定
 
-SanpoGuide ADR-003（付き添いアプリのエコシステム）と ADR-002 1.2（宣伝を表示つきで認める）による。実装は [DES-011](design/DES-011-ecosystem.md)・[DES-012](design/DES-012-promotional.md) で済んでおり、本節はそれをデータモデルに書き戻すもの。
+SanpoGuide ADR-003（付き添いアプリのエコシステム）と ADR-002（宣伝を表示つきで認める）による。実装は [DES-011](design/DES-011-ecosystem.md)・[DES-012](design/DES-012-promotional.md)。
 
 | No. | 論点 | 決定 |
 |---|---|---|
-| M-26 | 絞り込みの情報（DES-011 N-3・N-11） | 機械審査が、パッケージの `activities`・`genres`・`requires.features` を申請の `listing` に書かれたとおりに記録し（format 1 は `["walk"]`・`[]`・`[]`）、承認が `latestApproved` に写す。DES-011 より前の項目（これらがない）は format 1 の読み方で扱い、移行はしない |
-| M-27 | アプリごとの版（DES-011 N-4〜N-6。M-23 の改訂） | 段と版の対応表を、アプリの ID ごとの設定 `appStageVersions`（`{ sanpoguide: { 0: 1, 1: 2, 2: 9999, 3: 9999 } }`）にする。アプリの名前・過ごし方・機能は `packages/protocol` の `KNOWN_APPS`。承認は `latestApproved.minAppVersions`（アプリの ID → 版）を計算する: チャンネルは過ごし方と必要な機能が合うアプリだけ、素材集は `grants.apps` が含むアプリ（ないときはすべて）。`minAppVersion` は `minAppVersions.sanpoguide`、なければ 9999（古い SanpoGuide のため。API-002 P-21） |
+| M-26 | 絞り込みの情報（DES-011 N-3・N-11） | 機械審査が、パッケージの `activities`・`genres`・`requires.features` を申請の `listing` に書かれたとおりに記録し（format 1 は `["walk"]`・`[]`・`[]`）、承認が `latestApproved` に写す。これらのない項目は format 1 の読み方で扱う |
+| M-27 | アプリごとの版（DES-011 N-4〜N-6） | 段と版の対応表を、アプリの ID ごとの設定 `appStageVersions`（`{ sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } }`）にする。アプリの名前・過ごし方・機能は `packages/protocol` の `KNOWN_APPS`。承認は `latestApproved.minAppVersions`（アプリの ID → 版）を計算する: チャンネルは過ごし方と必要な機能が合うアプリだけ、素材集は `grants.apps` が含むアプリ（ないときはすべて）。`minAppVersion` は `minAppVersions.sanpoguide`、なければ 9999（`minAppVersions` を読まないアプリのため。API-002 P-21） |
 | M-28 | 素材集の利用アプリ（DES-011 N-7） | 機械審査が `grants.apps` を読み、承認が `latestApproved.grants.apps` に写す。チャンネルが素材集を参照するときの確かめでは、アプリを見ない |
 | M-29 | format 1 の受け付けの期限（DES-011 N-2） | 設定 `format1AcceptUntil`（日時。未設定は期限なし）。過ぎてからの format 1 の申請は、機械審査が `format_retired` で落とす。公開中の format 1 のチャンネルはそのまま |
 | M-30 | 宣伝の申告（DES-012 R-1・R-3・R-9） | 申請（チャンネル・素材集）の `promotional`（真のときだけ書く）。承認が真のときだけ `latestApproved.promotional` に写す。版ごとに申告し、前の版から引き継がない。運営は書き換えない（R-2） |
-| M-31 | 宣伝の印と版の引き上げ（DES-012 R-4・R-5） | テーブルには持たず、公開のときに決める: チャンネルは自分の申告か、`collections` で宣言した素材集のうち今リストにある宣伝のものがあれば `promotional`。宣伝のものは、設定 `promotionalMinAppVersions`（アプリの ID → 版。ないアプリは 9999）まで `minAppVersions` を上げ、`minAppVersion` も追従させる |
+| M-31 | 宣伝の印と版の引き上げ（DES-012 R-4・R-5） | テーブルには持たず、公開のときに決める: チャンネルは自分の申告か、`collections` で宣言した素材集のうちリストにある宣伝のものがあれば `promotional`。宣伝のものは、設定 `promotionalMinAppVersions`（アプリの ID → 版。ないアプリは 9999）まで `minAppVersions` を上げ、`minAppVersion` も追従させる |
 
 ## 概念モデル（ERD）
 
@@ -120,15 +118,15 @@ erDiagram
     KEYSET ||--o{ SIGNING_KEY : "載せる"
     AUDIT_EVENT }o--|| CHANNEL : "対象（任意）"
     AUDIT_EVENT }o--|| PUBLISHER : "対象（任意）"
-    PUBLISHER ||--o{ COLLECTION : "持つ（素材提供者の役割。上限 5。1.3）"
-    COLLECTION ||--o{ COLLECTION_SUBMISSION : "申請される（1.3）"
+    PUBLISHER ||--o{ COLLECTION : "持つ（素材提供者の役割。上限 5）"
+    COLLECTION ||--o{ COLLECTION_SUBMISSION : "申請される"
     COLLECTION_SUBMISSION ||--o{ REVIEW : "審査される"
     COLLECTION ||--o{ REVOCATION : "取り下げられる"
     COLLECTION ||--o{ USED_BY : "使われる（M-22）"
     USED_BY }o--|| CHANNEL : "使う"
 ```
 
-1.3 から `PUBLISHER` は「アカウント」を表し、チャンネル提供者と素材提供者の役割を持つ（M-16）。
+`PUBLISHER` は「アカウント」を表し、チャンネル提供者と素材提供者の役割を持つ（M-16）。
 
 ## 論理モデル
 
@@ -158,13 +156,13 @@ erDiagram
 | AP-20 | 運営 | チャンネル提供者の一覧（新しい順、停止中だけ） | GSI2 `PUBLISHERS` |
 | AP-21 | 機械審査の Lambda | S3 のキーから申請を引く | S3 のキーに `channelId` と `submissionId` を入れる（引き直し不要） |
 | AP-22 | システム | 鍵の紐づけの一度きりの文字列を確かめる | `PUB#{publisherId}` / `CHALLENGE#{nonce}` |
-| AP-23 | 素材提供者 | 自分の素材集の一覧（1.3） | GSI1 `PUB#{publisherId}` / `COL#` |
-| AP-24 | 全員 | 素材集を見る（1.3） | `COL#{collectionId}` / `COL` |
-| AP-25 | 素材提供者・運営 | 素材集の申請の一覧（新しい順、1.3） | `COL#{collectionId}` / `SUB#` |
-| AP-26 | 公開の Lambda | リストに載せる素材集をすべて集める（1.3） | GSI2 `LISTED` / `COL#`（チャンネルは `CH#`） |
-| AP-27 | 公開の Lambda | `revokedCollections` に載せる取り下げを集める（7 日以内、1.3） | GSI2 `REVOKED`（`kind` で見分ける） |
-| AP-28 | システム・素材提供者 | 素材集を使っているチャンネル（D-8 の確認、D-18 の知らせ、1.3） | `COL#{collectionId}` / `USEDBY#` |
-| AP-29 | 運営 | 審査待ちの一覧（チャンネルと素材集を古い順、1.3） | GSI2 `QUEUE#REVIEW`（AP-09 と同じ。`kind` で見分ける） |
+| AP-23 | 素材提供者 | 自分の素材集の一覧 | GSI1 `PUB#{publisherId}` / `COL#` |
+| AP-24 | 全員 | 素材集を見る | `COL#{collectionId}` / `COL` |
+| AP-25 | 素材提供者・運営 | 素材集の申請の一覧（新しい順） | `COL#{collectionId}` / `SUB#` |
+| AP-26 | 公開の Lambda | リストに載せる素材集をすべて集める | GSI2 `LISTED` / `COL#`（チャンネルは `CH#`） |
+| AP-27 | 公開の Lambda | `revokedCollections` に載せる取り下げを集める（7 日以内） | GSI2 `REVOKED`（`kind` で見分ける） |
+| AP-28 | システム・素材提供者 | 素材集を使っているチャンネル（D-8 の確認、D-18 の知らせ） | `COL#{collectionId}` / `USEDBY#` |
+| AP-29 | 運営 | 審査待ちの一覧（チャンネルと素材集を古い順） | GSI2 `QUEUE#REVIEW`（AP-09 と同じ。`kind` で見分ける） |
 
 ### 状態の移り方
 
@@ -198,11 +196,11 @@ stateDiagram-v2
 - 「審査待ちの申請」（`uploading`・`validating`・`awaiting_review`・`in_review`）は 1 チャンネルにつき 1 つ（M-2）。チャンネルの `pendingSubmissionId` で守る
 - `validation_failed`・`returned`・`rejected`・`withdrawn`・`expired` になったら、受付用の S3 のパッケージを `archive/` に移す（90 日で消える。M-4）
 - `approved` になったら、パッケージとアイコンを公開用のバケットに写す
-- 素材集の申請（1.3）も同じ状態の移り方をとる。違いは、アイコンがないこと、試用チケットがないこと（M-19）、承認の前に身元の記録が要ること（M-17）、機械審査と承認で D-8 の確認をすること（M-22）
+- 素材集の申請も同じ状態の移り方をとる。違いは、アイコンがないこと、試用チケットがないこと（M-19）、承認の前に身元の記録が要ること（M-17）、機械審査と承認で D-8 の確認をすること（M-22）
 
 **チャンネル（CHANNEL）**: `active`（承認済みの版がなくてもよい）→ `revoked`（取り下げ）→ 新しい版の承認で `active` に戻る。取り下げ中はリストに載らない
 
-**素材集（COLLECTION、1.3）**: チャンネルと同じ（`active` ⇄ `revoked`）。取り下げると利用の記録は残し（取り下げを知らせる先のため）、使っているチャンネルはアプリ側で次の候補に進む（ADR-002 D-12）
+**素材集（COLLECTION）**: チャンネルと同じ（`active` ⇄ `revoked`）。取り下げると利用の記録は残し（取り下げを知らせる先のため）、使っているチャンネルはアプリ側で次の候補に進む（ADR-002 D-12）
 
 **チャンネル提供者（PUBLISHER）**: `pending_key`（登録直後。鍵の紐づけ待ち）→ `active` → `suspended`（運営が停止）→ `active`（運営が戻す）。どの状態からも、チャンネル提供者の退会で `deleted`（戻らない。M-15）。`active` 以外のあいだは申請できない
 
@@ -240,25 +238,25 @@ stateDiagram-v2
 | 審査の記録 | `CH#{channelId}` | `SUB#{submissionId}#REVIEW#{at}` | — | — |
 | 試用チケット | `CH#{channelId}` | `SUB#{submissionId}#TICKET#{issuedAt}` | — | — |
 | 取り下げ | `CH#{channelId}` | `REVOKE#{revokedAt}` | — | 7 日のあいだ `REVOKED` / `{revokedAt}#{channelId}` |
-| 鍵の移し替え | `PUB#{publisherId}` | `TRANSFER#{transferId}` | `TRANSFERS` / `{requestedAt}#{transferId}`（1.2。過去の申し出の一覧） | `requested` のとき `QUEUE#TRANSFER` / `{requestedAt}#{transferId}` |
-| 送ったメール（1.2） | `NOTICE#{noticeId}` | `NOTICE` | — | — |
+| 鍵の移し替え | `PUB#{publisherId}` | `TRANSFER#{transferId}` | `TRANSFERS` / `{requestedAt}#{transferId}`（過去の申し出の一覧） | `requested` のとき `QUEUE#TRANSFER` / `{requestedAt}#{transferId}` |
+| 送ったメール | `NOTICE#{noticeId}` | `NOTICE` | — | — |
 | 公開の先頭 | `PUBLICATION` | `HEAD` | — | — |
 | 公開の履歴 | `PUBLICATION` | `SEQ#{seq を 10 桁で 0 埋め}` | — | — |
 | 鍵セットの先頭 | `KEYSET` | `HEAD` | — | — |
 | 鍵セットの履歴 | `KEYSET` | `SEQ#{seq を 10 桁で 0 埋め}` | — | — |
 | 署名鍵 | `SIGNKEY` | `KEY#{keyId}` | — | — |
 | 操作の記録 | `AUDIT#{yyyy-mm}` | `{at}#{eventId}` | `TARGET#{種類}#{ID}` / `{at}` | — |
-| 素材集（1.3） | `COL#{collectionId}` | `COL` | `PUB#{publisherId}` / `COL#{collectionId}` | 載せるとき `LISTED` / `COL#{collectionId}` |
-| 素材集の申請（1.3） | `COL#{collectionId}` | `SUB#{submissionId}` | — | 審査待ちのとき `QUEUE#REVIEW` / `{submittedAt}#col:{collectionId}` |
-| 素材集の審査の記録（1.3） | `COL#{collectionId}` | `SUB#{submissionId}#REVIEW#{at}` | — | — |
-| 素材集の取り下げ（1.3） | `COL#{collectionId}` | `REVOKE#{revokedAt}` | — | 7 日のあいだ `REVOKED` / `{revokedAt}#col:{collectionId}` |
-| 利用の記録（1.3） | `COL#{collectionId}` | `USEDBY#{channelId}` | `CH#{channelId}` / `USES#{collectionId}`（チャンネルから引く） | — |
+| 素材集 | `COL#{collectionId}` | `COL` | `PUB#{publisherId}` / `COL#{collectionId}` | 載せるとき `LISTED` / `COL#{collectionId}` |
+| 素材集の申請 | `COL#{collectionId}` | `SUB#{submissionId}` | — | 審査待ちのとき `QUEUE#REVIEW` / `{submittedAt}#col:{collectionId}` |
+| 素材集の審査の記録 | `COL#{collectionId}` | `SUB#{submissionId}#REVIEW#{at}` | — | — |
+| 素材集の取り下げ | `COL#{collectionId}` | `REVOKE#{revokedAt}` | — | 7 日のあいだ `REVOKED` / `{revokedAt}#col:{collectionId}` |
+| 利用の記録 | `COL#{collectionId}` | `USEDBY#{channelId}` | `CH#{channelId}` / `USES#{collectionId}`（チャンネルから引く） | — |
 
-- 送ったメール（1.2）は、SQS が同じ知らせを 2 度届けても 1 通だけ送るための印。`event`・`messageId` だけを持ち、30 日の TTL で消える（宛先は持たない）
+- 送ったメールは、SQS が同じ知らせを 2 度届けても 1 通だけ送るための印。`event`・`messageId` だけを持ち、30 日の TTL で消える（宛先は持たない）
 
 - 疎なインデックスの項目は、条件から外れたときに `GSI2PK`・`GSI2SK` を消す（例: 申請が `in_review` を出たら `QUEUE#REVIEW` から外れる）
 - `REVOKED` から外すのは、公開の Lambda が毎日の作り直しのときに行う（7 日を過ぎたものの `GSI2PK` を消す）
-- 1.3: 素材集の項目は `kind = "collection"` を持ち、チャンネルの項目と同じ GSI2 のパーティション（`QUEUE#REVIEW`・`LISTED`・`REVOKED`）に入る。GSI2SK の `col:` と `CH#`・`COL#` の接頭辞で、ID の名前空間が違っても重ならない
+- 素材集の項目は `kind = "collection"` を持ち、チャンネルの項目と同じ GSI2 のパーティション（`QUEUE#REVIEW`・`LISTED`・`REVOKED`）に入る。GSI2SK の `col:` と `CH#`・`COL#` の接頭辞で、ID の名前空間が違っても重ならない
 - `AUDIT#{yyyy-mm}` は月ごとに 1 つのパーティションになる。書き込みは 1 秒に数件の想定で、パーティションの上限（1 秒に 1,000 件）に十分に収まる
 
 ## データ辞書
@@ -272,17 +270,17 @@ stateDiagram-v2
 | `publisherId` | S | ○ | ULID |
 | `ownerSub` | S | ○ | 持ち主の Cognito の `sub`（M-1） |
 | `displayName` | S | ○ | リストの `publisherName` に使う。1〜40 文字 |
-| `contact` | S | ○ | 審査・移し替えの連絡先（Cognito のメールとは別に持つ。本人確認の「別の経路」の候補。ADR-001 未決事項 No.6） |
+| `contact` | S | ○ | 審査・移し替えの連絡先（Cognito のメールとは別に持つ。本人確認の「別の経路」の候補。ADR-001 未決事項 No.5） |
 | `status` | S | ○ | `pending_key` / `active` / `suspended` / `deleted` |
 | `pendingTransferId` | S | — | `requested` の移し替え（1 つだけ。あいだは申請を受け付けない） |
 | `activeAccountId` | S | — | 使っている鍵のアカウントID（`sg1…`） |
 | `channelCount` | N | ○ | 持っているチャンネルの数（取り下げたものも数える。上限の回避を防ぐため） |
-| `limits` | M | — | 運営が変えた上限（`channels`・`collections`（1.3）・`uploadsPerDay`・`ticketsPerDay`）。ないものは既定値（M-2・M-19） |
+| `limits` | M | — | 運営が変えた上限（`channels`・`collections`・`uploadsPerDay`・`ticketsPerDay`）。ないものは既定値（M-2・M-19） |
 | `suspendedReason` | S | — | 停止の理由 |
 | `deletedAt` | S | — | 退会した日時。退会すると `displayName`・`contact` を消す（M-15） |
-| `roles` | SS | ○ | （1.3）`publisher`・`producer` のどれか（M-16）。1.2 までの項目は `publisher` だけとして読む |
-| `collectionCount` | N | — | （1.3）持っている素材集の数（取り下げたものも数える。M-19） |
-| `producerVerification` | M | — | （1.3）運営が記録した身元の確認（`method`・`detail`・`verifiedAt`・`operatorSub`。M-17・D-20）。表示名を変えると消す |
+| `roles` | SS | ○ | `publisher`・`producer` のどれか（M-16）。1.2 までの項目は `publisher` だけとして読む |
+| `collectionCount` | N | — | 持っている素材集の数（取り下げたものも数える。M-19） |
+| `producerVerification` | M | — | 運営が記録した身元の確認（`method`・`detail`・`verifiedAt`・`operatorSub`。M-17・D-20）。表示名を変えると消す |
 
 ### チャンネル提供者の鍵（KEY）
 
@@ -306,7 +304,7 @@ stateDiagram-v2
 | `status` | S | ○ | `active` / `revoked` |
 | `pendingSubmissionId` | S | — | 審査待ちの申請（M-2 の 1 つ） |
 | `latestApproved` | M | — | 最新の承認済みの版（下表）。M-8 |
-| `publisherChange` | M | — | `from`・`at`・`reason`・`until`（API-002 P-9）。1.2: 移し替えの承認で `from`（リストに載っている版のチャンネル提供者）・`at`・`reason` を書き、新しい鍵の最初の版の承認で `until`（その 90 日後）を書く。公開の Lambda は、`until` があり、過ぎておらず、`from` が載せる版のチャンネル提供者と違うときだけ載せる（V-16） |
+| `publisherChange` | M | — | `from`・`at`・`reason`・`until`（API-002 P-9）。移し替えの承認で `from`（リストに載っている版のチャンネル提供者）・`at`・`reason` を書き、新しい鍵の最初の版の承認で `until`（その 90 日後）を書く。公開の Lambda は、`until` があり、過ぎておらず、`from` が載せる版のチャンネル提供者と違うときだけ載せる（V-16） |
 
 `latestApproved` の中身（リストの `channels[]` の 1 件になる）:
 
@@ -317,16 +315,16 @@ stateDiagram-v2
 | `name`・`summary`・`description`・`lang`・`tags`・`regions` | `channel.json` と申請の画面から |
 | `icon` | `{ url, sha256 }`（公開用のバケットの `/icons/{sha256}.png`） |
 | `package` | `{ url, sha256, size, format }`（`/pkg/{sha256}.zip`） |
-| `minAppVersion` | 機械審査が出した、必要なアプリの段から決める（1.3: 段と版の対応表から。M-23） |
+| `minAppVersion` | 機械審査が出した、必要なアプリの段から決める（段と版の対応表から。M-23） |
 | `approvedAt` | 承認した日時 |
-| `appStage` | （1.3）承認時に、リストに載っていた素材集の中身まで数えたアプリの段 |
-| `collections` | （1.3）宣言した素材集 `[{ as, id, minVersion }]`。公開のたびに `resourcesSize`・`media` を足し合わせるのに使う（M-24） |
-| `ownPrefetchBytes`・`ownMedia` | （1.3）チャンネル自身の素材の前もっての取得の大きさと種類（M-24） |
-| `activities`・`genres`・`requires` | （1.4）パッケージの値（M-26）。ない項目は format 1 の読み方 |
-| `minAppVersions` | （1.4）アプリの ID → 必要な版（M-27）。`minAppVersion` は SanpoGuide の値 |
-| `promotional` | （1.4）承認した版の申告。真のときだけ（M-30） |
+| `appStage` | 承認時に、リストに載っていた素材集の中身まで数えたアプリの段 |
+| `collections` | 宣言した素材集 `[{ as, id, minVersion }]`。公開のたびに `resourcesSize`・`media` を足し合わせるのに使う（M-24） |
+| `ownPrefetchBytes`・`ownMedia` | チャンネル自身の素材の前もっての取得の大きさと種類（M-24） |
+| `activities`・`genres`・`requires` | パッケージの値（M-26）。ない項目は format 1 の読み方 |
+| `minAppVersions` | アプリの ID → 必要な版（M-27）。`minAppVersion` は SanpoGuide の値 |
+| `promotional` | 承認した版の申告。真のときだけ（M-30） |
 
-### 素材集（COL、1.3）
+### 素材集（COL）
 
 | 属性 | 型 | 必須 | 内容 |
 |---|---|---|---|
@@ -346,16 +344,16 @@ stateDiagram-v2
 | `submissionId`・`version` | 承認した申請と版の番号 |
 | `producer` | 署名したアカウントID |
 | `name`・`summary` | `collection.json` から |
-| `media`・`resourcesSize`・`tags`・`regions`・`grants` | 承認時にパッケージから計算する（`regions` は station-format の `Regions.of`。API-002 P-15）。1.4: `grants.apps` を含む（M-28） |
+| `media`・`resourcesSize`・`tags`・`regions`・`grants` | 承認時にパッケージから計算する（`regions` は `core-format` の `Regions.of`。API-002 P-15）。`grants.apps` を含む（M-28） |
 | `package` | `{ url, sha256, size, format }`（公開用のバケットの `/col/{sha256}.zip`） |
 | `resourceTypes` | 素材の ID と種類の対応。次の版の D-8 の確認と、チャンネルの段の計算に使う |
 | `externalResources` | 外部の素材の `[{ resourceId, url, size }]`（M-21 の確認の対象） |
 | `minAppVersion`・`appStage` | 素材の種類から決めた段と、その版（M-23） |
-| `minAppVersions` | （1.4）`grants.apps` が含むアプリ（ないときはすべて）の ID → 必要な版（M-27） |
-| `promotional` | （1.4）承認した版の申告。真のときだけ（M-30） |
+| `minAppVersions` | `grants.apps` が含むアプリ（ないときはすべて）の ID → 必要な版（M-27） |
+| `promotional` | 承認した版の申告。真のときだけ（M-30） |
 | `approvedAt` | 承認した日時 |
 
-### 利用の記録（USEDBY、1.3）
+### 利用の記録（USEDBY）
 
 | 属性 | 型 | 必須 | 内容 |
 |---|---|---|---|
@@ -379,13 +377,13 @@ stateDiagram-v2
 | `sha256`・`size` | S・N | — | 届いたパッケージ（機械審査で計算） |
 | `validation` | M | — | `{ ok, errors: [{ code, detail }], appStage, checkedAt, validatorVersion }`。`code` は API-003 のエラーコード |
 | `note` | S | — | チャンネル提供者から運営への説明 |
-| `listing` | M | — | 機械審査が記録したリストに載せる値（DES-007〜DES-009）。1.4: `activities`・`genres`・`requires`（M-26）、素材集では `grants.apps`（M-28） |
-| `promotional` | BOOL | — | （1.4）「宣伝を含む」の申告。真のときだけ（M-30） |
+| `listing` | M | — | 機械審査が記録したリストに載せる値（DES-007〜DES-009）。`activities`・`genres`・`requires`（M-26）、素材集では `grants.apps`（M-28） |
+| `promotional` | BOOL | — | 「宣伝を含む」の申告。真のときだけ（M-30） |
 | `submittedAt` | S | — | 機械審査に合格した日時（審査待ちの順番） |
 | `decidedAt` | S | — | 承認・差し戻し・却下・取り消しの日時 |
 | `ttl` | N | — | `uploading` のあいだだけ（1 時間）。届けば消す |
 
-素材集の申請（1.3）は同じ属性を持ち、次が違う: `kind = "collection"`、`intakeKey` は `intake-col/{collectionId}/{submissionId}.zip`、アイコン・`description`・`tags`・`regions` はない。`validation` に `external`（外部の素材ごとの `{ resourceId, ok, detail }`。M-20）と `inUse`（D-8 の確認で消えた・種類が変わった素材 `[{ channelId, resourceId, detail }]`。M-22）と `warnings`（利用許諾の縮小で使えなくなるチャンネルなど、拒みはしないが知らせること）を足す
+素材集の申請は同じ属性を持ち、次が違う: `kind = "collection"`、`intakeKey` は `intake-col/{collectionId}/{submissionId}.zip`、アイコン・`description`・`tags`・`regions` はない。`validation` に `external`（外部の素材ごとの `{ resourceId, ok, detail }`。M-20）と `inUse`（D-8 の確認で消えた・種類が変わった素材 `[{ channelId, resourceId, detail }]`。M-22）と `warnings`（利用許諾の縮小で使えなくなるチャンネルなど、拒みはしないが知らせること）を足す
 
 ### 審査の記録（REVIEW）
 
@@ -450,7 +448,7 @@ stateDiagram-v2
 
 ### 1 日の数（QUOTA）
 
-`uploads`・`tickets`（N）。`uploads` はチャンネルと素材集の申請を合わせて数える（1.3、M-19）。日本時間の日付ごとの項目。`ADD` と条件（`uploads < :上限`）で増やす。`ttl` は 3 日後。
+`uploads`・`tickets`（N）。`uploads` はチャンネルと素材集の申請を合わせて数える（M-19）。日本時間の日付ごとの項目。`ADD` と条件（`uploads < :上限`）で増やす。`ttl` は 3 日後。
 
 ### 操作の記録（AUDIT）
 
@@ -482,13 +480,13 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 | 取り下げ | 取り下げ、チャンネル（`revoked`、`LISTED` を外す）、承認済みの申請（→ `revoked`） |
 | 移し替えの承認 | 移し替え（`requested` → `approved`）、チャンネル提供者（`activeAccountId`、`pendingTransferId` を消す）、新しい鍵（→ `active`）、古い鍵（→ `unbound`）、チャンネル提供者のすべてのチャンネル（`publisherChange`、審査待ちの申請を外す）、審査待ちの申請（→ `returned`）。チャンネル 5 つと申請 5 つでも 20 件ほど |
 | 退会 | チャンネル提供者（→ `deleted`、表示名・連絡先を消す）、公開中のチャンネル（→ `revoked`）と取り下げ、承認済みの申請（→ `revoked`）、審査待ちの申請（→ `withdrawn`）、移し替えの申し出（→ `cancelled`）。1.3: 公開中の素材集（→ `revoked`）と取り下げ、その承認済み・審査待ちの申請、チャンネルの利用の記録の削除も同じトランザクションに入れる。チャンネル 5 つ・素材集 5 つで 50 件ほど。Cognito のユーザーの削除はトランザクションの後 |
-| 素材提供者の役割を有効にする（1.3） | アカウント（`roles` に `producer` を足す。`status = active`） |
-| 素材集の登録（1.3） | 素材集（まだないこと）、アカウント（`collectionCount < 上限`、`producer` の役割、`status = active`） |
-| 素材集の申請の開始（1.3） | 1 日の数（`uploads < 上限`。チャンネルと共通）、素材集（`pendingSubmissionId` がないこと）、申請（`uploading`） |
-| 素材集の承認（1.3） | 申請（`in_review` → `approved`）、前の承認済みの申請（→ `superseded`）、素材集（`latestApproved`・`LISTED`）、審査の記録、アカウント（`producerVerification` があること。初めての承認なら同じトランザクションで書く）。D-8 の確認（M-22）はトランザクションの前に利用の記録を読んで行い、利用の記録の `rev` を条件に入れる |
-| チャンネルの承認（1.3 で追加分） | 使う素材集ごとの利用の記録（書く・書き直す）と、使わなくなった素材集の利用の記録の削除。素材集 5 つで 10 件ほど増える |
-| 素材集の取り下げ（1.3） | 取り下げ、素材集（`revoked`、`LISTED` を外す）、承認済みの申請（→ `revoked`）。利用の記録は残す。使っているチャンネル提供者への知らせは、トランザクションの後に送る（D-18） |
-| 移し替えの承認（1.3 で追加分） | アカウントのすべての素材集（`producerChange`、審査待ちの申請を外す）、素材集の審査待ちの申請（→ `returned`）。素材集 5 つと申請 5 つで 10 件ほど増える |
+| 素材提供者の役割を有効にする | アカウント（`roles` に `producer` を足す。`status = active`） |
+| 素材集の登録 | 素材集（まだないこと）、アカウント（`collectionCount < 上限`、`producer` の役割、`status = active`） |
+| 素材集の申請の開始 | 1 日の数（`uploads < 上限`。チャンネルと共通）、素材集（`pendingSubmissionId` がないこと）、申請（`uploading`） |
+| 素材集の承認 | 申請（`in_review` → `approved`）、前の承認済みの申請（→ `superseded`）、素材集（`latestApproved`・`LISTED`）、審査の記録、アカウント（`producerVerification` があること。初めての承認なら同じトランザクションで書く）。D-8 の確認（M-22）はトランザクションの前に利用の記録を読んで行い、利用の記録の `rev` を条件に入れる |
+| チャンネルの承認（素材集の分） | 使う素材集ごとの利用の記録（書く・書き直す）と、使わなくなった素材集の利用の記録の削除。素材集 5 つで 10 件ほど増える |
+| 素材集の取り下げ | 取り下げ、素材集（`revoked`、`LISTED` を外す）、承認済みの申請（→ `revoked`）。利用の記録は残す。使っているチャンネル提供者への知らせは、トランザクションの後に送る（D-18） |
+| 移し替えの承認（素材集の分） | アカウントのすべての素材集（`producerChange`、審査待ちの申請を外す）、素材集の審査待ちの申請（→ `returned`）。素材集 5 つと申請 5 つで 10 件ほど増える |
 
 - 承認・取り下げ・移し替えの承認・鍵セットの登録のあと、公開の Lambda を非同期で呼ぶ（ADR-001 A-10）
 - 1 つのトランザクションは 100 件まで。上の操作は多くても 10 件ほど
@@ -504,17 +502,17 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 | 公開用（CloudFront） | `trial/{sha256}.zip` | 7 日で消す |
 | 記録用（非公開） | `published/{seq}.json`、`keysets/{seq}.json`、`samples/{submissionId}/prompts.json`（見本用のプロンプト）、`reviews/{submissionId}/{samplesId}.json`（見本） | 消さない |
 | 受付用（非公開） | `intake/{channelId}/{submissionId}.png`（アイコン） | パッケージと同じ |
-| 受付用（非公開、1.3） | `intake-col/{collectionId}/{submissionId}.zip`、`archive-col/{collectionId}/{submissionId}.zip` | チャンネルと同じ（M-4）。素材集の ID はチャンネルの ID と重なりうるので、接頭辞を分ける |
-| 公開用（CloudFront、1.3） | `col/{sha256}.zip` | 消さない（チャンネルのパッケージと同じ） |
+| 受付用（非公開） | `intake-col/{collectionId}/{submissionId}.zip`、`archive-col/{collectionId}/{submissionId}.zip` | チャンネルと同じ（M-4）。素材集の ID はチャンネルの ID と重なりうるので、接頭辞を分ける |
+| 公開用（CloudFront） | `col/{sha256}.zip` | 消さない（チャンネルのパッケージと同じ） |
 
 ## 移行・互換性メモ
 
 - 新しいシステムなので、移行するデータはない
 - 項目に属性を足すのは互換性のある変更。読むときの検証は、知らない属性を無視する
 - キーの形（PK・SK・GSI）を変えるときは、新しい形で書き、古い形の項目を一括で書き直すスクリプトを用意する。運営の担当者が 1 人で件数が少ないうちは、メンテナンス時間を取って行ってよい
-- 1.4: 1.3 までの申請・`latestApproved` には `activities`・`genres`・`requires`・`minAppVersions`・`promotional` がない。読むときに format 1 の読み方・`minAppVersion` だけ・宣伝なしとして扱い、書き直しはしない（M-26・M-27・M-30）
-- 1.3: 1.2 までのチャンネル提供者の項目には `roles` がない。読むときに `["publisher"]` として扱い、次に書くときに `roles` を書く（一括の書き直しは要らない）
-- 複数メンバーのチャンネル提供者（M-1 の将来）は、`PUB#{publisherId}` / `MEMBER#{sub}` の項目を足し、ユーザーの項目を「どのチャンネル提供者のメンバーか」に変えて対応する。今の `ownerSub` は最初のメンバーになる
+- 申請・`latestApproved` に `activities`・`genres`・`requires`・`minAppVersions`・`promotional` がなければ、format 1 の読み方・`minAppVersion` だけ・宣伝なしとして扱う（M-26・M-27・M-30）
+- アカウントの項目に `roles` がなければ `["publisher"]` として扱い、次に書くときに `roles` を書く
+- 複数メンバーのチャンネル提供者（M-1 の将来）は、`PUB#{publisherId}` / `MEMBER#{sub}` の項目を足し、ユーザーの項目を「どのチャンネル提供者のメンバーか」に変えて対応する。`ownerSub` は最初のメンバーになる
 
 ## 検証観点
 
@@ -533,14 +531,14 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 | DV-11 | 停止中のチャンネル提供者は申請・試用チケット・鍵の紐づけができず、公開中のチャンネルはリストに残る（M-10） |
 | DV-12 | 結果が出た申請のパッケージが `archive/` に移り、90 日で消える。承認したものは公開用のバケットに残る |
 | DV-13 | 1 つの項目が 400KB を超えない（見本は S3 に置く。`validation.errors` は 100 件で打ち切る） |
-| DV-14 | （1.3）AP-23〜AP-29 が、スキャンなしで満たせる |
-| DV-15 | （1.3）同じ ID の素材集とチャンネルを別のアカウントが登録でき、素材集の ID は 2 つ目の登録が失敗する（M-18） |
-| DV-16 | （1.3）利用の記録にある素材の ID を消した・種類を変えた素材集の申請が、機械審査でも承認でも通らない。承認の直前にチャンネルが承認されても、`rev` の条件で片方が失敗する（M-22） |
-| DV-17 | （1.3）身元の記録がないアカウントの素材集は承認できず、表示名を変えると記録が消える（M-17） |
-| DV-18 | （1.3）チャンネルと素材集の申請を合わせて 1 日 20 回を超えない（M-19） |
-| DV-19 | （1.3）退会で公開中の素材集が取り下げられ、`revokedCollections` に 7 日載る（M-25） |
-| DV-20 | （1.3）チャンネルの新しい版の承認と取り下げで、利用の記録が書き直される・消える |
-| DV-21 | （1.3）素材集の新しい版の承認で、使っているチャンネルの `resourcesSize`・`media` が次の公開から変わる（M-24） |
+| DV-14 | AP-23〜AP-29 が、スキャンなしで満たせる |
+| DV-15 | 同じ ID の素材集とチャンネルを別のアカウントが登録でき、素材集の ID は 2 つ目の登録が失敗する（M-18） |
+| DV-16 | 利用の記録にある素材の ID を消した・種類を変えた素材集の申請が、機械審査でも承認でも通らない。承認の直前にチャンネルが承認されても、`rev` の条件で片方が失敗する（M-22） |
+| DV-17 | 身元の記録がないアカウントの素材集は承認できず、表示名を変えると記録が消える（M-17） |
+| DV-18 | チャンネルと素材集の申請を合わせて 1 日 20 回を超えない（M-19） |
+| DV-19 | 退会で公開中の素材集が取り下げられ、`revokedCollections` に 7 日載る（M-25） |
+| DV-20 | チャンネルの新しい版の承認と取り下げで、利用の記録が書き直される・消える |
+| DV-21 | 素材集の新しい版の承認で、使っているチャンネルの `resourcesSize`・`media` が次の公開から変わる（M-24） |
 
 ## 制約
 
@@ -553,31 +551,13 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 
 | No. | 内容 | 決める時期 |
 |---|---|---|
-| 1 | ~~`revoked` に載せる期間~~ → 解決（2026-10-03、7 日。M-9） | — |
-| 2 | ~~`channelCount` に取り下げたチャンネルを数えるか~~ → 解決（2026-10-03、数える） | — |
-| 3 | 却下（`rejected`）されたパッケージを、根拠として 90 日より長く残すか（M-4 では 90 日） | 運用の開始後 |
-| 4 | チャンネル提供者が自分のアカウントを消したいときの扱い（チャンネルの取り下げ、操作の記録は残す） | API の契約書（T-3） |
-| 5 | （1.3）アプリの段と版の対応表の置き場所（CDK のコンテキストか、SSM パラメータか）。アプリの素材の第 1 段の版が決まるまでは、どの段も今の `MIN_APP_VERSION` より大きい仮の値にして、アプリに出ないようにする | API-001 の改訂 |
-| 6 | （1.3）SanpoGuide ADR-002 の未決事項 No.6（「確認済み」の印）を採るなら、`producerVerification` から作る | ADR-002 の判断 |
+| 1 | 却下（`rejected`）されたパッケージを、根拠として 90 日より長く残すか（M-4 では 90 日） | 運用の開始後 |
+| 2 | SanpoGuide ADR-002 の未決事項 No.4（「確認済み」の印）を採るなら、`producerVerification` から作る | ADR-002 の判断 |
 
 ## 関連ドキュメント・参照リンク
 
 - [ADR-001](adr/ADR-001-aws-architecture.md): AWS の構成
 - SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
 - SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): パッケージの形式
-- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準（1.0、2026-10-11 承認）
+- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準
 - SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 素材の素材提供者と素材集
-- 検討の記録（1.3）: [skill-logs/data_model_design_2026-10-11.md](skill-logs/data_model_design_2026-10-11.md)
-- 検討の記録: [skill-logs/data_model_design_2026-10-03.md](skill-logs/data_model_design_2026-10-03.md)
-
-## 変更履歴
-
-| 日付 | 版 | 変更内容 | 変更者 |
-|---|---|---|---|
-| 2026-10-13 | 1.4 | 承認（PR #33 のマージ） | Claude（承認: 開発者） |
-| 2026-10-12 | 1.4（草案） | エコシステム（SanpoGuide ADR-003、DES-011）と宣伝（ADR-002 1.2、DES-012）に合わせて改訂: M-26〜M-31、M-23 を M-27 に改訂、`latestApproved` の `activities`・`genres`・`requires`・`minAppVersions`・`promotional`、素材集の `grants.apps`・`minAppVersions`・`promotional`、申請の `listing`・`promotional`、移行のメモ | Claude |
-| 2026-10-11 | 1.3 | 素材の素材提供者（SanpoGuide ADR-002）に合わせて改訂: M-16〜M-25、AP-23〜AP-29、素材集・素材集の申請・審査の記録・取り下げ・利用の記録の項目、アカウントの `roles`・`collectionCount`・`producerVerification`、チャンネルの `appStage`・`collections`・`ownPrefetchBytes`・`ownMedia`、トランザクション、S3 の置き場所、DV-14〜DV-21 | Claude（承認: 開発者） |
-| 2026-10-04 | 1.2 | 実装 3d（DES-006）に合わせた補足: 鍵の移し替えに GSI1 `TRANSFERS`（過去の申し出の一覧）、送ったメールの印 `NOTICE`、`publisherChange.until` を新しい鍵の最初の版の承認から数える | Claude（承認: 開発者） |
-| 2026-10-03 | 0.1 | 草案（M-1〜M-4 は開発者の決定、M-5〜M-13 は提案） | Claude |
-| 2026-10-03 | 1.1 | 管理 API（API-001 1.0）に合わせて改訂: 鍵の移し替えをチャンネル提供者ごとに（M-14）、チャンネル提供者の鍵の状態、チャンネル提供者の `deleted`（M-15）、申請のアイコン・説明・タグ・地域、見本用のプロンプトと見本の置き場所、公開の `manual`、署名鍵の `registered`、通知の操作の記録 | Claude（承認: 開発者） |
-| 2026-10-03 | 1.0 | M-5〜M-13 を承認。`revoked` に載せる期間を 7 日に変更（M-9）。取り下げたチャンネルも上限に数える。未決事項 No.1・No.2 を解消 | Claude（承認: 開発者） |

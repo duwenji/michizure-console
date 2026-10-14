@@ -94,7 +94,7 @@ sealed interface Outcome {
     data class Failed(val findings: List<Finding>, val version: Int?, val collections: List<CollectionResult> = emptyList()) : Outcome
 }
 
-/** What the console knows about a collection submission (DM-001 1.3). */
+/** What the console knows about a collection submission (DM-001). */
 data class CollectionUpload(
     val collectionId: String,
     val submissionId: String,
@@ -156,7 +156,7 @@ sealed interface CollectionOutcome {
  * icon. Pure: the Lambda reads and writes, this decides.
  */
 object MachineReview {
-    const val VALIDATOR = "core-format 1.0.0, prompts 2.0.0"
+    const val VALIDATOR = "core-format 1.0.0, prompts 1.0.0"
     const val MAX_PACKAGE = 2 * 1024 * 1024
     const val MAX_ICON = 100 * 1024
     const val MAX_ICON_SIDE = 256
@@ -187,7 +187,7 @@ object MachineReview {
                         if (manifest.version <= latest) findings += Finding("version_not_newer", "version ${manifest.version} is not after the approved $latest")
                     }
                     if (manifest.format == 1 && upload.format1Retired) {
-                        findings += Finding("format_retired", "format 1 packages are no longer taken: write format 2 (API-003 2.0)")
+                        findings += Finding("format_retired", "format 1 packages are no longer taken: write format 2 (API-003)")
                     }
                     val resolved = resolveCollections(upload, result, catalog)
                     collections = resolved.results

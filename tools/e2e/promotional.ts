@@ -13,7 +13,7 @@ import { checkProvider } from '../../conformance/src/check.js';
 import { createKey, sha256, sign, signPackage, type PublisherKey } from '../../web/src/publisher-crypto.js';
 
 /**
- * Promotion on the dev environment, for the app (DES-012, SanpoGuide ADR-002 T-14): a text-only
+ * Promotion on the dev environment, for the app (DES-012, SanpoGuide ADR-002 D-29〜D-36): a text-only
  * collection declared promotional, and a channel (not declared) that shows it as a card and speaks
  * it when chosen (API-003 `event: select`). The list must mark both promotional, with the versions
  * `promotionalMinAppVersions` sets; then the conformance checks (C-P1).
@@ -51,7 +51,7 @@ async function invoke(sub: string, groups: string, method: string, path: string,
   return body;
 }
 
-/** A collection package signed as a producer signs it (API-004 1.2 `collection-package`). */
+/** A collection package signed as a producer signs it (API-004 `collection-package`). */
 async function signCollection(files: Record<string, Uint8Array>, key: PublisherKey, id: string, version: number): Promise<Uint8Array> {
   const hashes: Record<string, string> = {};
   for (const name of Object.keys(files).sort()) hashes[name] = hex(await sha256(files[name]!));

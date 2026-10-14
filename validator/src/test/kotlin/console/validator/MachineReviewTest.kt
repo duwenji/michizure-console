@@ -76,7 +76,7 @@ class MachineReviewTest {
         outcome as Outcome.Passed
         assertEquals(3, outcome.version)
         val samples = JSONObject(outcome.samplePrompts)
-        assertEquals("core-format 1.0.0, prompts 2.0.0", samples.getString("generatedBy"))
+        assertEquals("core-format 1.0.0, prompts 1.0.0", samples.getString("generatedBy"))
         // The review policy's scenes (2.7), as the app would render them; this channel doesn't talk on rest.
         val ids = (0 until samples.getJSONArray("scenarios").length()).map { samples.getJSONArray("scenarios").getJSONObject(it).getString("id") }
         assertEquals(8, ids.size)
@@ -93,7 +93,7 @@ class MachineReviewTest {
     }
 
     @Test
-    fun `station-format's own checks come through with their codes`() {
+    fun `core-format's own checks come through with their codes`() {
         assertEquals(listOf("bad_signature"), codes(MachineReview.review(upload, pkg(tamper = true), png())))
         assertEquals(listOf("bad_archive"), codes(MachineReview.review(upload, "not a zip".toByteArray(), png())))
         val failed = MachineReview.review(upload, pkg(manifest().put("talk", JSONObject().put("level", "loud"))), png())

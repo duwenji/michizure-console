@@ -15,7 +15,7 @@ function unsignedPackage(publisher: string, change: Record<string, unknown> = {}
 }
 
 describe('publisher keys in the browser', () => {
-  it('derive the same account id as the server and station-format', async () => {
+  it('derive the same account id as the server and core-format', async () => {
     expect(await accountIdOf(new Uint8Array(32).fill(7))).toBe('sg1joyg7dsohj3rluqb2vz5bkscg5rokxnl');
   });
 
@@ -72,7 +72,7 @@ describe('signing a package (API-003 F-6)', () => {
   });
 });
 
-describe('signing a collection (API-004 1.2, DES-010 N-3)', () => {
+describe('signing a collection (API-004, DES-010 N-3)', () => {
   const unsignedCollection = (producer: string, change: Record<string, unknown> = {}) =>
     zipSync({
       'collection.json': utf8.encode(JSON.stringify({ format: 1, id: 'kamakura-audio-guide', version: 2, producer, ...change })),
@@ -86,7 +86,7 @@ describe('signing a collection (API-004 1.2, DES-010 N-3)', () => {
     const sig = JSON.parse(utf8.decode(files['signature.json']!));
     const payload = b64url.decode(sig.payload);
     const body = JSON.parse(utf8.decode(payload));
-    // The form station-format's CollectionValidator reads (SignedKind.COLLECTION).
+    // The form core-format's CollectionValidator reads (SignedKind.COLLECTION).
     expect(body).toMatchObject({ type: 'collection-package', collection: 'kamakura-audio-guide', version: 2, producer: key.accountId });
     expect(body).not.toHaveProperty('channel');
     expect(body.files).toEqual({

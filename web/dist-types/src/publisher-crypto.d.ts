@@ -5,7 +5,7 @@ declare const b64url: {
 };
 export { b64url };
 export declare function sha256(data: Uint8Array): Promise<Uint8Array>;
-/** `sg1` + base32(SHA-256(public key)), first 32 characters: the same as the server and station-format. */
+/** `sg1` + base32(SHA-256(public key)), first 32 characters: the same as the server and core-format. */
 export declare function accountIdOf(publicKey: Uint8Array): Promise<string>;
 /** Whether this browser can make and use Ed25519 keys (recent Chrome, Edge, Firefox and Safari can). */
 export declare function ed25519Supported(): Promise<boolean>;
@@ -50,7 +50,7 @@ export interface SignedPackage {
 export declare function signPackage(zip: Uint8Array, key: PublisherKey, expect: {
     channel: string;
 }): Promise<SignedPackage>;
-/** A collection package (API-004 1.2, DES-010 N-3): the same, as its producer. */
+/** A collection package (API-004, DES-010 N-3): the same, as its producer. */
 export declare function signCollectionPackage(zip: Uint8Array, key: PublisherKey, expect: {
     collection: string;
 }): Promise<{

@@ -10,7 +10,7 @@ export interface ListContent {
   expiresAt: Date;
   channels: ChannelEntry[];
   revoked: RevokedEntry[];
-  /** API-002 1.2: written on every list, empty or not. */
+  /** API-002: written on every list, empty or not. */
   collections?: CollectionEntry[];
   revokedCollections?: RevokedEntry[];
 }

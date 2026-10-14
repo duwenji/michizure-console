@@ -2,7 +2,7 @@ const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
 
 /**
  * The geohash of a position (API-002 P-15: a collection's regions are 3-letter geohashes of its
- * resources' subjects). The same encoding as station-format's `Regions.geohash`.
+ * resources' subjects). The same encoding as core-format's `Regions.geohash`.
  */
 export function geohash(lat: number, lon: number, precision = 3): string {
   if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) throw new Error(`not on the earth: ${lat}, ${lon}`);

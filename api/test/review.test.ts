@@ -95,7 +95,7 @@ async function awaitingReview(version = 1, listing?: Record<string, unknown>, pr
   const sid = created.body.submission.submissionId as string;
   const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ id: 'kamakura-history', version, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
   uploads.set(`intake/kamakura-history/${sid}.zip`, zip);
-  records.set(`samples/${sid}/prompts.json`, JSON.stringify({ generatedBy: 'station-format 1.1.0', scenarios: [{ id: 'start-morning-sunny', label: '開始', system: 's', user: 'u' }] }));
+  records.set(`samples/${sid}/prompts.json`, JSON.stringify({ generatedBy: 'prompts 1.0.0', scenarios: [{ id: 'start-morning-sunny', label: '開始', system: 's', user: 'u' }] }));
   await deps.db.send(
     new UpdateCommand({
       TableName: deps.table, Key: { PK: 'CH#kamakura-history', SK: `SUB#${sid}` },

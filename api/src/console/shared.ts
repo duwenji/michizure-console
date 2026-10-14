@@ -12,7 +12,7 @@ export type Item = Record<string, unknown>;
 /** DM-001 M-2・M-19; an operator can change them per account. */
 export const DEFAULT_LIMITS = { channels: 5, collections: 5, uploadsPerDay: 20, ticketsPerDay: 10 };
 
-/** An account's roles (DM-001 M-16); one from before 1.3 has none written and is a publisher. */
+/** An account's roles (DM-001 M-16); one with none written is a publisher. */
 export function rolesOf(item: Item): ('publisher' | 'producer')[] {
   return Array.isArray(item.roles) ? (item.roles as ('publisher' | 'producer')[]) : ['publisher'];
 }
@@ -91,7 +91,7 @@ export async function loadChannel(deps: Deps, channelId: string): Promise<Item> 
   return (await get(deps, `CH#${channelId}`, 'CH')) ?? fail('not_found', `no channel ${channelId}`);
 }
 
-// ---- collections (DM-001 1.3) ----
+// ---- collections (DM-001) ----
 
 async function revocationsOf(deps: Deps, pk: string) {
   const out = await deps.db.send(
