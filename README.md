@@ -69,4 +69,4 @@ cd infra && npx cdk synth -c env=dev -c rootPublicKey=<base64url>
 - [DES-009](docs/design/DES-009-materials-publish.md): 素材集の公開と毎日の外部の素材の確認（4c）
 - [DES-010](docs/design/DES-010-materials-screens.md): 素材集の画面（4d）
 - [費用](docs/operations/cost.md): 開発用は約 1.5 USD/月
-- [配備の手順](docs/operations/deploy.md): 開発用は配備済み（リスト https://dp0n4y2yro06i.cloudfront.net、画面 https://d21uyuovpio5a.cloudfront.net）
+- [配備の手順](docs/operations/deploy.md): 開発用は配備済み（リスト https://d32t2reyxml47d.cloudfront.net、画面 https://d32w19p7au8cu2.cloudfront.net）
