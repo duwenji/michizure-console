@@ -9,11 +9,6 @@
 3. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.5）
 4. 本番の `promotionalMinAppVersions` に、SanpoGuide を Google Play に出したときの版を書く（DES-012 未決事項 No.2）
 
-## 開発用の環境
-
-- [ ] 開発用のスタックを `YorisoiConsole-dev` で作り直す（今は `MichizureConsole-dev`。[配備の手順](operations/deploy.md)）
-- [ ] `appStageVersions`・`promotionalMinAppVersions` を SanpoGuide の versionCode 1 に合わせた設定を配備する
-
 ## 確かめること
 
 - [ ] 試用チケットで、素材集・基準を使うチャンネルをアプリで通しで確かめる（SanpoGuide 側。チャンネル提供者の鍵ファイルが届いてから）

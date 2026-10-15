@@ -45,7 +45,7 @@ flowchart LR
 
 | 環境 | 運営の画面 | 公開 URL（アプリが取得する） | 状態 |
 |---|---|---|---|
-| 開発用（dev） | https://d21uyuovpio5a.cloudfront.net | https://dp0n4y2yro06i.cloudfront.net | 稼働中。アプリには内蔵しない |
+| 開発用（dev） | https://d32w19p7au8cu2.cloudfront.net | https://d32t2reyxml47d.cloudfront.net | 稼働中。アプリには内蔵しない |
 | 本番（prod） | — | — | 🚧 予定（本番用のアカウント、本番のルート鍵、独自ドメインがそろってから） |
 
 ## 用語集

@@ -8,12 +8,12 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 |---|---|
 | AWS アカウント | 140023390410（SSO プロファイル `sanpo-dev`） |
 | リージョン | ap-northeast-1 |
-| スタック | `MichizureConsole-dev`（`YorisoiConsole-dev` での作り直しは未実施。下の手順のスタック名・URL はこのスタックのもの） |
+| スタック | `YorisoiConsole-dev` |
 | リストID | `sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv` |
 | ルート鍵の公開鍵 | `YMe_dQimd3AaMZs5izjDlXjnAKdq7Vi9nfagFVjECEI` |
-| 公開 URL | https://dp0n4y2yro06i.cloudfront.net |
-| 運営の画面 | https://d21uyuovpio5a.cloudfront.net |
-| ログイン | https://michizure-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_9kOvLsKwS`） |
+| 公開 URL | https://d32t2reyxml47d.cloudfront.net |
+| 運営の画面 | https://d32w19p7au8cu2.cloudfront.net |
+| ログイン | https://yorisoi-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_dy8A7T1fG`） |
 | 運営 | tofumiyoshi@gmail.com（`operator` グループ） |
 
 開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.yorisoi-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は ADR-001 T-1 の手順書に従い、オフラインの端末で作る。
@@ -35,7 +35,7 @@ cd ..
 npm run provision -w tools/provision -- --env dev --root-key ~/.yorisoi-console/dev
 
 # 3. 準拠テスト
-npm run check -w conformance -- https://dp0n4y2yro06i.cloudfront.net --provider sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv
+npm run check -w conformance -- https://d32t2reyxml47d.cloudfront.net --provider sc1363urrzsrhjuxasgz5pnxkcf5mcieqhv
 ```
 
 - `tools/provision` は、スタックの出力から KMS の署名鍵を読み、KMS から公開鍵を取り出して `SIGNKEY` に登録する。鍵セットに載っていない鍵があれば、ルート鍵で新しい鍵セット（`seq` + 1、署名鍵の有効期間 180 日）に署名して `KEYSET` に登録する。最後に公開の Lambda を 1 回呼ぶ
@@ -47,8 +47,8 @@ npm run check -w conformance -- https://dp0n4y2yro06i.cloudfront.net --provider 
 運営の担当者は登録の画面からはなれない。管理者が作り、`operator` グループに入れる（ADR-001 A-4）。
 
 ```sh
-aws cognito-idp admin-create-user --user-pool-id ap-northeast-1_9kOvLsKwS --username <メール>   --user-attributes Name=email,Value=<メール> Name=email_verified,Value=true --desired-delivery-mediums EMAIL
-aws cognito-idp admin-add-user-to-group --user-pool-id ap-northeast-1_9kOvLsKwS --username <メール> --group-name operator
+aws cognito-idp admin-create-user --user-pool-id ap-northeast-1_dy8A7T1fG --username <メール>   --user-attributes Name=email,Value=<メール> Name=email_verified,Value=true --desired-delivery-mediums EMAIL
+aws cognito-idp admin-add-user-to-group --user-pool-id ap-northeast-1_dy8A7T1fG --username <メール> --group-name operator
 ```
 
 仮のパスワードがメールで届く。最初のログインでパスワードを変え、認証アプリで MFA（TOTP）を登録する。
@@ -56,7 +56,7 @@ aws cognito-idp admin-add-user-to-group --user-pool-id ap-northeast-1_9kOvLsKwS 
 ### 手元で SPA を動かす
 
 ```sh
-CONSOLE_URL=https://d21uyuovpio5a.cloudfront.net npm run dev -w web   # http://localhost:5173
+CONSOLE_URL=https://d32w19p7au8cu2.cloudfront.net npm run dev -w web   # http://localhost:5173
 ```
 
 開発用のユーザープールは `http://localhost:5173/callback` を許しているので、そのままログインできる（本番は許さない）。

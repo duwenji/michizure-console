@@ -109,7 +109,7 @@ npm run check -w conformance -- http://127.0.0.1:8787 --allow-local-http --provi
 **画面を手元で動かす**（開発用の API とログインを使う）:
 
 ```sh
-CONSOLE_URL=https://d21uyuovpio5a.cloudfront.net npm run dev -w web   # http://localhost:5173
+CONSOLE_URL=https://d32w19p7au8cu2.cloudfront.net npm run dev -w web   # http://localhost:5173
 ```
 
 **管理 API を変えるとき**: 先に `docs/api/console.openapi.yaml` と `docs/console-api.md` を直し、`npm run generate -w packages/api-types` で型を作り直します。
@@ -167,7 +167,7 @@ npx cdk deploy -c env=dev -c rootPublicKey=<ルート鍵の公開鍵>
 運営は、登録の画面からはなれません（ADR-001 A-4）。管理者が作って `operator` グループに入れます。
 
 ```sh
-P=<ユーザープールID>   # 開発用は ap-northeast-1_9kOvLsKwS
+P=<ユーザープールID>   # 開発用は ap-northeast-1_dy8A7T1fG
 aws cognito-idp admin-create-user --user-pool-id $P --username <メール> \
   --user-attributes Name=email,Value=<メール> Name=email_verified,Value=true --desired-delivery-mediums EMAIL
 aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール> --group-name operator
