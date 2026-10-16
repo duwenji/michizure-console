@@ -203,7 +203,7 @@ class Handler(
         val l = outcome.listing
         val listing = mapOf(
             "appStage" to l.appStage, "name" to l.name, "summary" to l.summary, "media" to l.media, "resourcesSize" to l.resourcesSize,
-            "tags" to l.tags, "regions" to l.regions, "grants" to grants(l.grants), "resourceTypes" to l.resourceTypes,
+            "tags" to l.tags, "regions" to l.regions, "grants" to StoredGrants.write(l.grants), "resourceTypes" to l.resourceTypes,
             "externalResources" to l.externalResources.map { (id, url, size) -> mapOf("resourceId" to id, "url" to url, "size" to size) },
         )
         transact(
@@ -254,11 +254,6 @@ class Handler(
         "warnings" to av(warnings.map { mapOf("code" to it.code, "detail" to it.detail.take(500)) }),
     )
 
-    /** As the list copies them (API-002 P-15): the app checks the copy against the package, `grounding` included. */
-    private fun grants(g: Grants): Map<String, Any> =
-        mapOf("publishers" to (g.publishers?.sorted() ?: "*")) + (g.apps?.let { mapOf("apps" to it.sorted()) } ?: emptyMap()) +
-            (if (g.grounding) mapOf("grounding" to true) else emptyMap())
-
     /**
      * The collections listed now (DES-007 J-2): an `active` collection with an approved version,
      * on the list (`LISTED`), its package read from the public bucket (`col/{sha256}.zip`).
@@ -283,8 +278,7 @@ class Handler(
                 resourcesSize = la.num("resourcesSize"),
                 tags = la.strings("tags"),
                 regions = la.strings("regions"),
-                grants = la["grants"]?.m()?.get("publishers")?.let { p -> if (p.s() == "*") Grants.EVERYONE else Grants(p.l().mapNotNull { it.s() }.toSet()) }
-                    ?: Grants(emptySet()),
+                grants = StoredGrants.read(la["grants"]?.m()),
                 pkg = PackageRef(pkg.str("url").orEmpty(), pkg.str("sha256").orEmpty(), pkg.num("size").toInt(), pkg.num("format").toInt()),
                 approvedAt = approvedAt,
                 minAppVersions = la.getValue("minAppVersions").m().mapValues { it.value.n().toInt() },
@@ -430,5 +424,29 @@ class Handler(
         private fun Map<String, AttributeValue>.str(name: String): String? = this[name]?.s()
         private fun Map<String, AttributeValue>.num(name: String): Long = this[name]?.n()?.toLong() ?: 0L
         private fun Map<String, AttributeValue>.strings(name: String): List<String> = this[name]?.l().orEmpty().mapNotNull { it.s() }
+    }
+}
+
+/**
+ * A collection's grants as stored with its listing, and read back whole: a channel's review compares
+ * them with the package's, so dropping `apps` or `grounding` would reject every channel using the
+ * collection (API-002 P-15).
+ */
+internal object StoredGrants {
+    /** As the list copies them: the app checks the copy against the package, `grounding` included. */
+    fun write(g: Grants): Map<String, Any> =
+        mapOf("publishers" to (g.publishers?.sorted() ?: "*")) + (g.apps?.let { mapOf("apps" to it.sorted()) } ?: emptyMap()) +
+            (if (g.grounding) mapOf("grounding" to true) else emptyMap())
+
+    fun read(m: Map<String, AttributeValue>?): Grants {
+        if (m == null) return Grants(emptySet())
+        val p = m["publishers"]
+        val publishers = when {
+            p == null -> emptySet()
+            p.s() == "*" -> null
+            else -> p.l().mapNotNull { it.s() }.toSet()
+        }
+        val apps = m["apps"]?.l()?.mapNotNull { it.s() }?.toSet()
+        return Grants(publishers, apps, grounding = m["grounding"]?.bool() == true)
     }
 }
