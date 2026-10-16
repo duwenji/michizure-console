@@ -6,6 +6,7 @@ import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { AI_SERVICES, listModels, reply, type AiService } from '../ai';
 import { Empty, Status, Time, useLoad } from './common';
+import { PreReview, reviewFiles } from './pre-review';
 import { EcosystemNote } from './validation';
 
 /** The review policy's items (SanpoGuide docs/channel-review-policy.md), for findings. */
@@ -111,6 +112,16 @@ export function ReviewPage() {
             </button>
           )}
           <PackageView channelId={channelId} submissionId={submissionId} />
+          {s.state === 'in_review' && (
+            <PreReview
+              kind="channel" who="operator"
+              load={async () => {
+                const { data } = await api.GET('/api/admin/channels/{channelId}/submissions/{submissionId}/package', { params: { path } });
+                if (!data) throw new Error('パッケージを読めませんでした');
+                return reviewFiles(new Uint8Array(await (await fetch(data.packageUrl)).arrayBuffer()));
+              }}
+            />
+          )}
           {s.state === 'in_review' && <Samples channelId={channelId} submissionId={submissionId} onSaved={(id) => { setSamplesIds((ids) => [...ids, id]); reviews.reload(); }} />}
           {s.state === 'in_review' && <Decision sub={s} samplesIds={samplesIds} onDone={() => { setSamplesIds([]); sub.reload(); reviews.reload(); }} />}
           {s.decision && (

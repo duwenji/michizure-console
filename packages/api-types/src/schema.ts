@@ -1404,6 +1404,8 @@ export interface components {
                 publishers: "*" | components["schemas"]["AccountId"][];
                 /** @description DES-011 N-7。使ってよいアプリの ID（ないときはすべてのアプリ） */
                 apps?: string[];
+                /** @description platform API-004 I-13。AI の根拠に使ってよいとき真（偽は書かない） */
+                grounding?: boolean;
             };
             package: components["schemas"]["ListedPackage"];
             appStage?: number;

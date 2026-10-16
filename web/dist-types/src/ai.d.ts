@@ -17,3 +17,19 @@ export declare const AI_SERVICES: AiService[];
 export declare function listModels(service: AiService, key: string): Promise<string[]>;
 /** One reply to a sample scene, given the system and user prompts the app would send. */
 export declare function reply(service: AiService, key: string, model: string, system: string, user: string): Promise<string>;
+/** One point the AI raises against the review policy (platform ADR-004 H-12): material, not a verdict. */
+export interface Concern {
+    item: string;
+    quote: string;
+    reason: string;
+}
+/** A file the AI reads as material, by its path in the package. */
+export interface ReviewFile {
+    name: string;
+    text: string;
+}
+/**
+ * Has the AI read a package against the review policy and list what a reviewer should look at
+ * (platform ADR-004 H-12). It never approves: the package's text may try to steer it, so a person decides.
+ */
+export declare function preReview(service: AiService, key: string, model: string, kind: 'channel' | 'collection', files: ReviewFile[]): Promise<Concern[]>;

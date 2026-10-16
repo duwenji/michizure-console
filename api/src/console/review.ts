@@ -433,7 +433,7 @@ export async function getCollectionSubmissionPackage(deps: Deps, req: Request): 
 /** What the machine review recorded for approval to copy (DES-007 J-8). */
 interface CollectionListing {
   appStage: number; name: string; summary: string; media: string[]; resourcesSize: number; tags: string[]; regions: string[];
-  grants: { publishers: '*' | string[]; apps?: string[] }; resourceTypes: Record<string, string>; externalResources: { resourceId: string; url: string; size: number }[];
+  grants: { publishers: '*' | string[]; apps?: string[]; grounding?: boolean }; resourceTypes: Record<string, string>; externalResources: { resourceId: string; url: string; size: number }[];
 }
 
 function verificationOf(body: Record<string, unknown>): Schemas['Verification'] | undefined {

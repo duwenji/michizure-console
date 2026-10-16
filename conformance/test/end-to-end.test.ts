@@ -127,6 +127,16 @@ describe('the checks catch a broken provider (API-002)', () => {
     expect(failed(await statuses())).toEqual(['V-25']);
   });
 
+  it('V-25: whether the AI may take the texts as grounds (API-004 I-13)', async () => {
+    listCollection(collectionJson({ grants: { publishers: '*', grounding: true } }), { grants: { publishers: '*', grounding: true } });
+    await republish();
+    expect(failed(await statuses())).toEqual([]);
+    // A list that drops it would leave the collection unusable in the app.
+    listCollection(collectionJson({ grants: { publishers: '*', grounding: true } }));
+    await republish();
+    expect(failed(await statuses())).toEqual(['V-25']);
+  });
+
   it('V-27: activities, genres or requires that differ from the package (API-002)', async () => {
     store.channels[0]!.entry = { ...store.channels[0]!.entry, activities: ['cycle'] };
     await republish();

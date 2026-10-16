@@ -81,6 +81,7 @@ resources/
 | `producer` | 画面の「鍵」に出るあなたのアカウントID |
 | `grants.publishers` | 使ってよいチャンネル提供者。`"*"`（誰でも）か、チャンネル提供者のアカウントIDの配列 |
 | `grants.apps` | 使ってよいアプリ（任意）。アプリの ID（今は `sanpoguide`）を 1〜20 個。書かなければ、エコシステムのすべてのアプリで使えます（[API-004 1.5](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)） |
+| `grants.grounding` | AI の根拠に使ってよいか（任意。書かなければ使わない）。`true` にすると、アプリの AI が、題材の同じスポットを解説するときに、本文・代替テキスト・書き起こしを資料として読み、言い換えて話します。解説には「〇〇の資料をもとに作成」と出ます。資料は散策者が使う AI サービスに送られます。`true` のときは、本文・代替テキストに `{{` や URL を書けません（[API-004「AI の根拠」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)） |
 | `resources[].tags` | 何の話かを表すタグ（`history`・`faith`・`architecture`・`nature`・`landscape`・`season`・`festival`・`food`・`craft`・`art`・`folklore`）。チャンネルが「歴史の音声があれば流す」のように基準で選ぶときに使う |
 | `resources[].about` | 何についての素材か。スポット（OpenStreetMap の ID と名前）か地点（半径つき）。どちらも、おおよその緯度・経度を書く |
 | `credit` | 画像・音声・映像では必須。作者とライセンス（SPDX の識別子、`PD`、`permission`） |
@@ -91,6 +92,8 @@ resources/
 ## 4. 申請する
 
 素材集の詳細の「新しい版を申請する」で、署名する前の ZIP・鍵のファイル・合言葉を選びます。画面が署名して送ります。秘密鍵はサーバーに送りません。
+
+ZIP を選ぶと、申請の前に「AI の一次審査」を使えます。あなたの API キーで、ブラウザから直接 AI を呼び、審査基準に照らして気になる箇所を挙げます。キーは管理システムに送りません。運営の審査の代わりにはなりません。
 
 機械の確認の結果は、申請の一覧に出ます。
 
