@@ -83,7 +83,7 @@ async function call(caller: Caller, method: string, path: string, options: { bod
 /** A publisher with a channel and a submission the machine review passed, as stages 3a and 3b leave it. */
 const WALK_LISTING = { appStage: 0, collections: [], ownPrefetchBytes: 0, ownMedia: [], uses: {}, activities: ['walk'], genres: [], requires: [] };
 
-async function awaitingReview(version = 1, listing: Record<string, unknown> = WALK_LISTING, promotional?: boolean) {
+async function awaitingReview(version = 1, listing: Record<string, unknown> = WALK_LISTING) {
   const reg = await call(alice, 'POST', '/api/publisher', { body: { displayName: '鎌倉歴史散歩の会', contact: 'k@example.com' } }).catch(() => undefined);
   if (reg?.status === 201) {
     const key = generateEd25519();
@@ -93,7 +93,7 @@ async function awaitingReview(version = 1, listing: Record<string, unknown> = WA
     });
     await call(alice, 'POST', '/api/channels', { body: { channelId: 'kamakura-history' } });
   }
-  const created = await call(alice, 'POST', '/api/channels/kamakura-history/submissions', { body: { description: '鎌倉の寺社', tags: ['history'], ...(promotional !== undefined ? { promotional } : {}) } });
+  const created = await call(alice, 'POST', '/api/channels/kamakura-history/submissions', { body: { description: '鎌倉の寺社', tags: ['history'] } });
   const sid = created.body.submission.submissionId as string;
   const zip = zipSync({ 'channel.json': utf8.encode(JSON.stringify({ format: 1, activities: ['walk'], id: 'kamakura-history', version, name: '鎌倉歴史散歩', summary: '寺社と武士の歴史', lang: 'ja' })) });
   uploads.set(`intake/kamakura-history/${sid}.zip`, zip);
@@ -209,7 +209,7 @@ describe('deciding', () => {
 
     const next = await awaitingReview();
     await call(operator, 'POST', `${base(next)}/start`, { ifMatch: 2 });
-    expect((await call(operator, 'POST', `${base(next)}/reject`, { body: { findings: [{ item: '2.4', detail: '宣伝が目的' }] }, ifMatch: 3 })).body.submission.state).toBe('rejected');
+    expect((await call(operator, 'POST', `${base(next)}/reject`, { body: { findings: [{ item: '2.1', detail: '散策と関係のない話題が中心' }] }, ifMatch: 3 })).body.submission.state).toBe('rejected');
     expect(published).toEqual([]);
   });
 
@@ -255,27 +255,6 @@ describe('the ecosystem (DES-011)', () => {
     await call(operator, 'POST', `${base(needsSound)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${base(needsSound)}/approve`, { body: {}, ifMatch: 3 });
     expect((await call(alice, 'GET', '/api/channels/kamakura-history')).body.latestApproved).toMatchObject({ minAppVersions: {} });
-  });
-});
-
-describe('promotion (DES-012)', () => {
-  it('takes the declaration only as true or false (R-1)', async () => {
-    await awaitingReview(1);
-    expect((await call(alice, 'POST', '/api/channels/kamakura-history/submissions', { body: { promotional: 'yes' } })).status).toBe(400);
-  });
-
-  it('marks the approved version only when declared', async () => {
-    const sid = await awaitingReview(1, undefined, true);
-    expect((await call(operator, 'GET', `/api/channels/kamakura-history/submissions/${sid}`)).body.promotional).toBe(true);
-    await call(operator, 'POST', `${base(sid)}/start`, { ifMatch: 2 });
-    await call(operator, 'POST', `${base(sid)}/approve`, { body: {}, ifMatch: 3 });
-    expect((await call(alice, 'GET', '/api/channels/kamakura-history')).body.latestApproved).toMatchObject({ promotional: true });
-    // The next version is declared again or not at all.
-    const next = await awaitingReview(2);
-    expect((await call(operator, 'GET', `/api/channels/kamakura-history/submissions/${next}`)).body.promotional).toBe(false);
-    await call(operator, 'POST', `${base(next)}/start`, { ifMatch: 2 });
-    await call(operator, 'POST', `${base(next)}/approve`, { body: {}, ifMatch: 3 });
-    expect((await call(alice, 'GET', '/api/channels/kamakura-history')).body.latestApproved).not.toHaveProperty('promotional');
   });
 });
 

@@ -29,12 +29,6 @@ export interface EnvConfig {
    * then material needs a version no app has.
    */
   appStageVersions: Record<string, Record<number, number>>;
-  /**
-   * By app id: the version (versionCode) that first labels promotion (DES-012 R-5, SanpoGuide
-   * ADR-002 D-36). Promotional channels and collections need at least it; an app without one gets a
-   * version no app has. Set in production when the app is on Google Play.
-   */
-  promotionalMinAppVersions: Record<string, number>;
   /** What this environment pays for (see docs/operations/cost.md). Production keeps every protection. */
   cost: {
     /** AWS WAF on the user pool (ADR-001 A-18): about 7 USD a month. */
@@ -63,8 +57,6 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     notify: { mode: 'log' },
     // SanpoGuide versionCode 1 shows stage 0 and 1 (text and images); audio and video wait.
     appStageVersions: { sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } },
-    // SanpoGuide versionCode 1 labels promotion. Production waits for Google Play (DES-012 未決事項 No.2).
-    promotionalMinAppVersions: { sanpoguide: 1 },
     // Development keeps cost to the minimum.
     cost: {
       waf: false,
@@ -83,7 +75,6 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     notify: { mode: 'log' },
     // SanpoGuide versionCode 1 shows stage 0 and 1 (text and images); audio and video wait.
     appStageVersions: { sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } },
-    promotionalMinAppVersions: {},
     cost: { waf: true, pointInTimeRecovery: true, cursorKey: 'secret' },
   },
 };

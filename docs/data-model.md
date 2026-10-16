@@ -87,17 +87,15 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 | M-24 | リストに載せる値の計算 | 素材集の `tags`・`regions`・`media`・`resourcesSize`・`grants` は承認時に計算して写す（M-8 と同じ）。チャンネルの `resourcesSize` は、素材集の版で変わるので、公開のたびに「チャンネル自身の分」と「宣言した素材集の `resourcesSize`」を足して出す。チャンネルの `media` も同じく公開のたびに合わせる |
 | M-25 | 取り下げ・退会・停止 | 素材集の取り下げはリストの `revokedCollections` に 7 日載せる（M-9 と同じ）。退会すると、公開中の素材集も自動で取り下げる（D-19）。停止中は素材集の申請も止める。公開中の素材集はそのまま（M-10 と同じ）。素材集の取り下げ・更新・利用許諾の縮小は、利用の記録にあるチャンネル提供者にメールで知らせる（D-18） |
 
-### エコシステムと宣伝の決定
+### エコシステムの決定
 
-platform ADR-003（付き添いアプリのエコシステム）と ADR-002（宣伝を表示つきで認める）による。実装は [DES-011](design/DES-011-ecosystem.md)・[DES-012](design/DES-012-promotional.md)。
+platform ADR-003（付き添いアプリのエコシステム）による。実装は [DES-011](design/DES-011-ecosystem.md)。
 
 | No. | 論点 | 決定 |
 |---|---|---|
 | M-26 | 絞り込みの情報（DES-011 N-3・N-11） | 機械審査が、パッケージの `activities`・`genres`・`requires.features` を申請の `listing` に書かれたとおりに記録し、承認が `latestApproved` に写す |
 | M-27 | アプリごとの版（DES-011 N-4〜N-6） | 段と版の対応表を、アプリの ID ごとの設定 `appStageVersions`（`{ sanpoguide: { 0: 1, 1: 1, 2: 9999, 3: 9999 } }`）にする。アプリの名前・過ごし方・機能は `packages/protocol` の `KNOWN_APPS`。承認は `latestApproved.minAppVersions`（アプリの ID → 版）を計算する: チャンネルは過ごし方と必要な機能が合うアプリだけ、素材集は `grants.apps` が含むアプリ（ないときはすべて） |
 | M-28 | 素材集の利用アプリ（DES-011 N-7） | 機械審査が `grants.apps` を読み、承認が `latestApproved.grants.apps` に写す。チャンネルが素材集を参照するときの確かめでは、アプリを見ない |
-| M-30 | 宣伝の申告（DES-012 R-1・R-3・R-9） | 申請（チャンネル・素材集）の `promotional`（真のときだけ書く）。承認が真のときだけ `latestApproved.promotional` に写す。版ごとに申告し、前の版から引き継がない。運営は書き換えない（R-2） |
-| M-31 | 宣伝の印と版の引き上げ（DES-012 R-4・R-5） | テーブルには持たず、公開のときに決める: チャンネルは自分の申告か、`collections` で宣言した素材集のうちリストにある宣伝のものがあれば `promotional`。宣伝のものは、設定 `promotionalMinAppVersions`（アプリの ID → 版。ないアプリは 9999）まで `minAppVersions` を上げる |
 
 ## 概念モデル（ERD）
 
@@ -320,7 +318,6 @@ stateDiagram-v2
 | `ownPrefetchBytes`・`ownMedia` | チャンネル自身の素材の前もっての取得の大きさと種類（M-24） |
 | `activities`・`genres`・`requires` | パッケージの値（M-26） |
 | `minAppVersions` | アプリの ID → 必要な版。機械審査が出した必要なアプリの段から決める（M-23・M-27） |
-| `promotional` | 承認した版の申告。真のときだけ（M-30） |
 
 ### 素材集（COL）
 
@@ -348,7 +345,6 @@ stateDiagram-v2
 | `externalResources` | 外部の素材の `[{ resourceId, url, size }]`（M-21 の確認の対象） |
 | `minAppVersions`・`appStage` | 素材の種類から決めた段と、アプリごとの版（M-23・M-27） |
 | `minAppVersions` | `grants.apps` が含むアプリ（ないときはすべて）の ID → 必要な版（M-27） |
-| `promotional` | 承認した版の申告。真のときだけ（M-30） |
 | `approvedAt` | 承認した日時 |
 
 ### 利用の記録（USEDBY）
@@ -376,7 +372,6 @@ stateDiagram-v2
 | `validation` | M | — | `{ ok, errors: [{ code, detail }], appStage, checkedAt, validatorVersion }`。`code` は API-003 のエラーコード |
 | `note` | S | — | チャンネル提供者から運営への説明 |
 | `listing` | M | — | 機械審査が記録したリストに載せる値（DES-007〜DES-009）。`activities`・`genres`・`requires`（M-26）、素材集では `grants.apps`（M-28） |
-| `promotional` | BOOL | — | 「宣伝を含む」の申告。真のときだけ（M-30） |
 | `submittedAt` | S | — | 機械審査に合格した日時（審査待ちの順番） |
 | `decidedAt` | S | — | 承認・差し戻し・却下・取り消しの日時 |
 | `ttl` | N | — | `uploading` のあいだだけ（1 時間）。届けば消す |
@@ -508,7 +503,6 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 - 新しいシステムなので、移行するデータはない
 - 項目に属性を足すのは互換性のある変更。読むときの検証は、知らない属性を無視する
 - キーの形（PK・SK・GSI）を変えるときは、新しい形で書き、古い形の項目を一括で書き直すスクリプトを用意する。運営の担当者が 1 人で件数が少ないうちは、メンテナンス時間を取って行ってよい
-- `promotional` がない申請・`latestApproved` は宣伝なし（M-30）
 - 複数メンバーのチャンネル提供者（M-1 の将来）は、`PUB#{publisherId}` / `MEMBER#{sub}` の項目を足し、ユーザーの項目を「どのチャンネル提供者のメンバーか」に変えて対応する。`ownerSub` は最初のメンバーになる
 
 ## 検証観点

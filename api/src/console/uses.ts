@@ -52,7 +52,7 @@ export async function notifyUsers(
   uses: Item[],
   event: Extract<Notice['event'], 'collection.updated' | 'collection.revoked_used' | 'collection.grants_narrowed'>,
   collectionId: string,
-  extra: Pick<Notice, 'version' | 'message' | 'becamePromotional'> = {},
+  extra: Pick<Notice, 'version' | 'message'> = {},
 ): Promise<void> {
   for (const u of uses) {
     await notifyAfter(deps, { event, publisherId: String(u.publisherId), channelId: String(u.channelId), collectionId, ...extra });

@@ -6,7 +6,7 @@ import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { Empty, ReasonForm, Status, Time, useLoad } from './common';
 import { ITEMS } from './review';
-import { PromotionalNote, StageNote, ValidationView } from './validation';
+import { StageNote, ValidationView } from './validation';
 
 // The operator's side of collections (DES-010 N-4〜N-6): reviewing a submission, and a collection's page.
 
@@ -208,11 +208,6 @@ export function CollectionReviewPage() {
             <dd><code>{s.accountId}</code></dd>
             <dt>運営への説明</dt>
             <dd>{s.note ?? '—'}</dd>
-            <dt>宣伝</dt>
-            <dd>
-              <PromotionalNote declared={s.promotional} />
-              <span className="small muted">（宣伝なのに申告がなければ、審査基準 2.4 で差し戻す。宣伝の素材集は基準で選ばれず、名指しで宣言したチャンネルだけが使える）</span>
-            </dd>
             <dt>機械の確認</dt>
             <dd><ValidationView validation={s.validation} /></dd>
             <dt>パッケージ</dt>

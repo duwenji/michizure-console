@@ -85,17 +85,15 @@
 | C-21 | 段と版の対応表 | CDK のコンテキスト（環境ごとの設定ファイル）に置き、変えるときは PR を通して配備する。運営の画面からは変えない。アプリの素材の第 1 段の版が決まるまでは、どの段も仮の大きな値にする |
 | C-22 | 退会（素材提供者） | 退会では、公開中の素材集もすべて取り下げる（理由は「素材提供者が退会したため」）。素材集の審査待ちの申請も取り消す |
 
-### エコシステムと宣伝の決定
+### エコシステムの決定
 
-DES-011・DES-012 による。
+DES-011 による。
 
 | No. | 論点 | 決定 |
 |---|---|---|
-| C-23 | 宣伝の申告（DES-012 R-1・R-2、DM-001 M-30） | チャンネル・素材集の申請の要求に `promotional`（真偽値、省略は偽）。真偽値でなければ `400 invalid_request`。運営の操作で書き換える手段は作らない（宣伝なのに申告がなければ差し戻す） |
-| C-24 | 申請・チャンネル・素材集の表示（DES-011 N-9、DES-012 R-6） | 申請（`Submission`）に `activities`・`genres`・`requires`（機械審査の後）・`offeredIn`（このチャンネルが出るアプリの ID）・`promotional`。チャンネルに `offeredIn`。`latestApproved` に `activities`・`genres`・`requires`・`minAppVersions`・`promotional`。素材集の申請に `promotional`、素材集の `latestApproved` に `grants.apps`・`minAppVersions`・`promotional` |
+| C-24 | 申請・チャンネル・素材集の表示（DES-011 N-9） | 申請（`Submission`）に `activities`・`genres`・`requires`（機械審査の後）・`offeredIn`（このチャンネルが出るアプリの ID）。チャンネルに `offeredIn`。`latestApproved` に `activities`・`genres`・`requires`・`minAppVersions`。素材集の `latestApproved` に `grants.apps`・`minAppVersions` |
 | C-25 | 機械審査（DES-011 N-8） | `walk` を含まないチャンネルは見本を作らず、`sample-prompts` の応答の `scenarios` が空で `noRepresentativeApp`（チャンネルの `activities`）が付く |
-| C-26 | 通知（C-20 に追加。DES-012 R-7） | 宣伝でなかった素材集が宣伝の版で承認されたとき、使うチャンネル提供者への `collection.updated` に「チャンネルもリストで『宣伝を含む』と示される」ことを書き添える |
-| C-27 | 設定（C-21 の改訂。DM-001 M-27・M-31） | CDK の環境ごとの設定に、アプリの ID ごとの `appStageVersions`、`promotionalMinAppVersions` を置く。変えるときは PR を通して配備する。運営の画面からは変えない |
+| C-27 | 設定（C-21 の改訂。DM-001 M-27） | CDK の環境ごとの設定に、アプリの ID ごとの `appStageVersions` を置く。変えるときは PR を通して配備する。運営の画面からは変えない |
 
 ### 全体の流れ
 
@@ -246,7 +244,7 @@ sequenceDiagram
 
 ```json
 // 要求
-{ "description": "…", "tags": ["history"], "regions": ["xn7"], "note": "運営への説明", "promotional": false }
+{ "description": "…", "tags": ["history"], "regions": ["xn7"], "note": "運営への説明" }
 // 応答 201
 {
   "submission": { "submissionId": "01J…", "state": "uploading", "rev": 1, … },
@@ -267,7 +265,7 @@ sequenceDiagram
 
 ```json
 // 要求
-{ "note": "運営への説明", "promotional": false }
+{ "note": "運営への説明" }
 // 応答 201
 {
   "submission": { "kind": "collection", "submissionId": "01J…", "collectionId": "kamakura-audio-guide", "state": "uploading", "rev": 1, … },

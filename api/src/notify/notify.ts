@@ -69,7 +69,7 @@ export function render(notice: Notice, consoleUrl: string): { subject: string; b
       case 'collection.updated':
         return [
           `${channel}が使う${used}が更新されました`,
-          `${channel}が使う${used}の新しい版${notice.version !== undefined ? ` ${notice.version}` : ''}が承認されました。参照している素材は残っています。${notice.becamePromotional ? `この版は宣伝を含むため、${channel}もリストで「宣伝を含む」と示されます。` : ''}中身が変わっていないか、画面で確かめてください。${message}`,
+          `${channel}が使う${used}の新しい版${notice.version !== undefined ? ` ${notice.version}` : ''}が承認されました。参照している素材は残っています。中身が変わっていないか、画面で確かめてください。${message}`,
         ];
       case 'collection.revoked_used':
         return [`${channel}が使う${used}が取り下げられました`, `${channel}が使う${used}が公開のリストから取り下げられました。その素材は出なくなり、次の候補（AI の解説など）に代わります。${message}`];
