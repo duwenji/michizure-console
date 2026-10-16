@@ -355,7 +355,7 @@ object MachineReview {
 
     /**
      * The scenes the AI is asked to speak, with SanpoGuide's prompts: the representative app of
-     * walking (SanpoGuide ADR-003 E-26). A channel not for walking has none until its activity
+     * walking (platform ADR-003 E-26). A channel not for walking has none until its activity
      * has a representative app (DES-011 N-8); the operator reads its slots instead.
      */
     private fun samplePrompts(ok: StationCheck.Ok): String {

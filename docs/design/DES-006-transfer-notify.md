@@ -25,7 +25,7 @@
 | ADR-001 | A-15（鍵の移し替え）、A-19（SES・SQS・デッドレターキュー・警報） | 実装（SES で実際に送るのは ADR-001 T-2・T-3 の後） |
 | API-001 | 移し替えの 6 操作、C-11、C-14、`transfer_pending`、CV-09、CV-13 | 実装 |
 | DM-001 | TRANSFER、チャンネル提供者の鍵の状態、移し替えの承認のトランザクション、DV-08、`notification.sent`・`notification.failed` | 実装（下の J-5・J-6・J-10） |
-| SanpoGuide API-002 | P-9、`publisherChange`、V-16 | 実装 |
+| platform API-002 | P-9、`publisherChange`、V-16 | 実装 |
 
 ## 方針・決定事項
 
@@ -56,4 +56,4 @@
 ## 関連ドキュメント・参照リンク
 
 - [DES-005](DES-005-review.md)、[API-001](../console-api.md)、[DM-001](../data-model.md)、[運営の使い方](../guide/operator.md)、[チャンネル提供者の使い方](../guide/publisher.md)、[通しの確認](../../tools/e2e/README.md)
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)（P-9、V-16）
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)（P-9、V-16）

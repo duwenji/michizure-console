@@ -14,11 +14,11 @@
 | ステータス | 承認済 |
 | 版 | 1.0 |
 
-本書で「SanpoGuide ADR-001」「API-002」「API-003」と書くものは、[yorisoi-platform](https://github.com/duwenji/yorisoi-platform) の文書を指す。
+本書で「platform ADR-001」「API-002」「API-003」と書くものは、[yorisoi-platform](https://github.com/duwenji/yorisoi-platform) の文書を指す。
 
 ## 目的・背景
 
-SanpoGuide のアプリは、第三者が配信するチャンネルのうち、運営が審査して署名したものだけを取り込む（[SanpoGuide ADR-001](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-001-third-party-channel-curation.md)）。審査と公開はアプリとは別の**チャンネル管理システム**で行い、アプリとの境界は承認済みチャンネル・リストの契約（[API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)）だけにする。API-002 に準拠していれば、管理システムの実装方法と置き場所は問わない（SanpoGuide ADR-001 C-9）。
+SanpoGuide のアプリは、第三者が配信するチャンネルのうち、運営が審査して署名したものだけを取り込む（[platform ADR-001](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-001-third-party-channel-curation.md)）。審査と公開はアプリとは別の**チャンネル管理システム**で行い、アプリとの境界は承認済みチャンネル・リストの契約（[API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)）だけにする。API-002 に準拠していれば、管理システムの実装方法と置き場所は問わない（platform ADR-001 C-9）。
 
 本書は、その管理システムの実装方法と置き場所を決める。条件は次のとおり。
 
@@ -34,11 +34,11 @@ SanpoGuide のアプリは、第三者が配信するチャンネルのうち、
 - リポジトリの構成
 - AWS の構成（認証、API、データ、公開、署名、機械審査、定期処理、監視）
 - 鍵の置き場所と使い方（ルート鍵・署名鍵・チャンネル提供者の鍵）
-- チャンネル提供者の鍵の移し替えの流れ（SanpoGuide ADR-001 C-11）
+- チャンネル提供者の鍵の移し替えの流れ（platform ADR-001 C-11）
 
 非スコープ（別の文書で決める）:
 - リストとパッケージの形式（API-002・API-003）
-- 審査基準の中身（SanpoGuide の channel-review-policy.md）
+- 審査基準の中身（platform の channel-review-policy.md）
 - DynamoDB のキー設計の詳細（[DM-001](../data-model.md)）
 - 画面の詳細設計
 
@@ -46,7 +46,7 @@ SanpoGuide のアプリは、第三者が配信するチャンネルのうち、
 
 | 対応元ID | 内容 | 対応状況 |
 |---|---|---|
-| SanpoGuide ADR-001 | C-9（管理システム）、C-10（運営）、C-11（チャンネル提供者の鍵の移し替え）、C-12（実装） | 本書で実装方法を決める |
+| platform ADR-001 | C-9（管理システム）、C-10（運営）、C-11（チャンネル提供者の鍵の移し替え）、C-12（実装） | 本書で実装方法を決める |
 | API-002 | L-1〜L-5、P-1〜P-9。とくに L-3（KMS）、P-1（2 段の鍵）、P-7（静的ファイルで公開）、P-8（要約への署名）、準拠テスト | 本書で実装する |
 | API-003 | 確認の手順 1〜10（機械で確かめる項目）、F-6（チャンネル提供者の署名） | 機械審査で `core-format` を使う |
 
@@ -58,7 +58,7 @@ SanpoGuide のアプリは、第三者が配信するチャンネルのうち、
 |---|---|---|
 | D-1 | 署名の大きさの制限 | KMS の Ed25519 は一度に 4,096 バイトまでしか署名できない。リストは本体の SHA-256 を含む要約に署名する（API-002 P-8）。アプリは Tink だけで確かめられる |
 | D-2 | ログイン | Amazon Cognito |
-| D-3 | チャンネル提供者の鍵をなくしたとき | 運営の判断で別の鍵に移す救済策を作る（SanpoGuide ADR-001 C-11、API-002 P-9） |
+| D-3 | チャンネル提供者の鍵をなくしたとき | 運営の判断で別の鍵に移す救済策を作る（platform ADR-001 C-11、API-002 P-9） |
 | D-4 | 審査で AI に話させる見本 | 運営の API キーで、ブラウザから AI を呼ぶ。キーはサーバーに送らない |
 | D-5 | AWS アカウントとリージョン | 本番用の AWS アカウントを分ける。リージョンは ap-northeast-1 |
 | D-6 | 準拠テストの置き場所 | 任意のリストの公開 URL に対して流せるテストを、本リポジトリに置く |
@@ -86,8 +86,8 @@ SanpoGuide のアプリは、第三者が配信するチャンネルのうち、
 | A-16 | 監査と監視 | 状態を変える操作（申請・承認・差し戻し・取り下げ・移し替え・鍵セットの登録）は、だれが・いつ・何を・理由を DynamoDB の操作の記録に残す。KMS の署名は CloudTrail に残る。CloudWatch で、公開の失敗と、公開中のリストの `expiresAt` まで 3 日を切ったことを運営に知らせる |
 | A-18 | 登録を開くことへの備え（D-7） | ① Cognito のユーザープールに AWS WAF を付け、登録・ログインの要求を送信元ごとに回数で制限する ② API Gateway のルートごとに流量を制限する ③ チャンネル提供者ごとの上限を Lambda で守らせる（例: チャンネル 5 つ、審査待ちの版 1 チャンネルにつき 1 つ、試用チケット 1 日 10 枚。値はデータモデルで決める） ④ 運営がチャンネル提供者を停止できる（停止中は申請・試用チケットを受け付けない。公開中のチャンネルは取り下げで別に扱う） ⑤ 機械審査に落ちた版は運営の審査待ちに入れない。チャンネル提供者が鍵を紐づける（A-5）までは申請できない |
 | A-19 | チャンネル提供者への通知 | 判定・取り下げ・鍵の移し替えの結果を、Amazon SES でメールする（API-001 C-14）。API の Lambda は、状態を変えるトランザクションのあとに通知の要求を SQS に入れ、通知の Lambda が SES で送る。送れなければ再送し、それでも失敗したらデッドレターキューに入れて運営に知らせる（操作そのものは失敗にしない）。送信元は独自ドメイン（T-2）で DKIM・SPF・DMARC を設定する。本番のアカウントは SES のサンドボックスの解除を申請する。バウンスと苦情は SES の設定セットで受け、操作の記録に残す |
-| A-20 | エコシステム（SanpoGuide ADR-003 E-17・E-18・E-25・E-26、DES-011） | 管理システムとリストはエコシステムで 1 つ（アプリごとに分けない）。アプリは端末で絞り込む。機械審査は共通の `core-format` だけで確かめ（一覧にない値を拒む）、アプリごとの除外はしない。リストにはアプリごとの必要な版（`minAppVersions`）を載せる。審査の見本は過ごし方ごとの代表アプリのプロンプト・パックで作り（`walk` は SanpoGuide）、代表アプリのない過ごし方は見本を作らず語り手の文章を人が読む |
-| A-21 | 宣伝（SanpoGuide ADR-002 D-29〜D-36、DES-012） | 宣伝を目的としたチャンネル・素材集を、申請での申告と運営の確認のうえで認める。リストの `promotional` と、表示に対応したアプリの版への引き上げは、公開の処理が素材集の今の状態から決める（チャンネルの承認をやり直さずに追従する） |
+| A-20 | エコシステム（platform ADR-003 E-17・E-18・E-25・E-26、DES-011） | 管理システムとリストはエコシステムで 1 つ（アプリごとに分けない）。アプリは端末で絞り込む。機械審査は共通の `core-format` だけで確かめ（一覧にない値を拒む）、アプリごとの除外はしない。リストにはアプリごとの必要な版（`minAppVersions`）を載せる。審査の見本は過ごし方ごとの代表アプリのプロンプト・パックで作り（`walk` は SanpoGuide）、代表アプリのない過ごし方は見本を作らず語り手の文章を人が読む |
+| A-21 | 宣伝（platform ADR-002 D-29〜D-36、DES-012） | 宣伝を目的としたチャンネル・素材集を、申請での申告と運営の確認のうえで認める。リストの `promotional` と、表示に対応したアプリの版への引き上げは、公開の処理が素材集の今の状態から決める（チャンネルの承認をやり直さずに追従する） |
 | A-17 | 配備 | AWS CDK（TypeScript）で両方のアカウントに配備する。GitHub Actions から OIDC で AWS に入る（長期のアクセスキーを持たない）。本番への配備は手動で承認する |
 
 ```mermaid
@@ -177,7 +177,7 @@ flowchart LR
 
 | ID | 追従タスク | 担当 | 時期 |
 |---|---|---|---|
-| T-1 | ルート鍵と署名鍵の手順書（作成・保管・入れ替え・失効。SanpoGuide ADR-001 T-1） | 開発者 | 本番のリストを公開する前 |
+| T-1 | ルート鍵と署名鍵の手順書（作成・保管・入れ替え・失効。platform ADR-001 T-1） | 開発者 | 本番のリストを公開する前 |
 | T-2 | 独自ドメインを決める（SES の送信元にも使う） | 開発者 | 本番の配備の前 |
 | T-3 | SES のサンドボックスの解除を申請する（本番のアカウント） | 開発者 | 本番の配備の前 |
 
@@ -200,15 +200,15 @@ flowchart LR
 | No. | 内容 | 決める時期 |
 |---|---|---|
 | 1 | 独自ドメイン（T-2） | 本番の配備の前 |
-| 2 | チャンネル提供者向けの API（CI からの申請など）を用意するか（SanpoGuide TODO.md の「決めること」） | 要望が出たとき |
-| 3 | 審査を無料にするか有料にするか（SanpoGuide ADR-001 の未決事項 No.1） | 第三者のチャンネルの公開の前 |
+| 2 | チャンネル提供者向けの API（CI からの申請など）を用意するか | 要望が出たとき |
+| 3 | 審査を無料にするか有料にするか（platform ADR-001 の未決事項 No.1） | 第三者のチャンネルの公開の前 |
 | 4 | 見本の作成に使う AI のサービスのうち、ブラウザから呼べるもの（審査基準 2.7 は 2 つ以上で試すことを求める） | 審査の運用を始めるとき |
 | 5 | 鍵の移し替えの本人確認で、何を「鍵とは別の経路」とするか（登録済みの連絡先、チャンネル提供者のウェブサイトなど） | 第三者のチャンネルの公開の前 |
 
 ## 関連ドキュメント・参照リンク
 
-- SanpoGuide [ADR-001](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-001-third-party-channel-curation.md): 第三者のチャンネルは運営の審査と署名を経たものだけ取り込む
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
-- SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): チャンネル・パッケージの形式
-- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準
+- platform [ADR-001](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-001-third-party-channel-curation.md): 第三者のチャンネルは運営の審査と署名を経たものだけ取り込む
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
+- platform [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): チャンネル・パッケージの形式
+- platform [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準
 - [AWS KMS Sign API](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html): 署名できる大きさ（4,096 バイト）と Ed25519

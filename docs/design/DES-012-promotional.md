@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（D-29〜D-36）で、宣伝を目的としたチャンネル・素材集を表示つきで認めることにした。契約:
+platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（D-29〜D-36）で、宣伝を目的としたチャンネル・素材集を表示つきで認めることにした。契約:
 
 - [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): `channels[].promotional`・`collections[].promotional`（P-16）、宣伝を表示できないアプリへの備え（P-17）
 - [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・審査基準 2.4: 審査で確かめること
@@ -28,8 +28,8 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/d
 
 | 対応元ID | 内容 | 対応状況 |
 |---|---|---|
-| SanpoGuide ADR-002 | D-31（申告と審査、宣伝の素材集を宣言するチャンネルにも付ける）、D-36（`promotionalMinAppVersions`） | 本書で実装 |
-| SanpoGuide API-002 | P-16・P-17 | 本書で実装 |
+| platform ADR-002 | D-31（申告と審査、宣伝の素材集を宣言するチャンネルにも付ける）、D-36（`promotionalMinAppVersions`） | 本書で実装 |
+| platform API-002 | P-16・P-17 | 本書で実装 |
 | DES-011 | N-4・N-5（アプリごとの版） | 宣伝の版もアプリごとにする |
 
 ## 方針・決定事項
@@ -59,4 +59,4 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/d
 - [DES-009](DES-009-materials-publish.md): 素材集の公開（`withMaterial`）
 - [DES-011](DES-011-ecosystem.md): アプリごとの版
 - [DM-001](../data-model.md)、[API-001](../console-api.md)
-- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)、API-002、[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) 2.4
+- platform [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)、API-002、[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) 2.4

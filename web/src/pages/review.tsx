@@ -28,7 +28,7 @@ export function ReviewQueuePage() {
   return (
     <section>
       <h1>審査</h1>
-      <p className="muted">機械の確認に合格した申請が、古い順に並びます。審査基準: SanpoGuide の channel-review-policy.md。</p>
+      <p className="muted">機械の確認に合格した申請が、古い順に並びます。審査基準: yorisoi-platform の channel-review-policy.md。</p>
       <Status error={queue.error} loading={queue.loading} />
       {queue.data?.items.length === 0 && <Empty>審査待ちの申請はありません。</Empty>}
       {queue.data && queue.data.items.length > 0 && (

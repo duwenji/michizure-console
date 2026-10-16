@@ -3,7 +3,7 @@
 yorisoi-console を 8 枚の図で説明する。図 1 で「誰が何を使い、どこに何があるか」をつかみ、図 2〜3 でリポジトリと信頼の仕組み、図 4〜8 で申請から公開まで・公開の処理・データの置き場所・メールと警報・環境を追う。
 
 - 何をするシステムか: SanpoGuide のアプリに第三者のチャンネルと素材集を届けるため、チャンネル提供者・素材提供者の申請を審査し、承認したものだけを署名したリスト（承認済みチャンネル・リスト）で公開する
-- アプリとの境界は SanpoGuide の [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来る
+- アプリとの境界は platform の [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来る
 - 規模: ソース 71 ファイル・約 10,440 行（TypeScript と Kotlin。テスト・生成した型・e2e を除く）、テスト 16 ファイル・約 2,920 行。Lambda 5 つ、画面 1 つ（運営・チャンネル提供者・素材提供者で共用）、管理 API 66 操作、DynamoDB のテーブル 1 つ、S3 のバケット 4 つ
 
 **手で配置した図・凡例・コードから確かめた細部つきの版は [architecture.html](architecture.html)**（ブラウザで開く）。この Markdown 版は GitHub の上で読むためのもので、同じ構成を Mermaid で描いている。
@@ -129,7 +129,7 @@ flowchart TB
 ```
 
 - KMS は 4,096 バイトまでしか署名できないので、リストは本体ではなく要約に署名する（API-002 P-8）
-- 素材集も同じ形で縛られる。リストの `collections[]` が素材集のパッケージ（`/col/{sha256}.zip`）の SHA-256 を持ち、素材集の中には素材提供者の署名（素材提供者の鍵 = アカウントID）が入る（SanpoGuide API-004）
+- 素材集も同じ形で縛られる。リストの `collections[]` が素材集のパッケージ（`/col/{sha256}.zip`）の SHA-256 を持ち、素材集の中には素材提供者の署名（素材提供者の鍵 = アカウントID）が入る（platform API-004）
 - ルート鍵はリポジトリにも AWS にも置かない。開発用のルート鍵は開発者の端末の `~/.yorisoi-console/dev/`、本番のルート鍵はオフラインの端末で作る（ADR-001 T-1）
 - チャンネル提供者の鍵はチャンネル提供者のブラウザの中だけ。なくしたときは、運営の本人確認を経て新しい鍵に移す（図 4 の下）
 
@@ -269,4 +269,4 @@ flowchart LR
 - 使い方: [利用ガイド](guide/README.md)（運営・チャンネル提供者・開発と保守）
 - 設計の決定: [ADR-001](adr/ADR-001-aws-architecture.md)、データ: [DM-001](data-model.md)、管理 API: [API-001](console-api.md)
 - 実装ごとの設計: [DES-001](design/DES-001-publisher.md)（公開）〜 [DES-006](design/DES-006-transfer-notify.md)（鍵の移し替えとメール）、素材集は [DES-007](design/DES-007-materials-review.md)（機械審査）〜 [DES-010](design/DES-010-materials-screens.md)（画面）
-- アプリとの境界: SanpoGuide の [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)（リスト）・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)（パッケージ）・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)（素材集）
+- アプリとの境界: platform の [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)（リスト）・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)（パッケージ）・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)（素材集）

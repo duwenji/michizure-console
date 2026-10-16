@@ -43,7 +43,7 @@ flowchart LR
 
 ## 3. パッケージを作る
 
-パッケージは、1 つのチャンネルの中身を入れた ZIP（無圧縮か Deflate）です。正式な形式は SanpoGuide の [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) です。アプリと管理システムは、同じ確認のプログラム（SanpoGuide の core-format）で確かめます。
+パッケージは、1 つのチャンネルの中身を入れた ZIP（無圧縮か Deflate）です。正式な形式は platform の [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) です。アプリと管理システムは、同じ確認のプログラム（yorisoi-platform の core-format）で確かめます。
 
 ### 3.1 ファイルの構成
 
@@ -111,7 +111,7 @@ prompts/
 
 ### 3.4 内容の決まり（審査基準）
 
-審査では、機械の確認に加えて、運営が中身と AI に話させた見本を確かめます。基準は SanpoGuide の [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)（1.0、2026-10-11 承認）です。主な観点:
+審査では、機械の確認に加えて、運営が中身と AI に話させた見本を確かめます。基準は platform の [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)（1.0、2026-10-11 承認）です。主な観点:
 
 - 語り口と内容（2.1）、安全（2.2: 危険な場所・立入禁止・私有地に誘わない）、プライバシー（2.3: 位置・住所・名前などを尋ねさせない）、宣伝（2.4）、AI への指示の書き方（2.5）
 - 情報の少ない小さなスポットで、もっともらしい歴史を作らせないこと（2.7）

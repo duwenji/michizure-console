@@ -123,7 +123,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
       <span>DynamoDB <b>1 テーブル</b></span>
       <span>S3 <b>4 バケット</b></span>
     </div>
-    <p style="font-size:13.5px;color:var(--muted)">アプリとの境界は SanpoGuide の API-002（承認済みチャンネル・リスト）だけです。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来ます。図はコードと CDK から手で書き起こしたもの（2026-10-12 時点。素材集と素材提供者は 2026-10-11 に追加）です。Lambda・バケット・申請の状態を足したり変えたりしたときは、この文書と <code>docs/architecture.md</code> も更新してください。</p>
+    <p style="font-size:13.5px;color:var(--muted)">アプリとの境界は platform の API-002（承認済みチャンネル・リスト）だけです。アプリはこのシステムの API を呼ばず、公開された静的ファイルを取りに来ます。図はコードと CDK から手で書き起こしたもの（2026-10-12 時点。素材集と素材提供者は 2026-10-11 に追加）です。Lambda・バケット・申請の状態を足したり変えたりしたときは、この文書と <code>docs/architecture.md</code> も更新してください。</p>
   </header>
 
   <!-- 1. Overview -->
@@ -640,7 +640,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
     <div class="sec-head">
       <div class="eyebrow">素材集と素材提供者（DM-001 1.3）</div>
       <h2>素材集は、チャンネルと同じ仕組みに乗る別の単位</h2>
-      <p>素材集は、チャンネルが参照する文字・画像などの素材のまとまりです（SanpoGuide の ADR-002・API-004）。素材提供者が自分の鍵で署名して申請し、運営がチャンネルとは別に審査・承認して、同じリストの <code>collections[]</code> に載せます。申請の状態の移り方（図 2）・信頼の鎖（図 3）・公開の処理（図 4）・メール（図 5）は、チャンネルと同じ仕組みを使います。違いだけをまとめます。</p>
+      <p>素材集は、チャンネルが参照する文字・画像などの素材のまとまりです（platform の ADR-002・API-004）。素材提供者が自分の鍵で署名して申請し、運営がチャンネルとは別に審査・承認して、同じリストの <code>collections[]</code> に載せます。申請の状態の移り方（図 2）・信頼の鎖（図 3）・公開の処理（図 4）・メール（図 5）は、チャンネルと同じ仕組みを使います。違いだけをまとめます。</p>
     </div>
     <div class="tw">
       <table>
@@ -774,7 +774,7 @@ td.files{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 
   <div class="plan">
     <h3>まだないもの</h3>
-    <p>本番の環境（別の AWS アカウント、オフラインで作るルート鍵、独自ドメイン、SES のサンドボックスの解除）と、アプリに内蔵する本番のリストはまだありません。鍵の移し替えの本人確認の手順は運用の開始前に決めます（審査基準 SanpoGuide の <code>docs/channel-review-policy.md</code> は 2026-10-11 に 1.0 を承認済み）。宣伝を含むチャンネル・素材集の申告と表示（SanpoGuide ADR-002 T-13）もまだです。進み具合は <code>docs/TODO.md</code> にあります。</p>
+    <p>本番の環境（別の AWS アカウント、オフラインで作るルート鍵、独自ドメイン、SES のサンドボックスの解除）と、アプリに内蔵する本番のリストはまだありません。鍵の移し替えの本人確認の手順は運用の開始前に決めます（審査基準 SanpoGuide の <code>docs/channel-review-policy.md</code> は 2026-10-11 に 1.0 を承認済み）。宣伝を含むチャンネル・素材集の申告と表示（platform ADR-002 T-13）もまだです。進み具合は <code>docs/TODO.md</code> にあります。</p>
   </div>
 </main>
 </body>

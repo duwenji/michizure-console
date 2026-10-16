@@ -7,7 +7,7 @@ SanpoGuide の第三者のチャンネルと素材集を審査して公開する
 - 運営: 審査（機械で確かめた結果と、AI に話させた見本）、承認・差し戻し・取り下げ、鍵の移し替えの承認
 - 自動: 承認済みチャンネル・リストを作り、署名して公開する。毎日、素材集の外部の素材を確かめる
 
-アプリとの境界は、SanpoGuide の [API-002（承認済みチャンネル・リスト）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。パッケージと素材集の形式は [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)。
+アプリとの境界は、platform の [API-002（承認済みチャンネル・リスト）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。パッケージと素材集の形式は [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)。
 
 ## 構成
 
@@ -22,7 +22,7 @@ tools/provision    配備した環境に署名鍵・鍵セットを登録して�
 conformance/       API-002 の準拠テスト（任意のリストの URL に対して流せる）
 infra/             AWS CDK
 web/               運営・チャンネル提供者・素材提供者の画面（React + Vite）
-validator/         機械審査の Lambda（Kotlin、Gradle、SanpoGuide の core-format とプロンプト・パック）
+validator/         機械審査の Lambda（Kotlin、Gradle、yorisoi-platform の core-format とプロンプト・パック）
 tools/e2e          開発用の環境での通しの確認
 ```
 

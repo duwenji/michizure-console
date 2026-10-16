@@ -235,4 +235,4 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 | [DES-001](../design/DES-001-publisher.md)〜[DES-010](../design/DES-010-materials-screens.md) | 実装の判断と検証の結果（素材集は DES-007〜DES-010） |
 | [TODO](../TODO.md) | 残っている作業 |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値、手順、費用 |
-| SanpoGuide の API-002・API-003・API-004・審査基準 | アプリとの約束（リスト・パッケージ・素材集・審査） |
+| platform の API-002・API-003・API-004・審査基準 | アプリとの約束（リスト・パッケージ・素材集・審査） |

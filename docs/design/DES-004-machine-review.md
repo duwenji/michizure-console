@@ -25,7 +25,7 @@
 | ADR-001 | A-11（機械審査）、A-13（試用チケット）、A-8（署名鍵で署名） | 実装 |
 | API-001 | C-1（見本用のプロンプトをプロンプト・パックで組み立てる）、試用チケットの操作、`Validation` | 実装 |
 | DM-001 | 申請の `uploading` → `validating`/`awaiting_review`/`validation_failed`、`samples/`、TICKET、QUOTA の `tickets`、M-4 | 実装 |
-| SanpoGuide API-002・API-003 | 試用チケットの形式、確認の手順 2〜10 とエラーコード | 実装 |
+| platform API-002・API-003 | 試用チケットの形式、確認の手順 2〜10 とエラーコード | 実装 |
 
 ## 方針・決定事項
 
@@ -52,4 +52,4 @@
 ## 関連ドキュメント・参照リンク
 
 - [DES-003](DES-003-publisher-console.md)、[API-001](../console-api.md)、[DM-001](../data-model.md)、[通しの確認](../../tools/e2e/README.md)
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)

@@ -1197,7 +1197,7 @@ export interface components {
             /** Format: date-time */
             approvedAt: string;
         };
-        /** @description DES-011 N-5。アプリの ID → 必要な versionCode（SanpoGuide API-002 P-20） */
+        /** @description DES-011 N-5。アプリの ID → 必要な versionCode（platform API-002 P-20） */
         MinAppVersions: {
             [key: string]: number;
         };
@@ -1243,7 +1243,7 @@ export interface components {
             regions?: string[];
             /** @description 運営への説明 */
             note?: string;
-            /** @description 宣伝を含む（DES-012 R-1。SanpoGuide 審査基準 2.4）。省略は偽 */
+            /** @description 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 */
             promotional?: boolean;
         };
         Validation: {
@@ -2312,7 +2312,7 @@ export interface operations {
                 "application/json": {
                     /** @description 運営への説明 */
                     note?: string;
-                    /** @description 宣伝を含む（DES-012 R-1。SanpoGuide 審査基準 2.4）。省略は偽 */
+                    /** @description 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 */
                     promotional?: boolean;
                 };
             };

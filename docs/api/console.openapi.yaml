@@ -428,7 +428,7 @@ paths:
               type: object
               properties:
                 note: { type: string, maxLength: 2000, description: 運営への説明 }
-                promotional: { type: boolean, description: 宣伝を含む（DES-012 R-1。SanpoGuide 審査基準 2.4）。省略は偽 }
+                promotional: { type: boolean, description: 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 }
       responses:
         '201':
           description: 申請とアップロード先
@@ -1515,7 +1515,7 @@ components:
         approvedAt: { type: string, format: date-time }
     MinAppVersions:
       type: object
-      description: DES-011 N-5。アプリの ID → 必要な versionCode（SanpoGuide API-002 P-20）
+      description: DES-011 N-5。アプリの ID → 必要な versionCode（platform API-002 P-20）
       additionalProperties: { type: integer }
     OfferedIn:
       type: array
@@ -1575,7 +1575,7 @@ components:
           maxItems: 8
           items: { type: string, pattern: '^[0-9b-hjkmnp-z]{1,8}$', description: geohash の接頭辞 }
         note: { type: string, maxLength: 2000, description: 運営への説明 }
-        promotional: { type: boolean, description: 宣伝を含む（DES-012 R-1。SanpoGuide 審査基準 2.4）。省略は偽 }
+        promotional: { type: boolean, description: 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 }
     Validation:
       type: object
       required: [ok, errors, checkedAt, validatorVersion]
