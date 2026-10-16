@@ -37,7 +37,7 @@ flowchart LR
 
 ## 3. 素材集を作る
 
-形式は SanpoGuide の [API-004「素材集の形式」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)が正本です。ここでは要点だけを書きます。
+形式は platform の [API-004「素材集の形式」](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)が正本です。ここでは要点だけを書きます。
 
 ### 3.1 ファイルの構成
 

@@ -25,7 +25,7 @@
 | API-001 | チャンネル提供者の操作（`/api/publisher*`、`/api/channels*`、申請、取り消し）、C-4（退会）、C-10（署名付き POST） | 実装（下表） |
 | DM-001 | USER・PUB・KEY・ACCOUNT・CHALLENGE・QUOTA・CH・SUB、M-2・M-5・M-7・M-15、DV-02〜DV-04 | 実装 |
 | ADR-001 | A-5（鍵の紐づけ）、A-11（受付用の S3）、D-7（誰でも登録できる） | 実装 |
-| SanpoGuide API-003 | F-6（チャンネル提供者の署名） | 画面の中で署名する |
+| platform API-003 | F-6（チャンネル提供者の署名） | 画面の中で署名する |
 
 ## 方針・決定事項
 
@@ -69,4 +69,4 @@
 ## 関連ドキュメント・参照リンク
 
 - [API-001](../console-api.md)、[DM-001](../data-model.md)、[DES-002](DES-002-operator-console.md)、[チャンネル提供者ガイド](../guide/publisher.md)
-- SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)
+- platform [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)

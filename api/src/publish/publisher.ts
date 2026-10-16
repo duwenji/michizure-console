@@ -30,7 +30,7 @@ export interface ProviderConfig {
   /** How long a revocation stays in `revoked` (DM-001 M-9). */
   revokedDays?: number;
   /**
-   * The version each app needs to show promotion (DES-012 R-5, SanpoGuide ADR-002 D-36); an app
+   * The version each app needs to show promotion (DES-012 R-5, platform ADR-002 D-36); an app
    * without one gets a version no app has, so promotion reaches no app that can't label it.
    */
   promotionalMinAppVersions?: Record<string, number>;

@@ -16,13 +16,13 @@
 
 ## 目的・背景
 
-素材集の承認・取り下げと、チャンネルの利用の記録（[DES-008](DES-008-materials-api.md)）を、承認済みリスト（SanpoGuide の API-002）に載せる公開の処理と、毎日の外部の素材の確認（DM-001 M-21、ADR-002 D-22）、準拠テストを決める。
+素材集の承認・取り下げと、チャンネルの利用の記録（[DES-008](DES-008-materials-api.md)）を、承認済みリスト（platform の API-002）に載せる公開の処理と、毎日の外部の素材の確認（DM-001 M-21、ADR-002 D-22）、準拠テストを決める。
 
 ## 対応元ID（トレーサビリティ）
 
 | 対応元ID | 内容 | 対応状況 |
 |---|---|---|
-| SanpoGuide API-002 | P-10〜P-15、`collections[]`・`revokedCollections[]`・`producerChange`・`media`・`resourcesSize`・`tags`・`regions`・`grants`、V-19〜V-26 | 実装 |
+| platform API-002 | P-10〜P-15、`collections[]`・`revokedCollections[]`・`producerChange`・`media`・`resourcesSize`・`tags`・`regions`・`grants`、V-19〜V-26 | 実装 |
 | DM-001 | M-21（毎日の確認）、M-24（公開のたびの足し合わせ）、M-25（取り下げは 7 日） | 実装 |
 | API-001 | C-20（外部の素材の不具合を素材提供者に知らせる） | 実装 |
 
@@ -53,4 +53,4 @@
 ## 関連ドキュメント・参照リンク
 
 - [DES-001](DES-001-publisher.md)（公開の処理）、[DES-007](DES-007-materials-review.md)、[DES-008](DES-008-materials-api.md)
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)

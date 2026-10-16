@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-承認済みチャンネル・リスト（SanpoGuide の API-002）を作って署名し、公開する土台（[ADR-001](../adr/ADR-001-aws-architecture.md) A-6〜A-10・A-16・A-17）。チャンネル提供者・運営の画面がなくても、リストの発行元として署名済みのリストを出せる。
+承認済みチャンネル・リスト（platform の API-002）を作って署名し、公開する土台（[ADR-001](../adr/ADR-001-aws-architecture.md) A-6〜A-10・A-16・A-17）。チャンネル提供者・運営の画面がなくても、リストの発行元として署名済みのリストを出せる。
 
 ## 対応元ID（トレーサビリティ）
 
@@ -24,7 +24,7 @@
 |---|---|---|
 | ADR-001 | A-6〜A-10、A-16、A-17 | 実装 |
 | DM-001 | PUBLICATION・KEYSET・SIGNKEY・CHANNEL（LISTED）・REVOKE（REVOKED）、M-9、M-11、M-13 | 公開の処理が読み書きする |
-| SanpoGuide API-002 | P-1〜P-3、P-6〜P-9、確認観点 V-01〜V-09・V-15・V-16 | 実装と準拠テスト |
+| platform API-002 | P-1〜P-3、P-6〜P-9、確認観点 V-01〜V-09・V-15・V-16 | 実装と準拠テスト |
 
 ## 方針・決定事項
 
@@ -68,4 +68,4 @@
 ## 関連ドキュメント・参照リンク
 
 - [ADR-001](../adr/ADR-001-aws-architecture.md)、[DM-001](../data-model.md)、[API-001](../console-api.md)
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)

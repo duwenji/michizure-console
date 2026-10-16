@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-[ADR-001](adr/ADR-001-aws-architecture.md) A-6 で、データは DynamoDB の 1 テーブルに置き、パッケージ・アイコン・リストの本体は S3 に置くと決めた。本書は、そのテーブルの項目の種類、キー、インデックス、状態の移り方、上限（A-18）を決める。素材提供者の役割と素材集（申請・審査・公開・取り下げ）、チャンネルが素材集を使う記録（依存）は、SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者）による。
+[ADR-001](adr/ADR-001-aws-architecture.md) A-6 で、データは DynamoDB の 1 テーブルに置き、パッケージ・アイコン・リストの本体は S3 に置くと決めた。本書は、そのテーブルの項目の種類、キー、インデックス、状態の移り方、上限（A-18）を決める。素材提供者の役割と素材集（申請・審査・公開・取り下げ）、チャンネルが素材集を使う記録（依存）は、platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者）による。
 
 DynamoDB では、取り出し方（アクセスパターン）からキーを決める。本書は、先にアクセスパターンを挙げ、それを満たすキーを決める。
 
@@ -30,7 +30,7 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 
 非スコープ:
 - 管理システムの API（[API-001](console-api.md)。本書のアクセスパターンを入力にする）
-- リストとパッケージの形式（SanpoGuide の API-002・API-003）
+- リストとパッケージの形式（platform の API-002・API-003）
 - Cognito のユーザー属性の詳細（メールアドレスなどは Cognito が持ち、本テーブルには複製しない）
 
 ## 対応元ID（トレーサビリティ）
@@ -38,12 +38,12 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 | 対応元ID | 内容 | 対応状況 |
 |---|---|---|
 | ADR-001 | A-4（Cognito）、A-5（鍵の紐づけ）、A-6（1 テーブル）、A-7（公開の名前）、A-10（`seq`）、A-11〜A-13（受付・承認・試用）、A-15（鍵の移し替え）、A-16（操作の記録）、A-18（上限）、D-7（誰でも登録できる） | 本書でデータにする |
-| SanpoGuide API-002 | `channels[]` の項目、`revoked[]`、`seq`・`expiresAt`、P-8（要約）、P-9（`publisherChange`）、鍵セット | 公開の Lambda が本書のデータから作る |
-| SanpoGuide API-003 | `channel.json` の `id`・`version`・`publisher`、エラーコード | 申請に保存する |
-| SanpoGuide channel-review-policy.md | 判定（承認・差し戻し・却下）、取り下げ | 審査の記録・取り下げにする |
-| SanpoGuide ADR-002 | D-7（素材集の審査と公開）、D-8（参照中の素材の ID を消す更新を拒む）、D-9（利用許諾）、D-12（取り下げ）、D-14（同じアカウント）、D-17（素材集の ID と鍵の移し替え）、D-18（依存の把握と知らせ）、D-19（退会）、D-20（身元の確認）、D-22（外部の素材の確認） | 1.3 でデータにする |
-| SanpoGuide API-002 | P-10〜P-15（`collections[]`・`revokedCollections[]`・`producerChange`・`media`・`resourcesSize`・`tags`・`regions`・`grants`） | 公開の Lambda が本書のデータから作る |
-| SanpoGuide API-004 | 素材集の形式、`CollectionReferences`（手順 3・4）、`Regions` | 機械審査が `core-format` で行う |
+| platform API-002 | `channels[]` の項目、`revoked[]`、`seq`・`expiresAt`、P-8（要約）、P-9（`publisherChange`）、鍵セット | 公開の Lambda が本書のデータから作る |
+| platform API-003 | `channel.json` の `id`・`version`・`publisher`、エラーコード | 申請に保存する |
+| platform channel-review-policy.md | 判定（承認・差し戻し・却下）、取り下げ | 審査の記録・取り下げにする |
+| platform ADR-002 | D-7（素材集の審査と公開）、D-8（参照中の素材の ID を消す更新を拒む）、D-9（利用許諾）、D-12（取り下げ）、D-14（同じアカウント）、D-17（素材集の ID と鍵の移し替え）、D-18（依存の把握と知らせ）、D-19（退会）、D-20（身元の確認）、D-22（外部の素材の確認） | 1.3 でデータにする |
+| platform API-002 | P-10〜P-15（`collections[]`・`revokedCollections[]`・`producerChange`・`media`・`resourcesSize`・`tags`・`regions`・`grants`） | 公開の Lambda が本書のデータから作る |
+| platform API-004 | 素材集の形式、`CollectionReferences`（手順 3・4）、`Regions` | 機械審査が `core-format` で行う |
 
 ## 方針・決定事項
 
@@ -89,7 +89,7 @@ DynamoDB では、取り出し方（アクセスパターン）からキーを�
 
 ### エコシステムと宣伝の決定
 
-SanpoGuide ADR-003（付き添いアプリのエコシステム）と ADR-002（宣伝を表示つきで認める）による。実装は [DES-011](design/DES-011-ecosystem.md)・[DES-012](design/DES-012-promotional.md)。
+platform ADR-003（付き添いアプリのエコシステム）と ADR-002（宣伝を表示つきで認める）による。実装は [DES-011](design/DES-011-ecosystem.md)・[DES-012](design/DES-012-promotional.md)。
 
 | No. | 論点 | 決定 |
 |---|---|---|
@@ -549,12 +549,12 @@ DynamoDB なので DDL はなく、テーブルとインデックスは CDK（`i
 | No. | 内容 | 決める時期 |
 |---|---|---|
 | 1 | 却下（`rejected`）されたパッケージを、根拠として 90 日より長く残すか（M-4 では 90 日） | 運用の開始後 |
-| 2 | SanpoGuide ADR-002 の未決事項 No.4（「確認済み」の印）を採るなら、`producerVerification` から作る | ADR-002 の判断 |
+| 2 | platform ADR-002 の未決事項 No.4（「確認済み」の印）を採るなら、`producerVerification` から作る | ADR-002 の判断 |
 
 ## 関連ドキュメント・参照リンク
 
 - [ADR-001](adr/ADR-001-aws-architecture.md): AWS の構成
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
-- SanpoGuide [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): パッケージの形式
-- SanpoGuide [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準
-- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 素材の素材提供者と素材集
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): 承認済みチャンネル・リスト
+- platform [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): パッケージの形式
+- platform [channel-review-policy.md](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md): 審査基準
+- platform [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md): 素材の素材提供者と素材集

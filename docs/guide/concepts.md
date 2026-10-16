@@ -106,7 +106,7 @@ stateDiagram-v2
 
 ## 6. 素材集と素材提供者
 
-素材（テキスト・画像・音声・映像）は、チャンネルとは別に「素材集」として審査・公開されます（SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)）。素材集を作るのは素材提供者、それを使って散策者に見せるのはチャンネルです。
+素材（テキスト・画像・音声・映像）は、チャンネルとは別に「素材集」として審査・公開されます（platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)）。素材集を作るのは素材提供者、それを使って散策者に見せるのはチャンネルです。
 
 ```mermaid
 flowchart LR

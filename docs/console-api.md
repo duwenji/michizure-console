@@ -18,9 +18,9 @@
 
 ## 目的・背景
 
-[ADR-001](adr/ADR-001-aws-architecture.md) で管理システムの構成を、[DM-001](data-model.md) でデータを決めた。本書は、チャンネル提供者・素材提供者と運営が SPA から使う API を決める。素材提供者の役割と素材集の操作は、SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者）による。
+[ADR-001](adr/ADR-001-aws-architecture.md) で管理システムの構成を、[DM-001](data-model.md) でデータを決めた。本書は、チャンネル提供者・素材提供者と運営が SPA から使う API を決める。素材提供者の役割と素材集の操作は、platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者）による。
 
-この API の利用者は、同じリポジトリの SPA（`web/`）だけ。アプリ（SanpoGuide）はこの API を使わない。アプリが使うのは、公開用の静的ファイル（SanpoGuide の API-002）だけである。
+この API の利用者は、同じリポジトリの SPA（`web/`）だけ。アプリ（SanpoGuide）はこの API を使わない。アプリが使うのは、公開用の静的ファイル（platform の API-002）だけである。
 
 ## スコープ・非スコープ
 
@@ -31,7 +31,7 @@
 - 素材提供者: 役割を有効にする、素材集の登録・申請・取り消し・審査の結果の確認、素材集を使っているチャンネルの確認。運営: 素材集の審査（身元の確認を含む）・取り下げ
 
 非スコープ:
-- 公開用の静的ファイル（SanpoGuide の API-002）
+- 公開用の静的ファイル（platform の API-002）
 - Lambda の内部の呼び出し（機械審査・公開。ADR-001 A-10・A-11）
 - 通知のメールの文面（実装時に決める。送る出来事と宛先は C-14）
 
@@ -41,10 +41,10 @@
 |---|---|---|
 | ADR-001 | A-3（HTTP API・JWT）、A-4（Cognito のグループ）、A-5（鍵の紐づけ）、A-11〜A-15、A-18（上限・停止）、D-4（見本はブラウザから） | 本書で API にする |
 | DM-001 | AP-01〜AP-22、状態の移り方、M-2（上限）、M-5（版の番号）、M-11（`rev`） | 本書の操作の対応先 |
-| SanpoGuide API-002 | `channels[]` の項目（`description`・`tags`・`regions`・`icon`）、試用チケット、鍵セット | 申請の入力・試用チケット・鍵セットの登録 |
-| SanpoGuide API-003 | エラーコード、チャンネル提供者の署名 | 機械審査の結果をそのまま返す |
+| platform API-002 | `channels[]` の項目（`description`・`tags`・`regions`・`icon`）、試用チケット、鍵セット | 申請の入力・試用チケット・鍵セットの登録 |
+| platform API-003 | エラーコード、チャンネル提供者の署名 | 機械審査の結果をそのまま返す |
 | DM-001 | M-16〜M-25、AP-23〜AP-29 | 本書で API にする |
-| SanpoGuide ADR-002・API-004 | D-8・D-9・D-14・D-17〜D-22、素材集の形式、`CollectionReferences` | 本書で API にする。エラーコードは API-003・API-004 のもの |
+| platform ADR-002・API-004 | D-8・D-9・D-14・D-17〜D-22、素材集の形式、`CollectionReferences` | 本書で API にする。エラーコードは API-003・API-004 のもの |
 
 ## 方針・決定事項
 
@@ -53,7 +53,7 @@
 | No. | 論点 | 決定 |
 |---|---|---|
 | C-1 | 見本用のプロンプトを組み立てる場所 | 機械審査の Lambda が、アプリのプロンプト・パック（`PromptTemplates` とプロンプトのファイル）で場面ごとのプロンプトを組み立てる。SPA はそれを AI に送るだけ。アプリと同じ組み立て方になる |
-| C-2 | エラーの形 | RFC 9457（`application/problem+json`）に `code` を足す。SanpoGuide の API-001 と同じ |
+| C-2 | エラーの形 | RFC 9457（`application/problem+json`）に `code` を足す。platform の API-001 と同じ |
 | C-3 | 契約の正本 | 本書と OpenAPI 3.1。SPA と Lambda の型は OpenAPI から作る |
 | C-4 | チャンネル提供者の退会 | チャンネル提供者が自分で退会できる。公開中のチャンネルはすべて取り下げ、Cognito のユーザーと連絡先を消す。操作の記録、アカウントIDの予約、チャンネルIDは残す（再利用させない） |
 | C-14 | チャンネル提供者への通知 | 判定（承認・差し戻し・却下）、取り下げ、鍵の移し替えの結果（承認・認めない）を、チャンネル提供者にメールで知らせる。送るのは Amazon SES（ADR-001 A-19）。宛先は Cognito で確認済みのメールアドレス（`contact` ではない）。本文には理由と画面へのリンクだけを入れ、見本・運営の `sub` は入れない。メールが送れなくても操作は成功させ、送信の結果は操作の記録に残す |
@@ -462,6 +462,6 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 - [api/console.openapi.yaml](api/console.openapi.yaml): 入出力の正本
 - [ADR-001](adr/ADR-001-aws-architecture.md): AWS の構成
 - [DM-001](data-model.md): データモデル
-- SanpoGuide [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)
+- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)
 - [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457): Problem Details for HTTP APIs
-- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)
+- platform [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)

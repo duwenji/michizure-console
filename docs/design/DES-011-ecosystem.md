@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-SanpoGuide の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)（付き添いアプリのエコシステム）で、チャンネル・素材集はアプリをまたいで使うものになった。管理システムはエコシステムで 1 つ、リストも 1 本（E-17）で、アプリが端末で絞り込む。契約:
+platform の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)（付き添いアプリのエコシステム）で、チャンネル・素材集はアプリをまたいで使うものになった。管理システムはエコシステムで 1 つ、リストも 1 本（E-17）で、アプリが端末で絞り込む。契約:
 
 - [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md): `activities`・`genres`・`requires.features`。審査は一覧にない値を拒む（G-3）
 - [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md): リストの `channels[].activities`・`genres`・`requires`（P-19）、`minAppVersions`（P-20）
@@ -28,10 +28,10 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/d
 
 | 対応元ID | 内容 | 対応状況 |
 |---|---|---|
-| SanpoGuide ADR-003 | E-17（リストは 1 本）、E-18・E-26（機械審査はコアだけ、見本は過ごし方ごとの代表アプリ）、E-25（アプリの除外はしない） | 本書で実装 |
-| SanpoGuide API-003 | G-1〜G-7、V-24 | 本書で実装 |
-| SanpoGuide API-002 | P-19・P-20、V-27・V-29 | 本書で実装 |
-| SanpoGuide API-004 | I-11、W-20 | 本書で実装 |
+| platform ADR-003 | E-17（リストは 1 本）、E-18・E-26（機械審査はコアだけ、見本は過ごし方ごとの代表アプリ）、E-25（アプリの除外はしない） | 本書で実装 |
+| platform API-003 | G-1〜G-7、V-24 | 本書で実装 |
+| platform API-002 | P-19・P-20、V-27・V-29 | 本書で実装 |
+| platform API-004 | I-11、W-20 | 本書で実装 |
 
 ## 方針・決定事項
 
@@ -59,4 +59,4 @@ SanpoGuide の [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/d
 
 - [DES-007](DES-007-materials-review.md)・[DES-008](DES-008-materials-api.md)・[DES-009](DES-009-materials-publish.md): 素材集の審査・API・公開
 - [DM-001](../data-model.md)、[API-001](../console-api.md)
-- SanpoGuide [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)、API-002・API-003・API-004
+- platform [ADR-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-003-companion-app-platform.md)、API-002・API-003・API-004

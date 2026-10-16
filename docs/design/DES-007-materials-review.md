@@ -16,7 +16,7 @@
 
 ## 目的・背景
 
-SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md) で素材の素材提供者を切り出し、管理システムでは [DM-001](../data-model.md) と [API-001](../console-api.md) でデータと API を決めた。本書は、素材集と、素材・きっかけを持つチャンネルの機械審査を決める。`core-format` が、素材・きっかけ・素材集の確認と、リストを使った参照の解決を受け持つ。
+platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md) で素材の素材提供者を切り出し、管理システムでは [DM-001](../data-model.md) と [API-001](../console-api.md) でデータと API を決めた。本書は、素材集と、素材・きっかけを持つチャンネルの機械審査を決める。`core-format` が、素材・きっかけ・素材集の確認と、リストを使った参照の解決を受け持つ。
 
 ## 対応元ID（トレーサビリティ）
 
@@ -24,7 +24,7 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/d
 |---|---|---|
 | DM-001 | M-18（素材集の申請）、M-20（外部の素材の確認）、M-22（D-8）、M-23（段と版の対応表）、`intake-col/` | 実装 |
 | API-001 | C-19（機械審査の結果）、C-21（段と版の対応表） | 実装 |
-| SanpoGuide API-003・API-004 | 確認の手順 8・9・9a、素材集の確かめる手順 1〜4、エラーコード | `core-format` で実装 |
+| platform API-003・API-004 | 確認の手順 8・9・9a、素材集の確かめる手順 1〜4、エラーコード | `core-format` で実装 |
 
 ## 方針・決定事項
 
@@ -54,4 +54,4 @@ SanpoGuide の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/d
 
 - [DES-004](DES-004-machine-review.md): チャンネルの機械審査
 - [DM-001](../data-model.md)・[API-001](../console-api.md)
-- SanpoGuide [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)
+- platform [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)
