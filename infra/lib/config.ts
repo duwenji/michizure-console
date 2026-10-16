@@ -14,6 +14,7 @@ export interface EnvConfig {
   signingKeyIds: string[];
   reviewPolicyUrl?: string;
   termsUrl?: string;
+  /** The discovery document's `contact`: where reports and rights claims go (platform ADR-004 H-11, ADR-002 D-21). */
   contact?: string;
   /** Where alarms go; set it before the first deployment. */
   alarmEmail?: string;
@@ -53,6 +54,7 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     region: 'ap-northeast-1',
     providerName: 'SanpoGuide チャンネル（開発）',
     signingKeyIds: ['k-2026-10'],
+    contact: 'duwenji@gmail.com',
     // No sending domain in development: the notices are recorded, not sent.
     notify: { mode: 'log' },
     // SanpoGuide versionCode 1 shows stage 0 and 1 (text and images); audio and video wait.
@@ -71,6 +73,7 @@ export const configs: Record<EnvConfig['name'], Omit<EnvConfig, 'rootPublicKey'>
     region: 'ap-northeast-1',
     providerName: 'SanpoGuide 公式チャンネル',
     signingKeyIds: ['k-2026-10'],
+    contact: 'duwenji@gmail.com',
     // Switch to { mode: 'ses', from: … } once the domain (T-7) and SES production access (T-8) are ready.
     notify: { mode: 'log' },
     // SanpoGuide versionCode 1 shows stage 0 and 1 (text and images); audio and video wait.

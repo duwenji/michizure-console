@@ -15,6 +15,7 @@ ADR-001 の構成を AWS に配備し、承認済みチャンネル・リスト�
 | 運営の画面 | https://d32w19p7au8cu2.cloudfront.net |
 | ログイン | https://yorisoi-console-dev.auth.ap-northeast-1.amazoncognito.com（ユーザープール `ap-northeast-1_dy8A7T1fG`） |
 | 運営 | tofumiyoshi@gmail.com（`operator` グループ） |
+| 窓口（案内文書の `contact`） | duwenji@gmail.com（通報と権利の申し立て。本番も同じ） |
 
 開発用のルート鍵の秘密鍵と合言葉は、リポジトリの外（配備した端末のユーザーのホームの `.yorisoi-console/dev/`、アクセス権は本人のみ）にある。開発用のリストはアプリに内蔵しない（ADR-001 A-2）。本番のルート鍵は ADR-001 T-1 の手順書に従い、オフラインの端末で作る。
 
