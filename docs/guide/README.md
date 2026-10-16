@@ -88,3 +88,4 @@ flowchart LR
 | platform [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md) | パッケージの形式 |
 | platform [審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md) | 何を確かめて承認・差し戻しにするか |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値と手順 |
+| [鍵の手順書](../operations/keys.md) | ルート鍵の作成・保管、署名鍵の入れ替えの予定、失効、ルート鍵をなくしたとき |

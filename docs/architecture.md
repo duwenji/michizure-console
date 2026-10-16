@@ -262,7 +262,7 @@ flowchart LR
 | 費用の上限の通知 | 月 5 USD | — |
 | アプリへの内蔵 | しない（散策者が URL とリストIDで足す） | 内蔵するリスト |
 
-配備の手順は [docs/operations/deploy.md](operations/deploy.md)、費用は [docs/operations/cost.md](operations/cost.md)。
+配備の手順は [docs/operations/deploy.md](operations/deploy.md)、鍵の手順は [docs/operations/keys.md](operations/keys.md)、費用は [docs/operations/cost.md](operations/cost.md)。
 
 ## 関連する文書
 

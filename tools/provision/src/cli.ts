@@ -9,7 +9,7 @@ import { createPublicKey } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 
-const USAGE = `provision — set up a deployed provider until the operator screen exists (DES-002)
+const USAGE = `provision — set up the development provider (DES-002). Not for production: its root key stays offline
 
   npm run provision -w tools/provision -- --env dev --root-key <dir with root-key.pem and passphrase.txt>
 
@@ -29,6 +29,12 @@ async function main() {
   const rootDir = values['root-key'];
   if (!rootDir) {
     console.log(USAGE);
+    process.exitCode = 1;
+    return;
+  }
+  if (values.env === 'prod') {
+    // The production root key stays on an offline machine (ADR-001 A-9, docs/operations/keys.md).
+    console.error('provision is for development only: register production keys in the operator screen and sign keysets offline (docs/operations/keys.md)');
     process.exitCode = 1;
     return;
   }
