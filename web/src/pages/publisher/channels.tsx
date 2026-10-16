@@ -6,6 +6,7 @@ import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';
 import { openKeyFile, signPackage } from '../../publisher-crypto';
 import { Empty, Status, Time, useLoad } from '../common';
+import { PreReview, reviewFiles } from '../pre-review';
 import { EcosystemNote, StageNote, ValidationView } from '../validation';
 
 const STATE: Record<string, string> = {
@@ -268,6 +269,7 @@ export function PublisherChannel() {
         {progress && <p role="status">{progress}</p>}
         {error && <p className="error" role="alert">{error}</p>}
       </form>
+      {zip && <PreReview kind="channel" who="provider" load={async () => reviewFiles(new Uint8Array(await zip.arrayBuffer()))} />}
     </section>
   );
 }

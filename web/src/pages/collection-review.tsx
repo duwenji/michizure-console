@@ -5,6 +5,7 @@ import type { Schemas } from '@yorisoi-console/api-types';
 import { describe, ifMatch } from '../api';
 import { useSession } from '../main';
 import { Empty, ReasonForm, Status, Time, useLoad } from './common';
+import { PreReview, reviewFiles } from './pre-review';
 import { ITEMS } from './review';
 import { StageNote, ValidationView } from './validation';
 
@@ -81,6 +82,9 @@ function CollectionPackageView({ collectionId, submissionId }: { collectionId: s
         <>
           <p>{manifest.name} — {manifest.summary}</p>
           <p className="small">利用許諾: <code>{JSON.stringify(manifest.grants)}</code></p>
+          <p className="small">
+            AI の根拠: {(manifest.grants as { grounding?: boolean }).grounding ? <strong>使ってよい（本文・代替テキスト・書き起こしを AI が言い換えて話す。審査基準 2.8）</strong> : '使わない'}
+          </p>
           <p className="muted small">外部の素材を再生すると、あなたのブラウザが素材提供者の置き場所に直接つながります。</p>
           {manifest.resources.map((r) => (
             <details key={r.id} open>
@@ -222,6 +226,16 @@ export function CollectionReviewPage() {
             </button>
           )}
           <CollectionPackageView collectionId={collectionId} submissionId={submissionId} />
+          {s.state === 'in_review' && (
+            <PreReview
+              kind="collection" who="operator"
+              load={async () => {
+                const { data } = await api.GET('/api/admin/collections/{collectionId}/submissions/{submissionId}/package', { params: { path } });
+                if (!data) throw new Error('パッケージを読めませんでした');
+                return reviewFiles(new Uint8Array(await (await fetch(data.packageUrl)).arrayBuffer()));
+              }}
+            />
+          )}
           {s.state === 'in_review' && <CollectionDecision sub={s} account={account.data} onDone={() => { sub.reload(); reviews.reload(); account.reload(); }} />}
           {s.decision && (
             <div className="action">

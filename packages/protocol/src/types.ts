@@ -79,8 +79,8 @@ export interface CollectionEntry {
   resourcesSize: number;
   tags: string[];
   regions?: string[];
-  /** `apps` (API-004 I-11): the apps that may use it; absent means every app. */
-  grants: { publishers: '*' | string[]; apps?: string[] };
+  /** `apps` (API-004 I-11): the apps that may use it; absent means every app. `grounding` (I-13): the AI may take its texts as grounds. */
+  grants: { publishers: '*' | string[]; apps?: string[]; grounding?: boolean };
   package: { url: string; sha256: string; size: number; format: number };
   approvedAt: string;
   /** API-002 P-20. */

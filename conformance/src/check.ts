@@ -57,14 +57,16 @@ const TITLES: Record<CheckId, string> = {
 const MEDIA = new Set(['text', 'image', 'audio', 'video']);
 
 /** Grants as written and as listed: the same publishers and apps, in any order (API-004 I-11). */
-function sameGrants(a: unknown, b: { publishers: '*' | string[]; apps?: string[] }): boolean {
+function sameGrants(a: unknown, b: { publishers: '*' | string[]; apps?: string[]; grounding?: boolean }): boolean {
   if (typeof a !== 'object' || a === null) return false;
-  const g = a as { publishers?: unknown; apps?: unknown };
+  const g = a as { publishers?: unknown; apps?: unknown; grounding?: unknown };
   const publishersMatch = g.publishers === '*' || b.publishers === '*'
     ? g.publishers === b.publishers
     : Array.isArray(g.publishers) && sameList(g.publishers as string[], b.publishers);
   const appsMatch = g.apps === undefined || b.apps === undefined ? g.apps === b.apps : Array.isArray(g.apps) && sameList(g.apps as string[], b.apps);
-  return publishersMatch && appsMatch;
+  // Absent is false on both sides (API-004 I-13).
+  const groundingMatch = (g.grounding === true) === (b.grounding === true);
+  return publishersMatch && appsMatch && groundingMatch;
 }
 
 /** A JSON file inside a package, or undefined when the package isn't a ZIP or lacks it. */

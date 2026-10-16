@@ -1772,6 +1772,7 @@ components:
                 - { type: string, const: '*' }
                 - { type: array, items: { $ref: '#/components/schemas/AccountId' } }
             apps: { type: array, items: { type: string }, description: DES-011 N-7。使ってよいアプリの ID（ないときはすべてのアプリ） }
+            grounding: { type: boolean, description: platform API-004 I-13。AI の根拠に使ってよいとき真（偽は書かない） }
         package: { $ref: '#/components/schemas/ListedPackage' }
         appStage: { type: integer }
         minAppVersions: { $ref: '#/components/schemas/MinAppVersions' }

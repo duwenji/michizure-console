@@ -4,6 +4,7 @@ import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';
 import { openKeyFile, signCollectionPackage } from '../../publisher-crypto';
 import { Empty, Status, Time, useLoad } from '../common';
+import { PreReview, reviewFiles } from '../pre-review';
 import { StageNote, ValidationView } from '../validation';
 
 // The producer's pages (DES-010 N-1〜N-3): collections, their submissions, and who uses them.
@@ -152,7 +153,7 @@ export function PublisherCollection() {
               <>
                 版 {c.latestApproved.version}（<Time value={c.latestApproved.approvedAt} />）、{c.latestApproved.media.join('・')}、タグ {c.latestApproved.tags.join('・') || '—'}、
                 利用許諾 {c.latestApproved.grants.publishers === '*' ? '誰でも' : `${(c.latestApproved.grants.publishers as string[]).length} のチャンネル提供者`}、
-                使ってよいアプリ {c.latestApproved.grants.apps?.join('・') ?? 'すべてのアプリ'}
+                使ってよいアプリ {c.latestApproved.grants.apps?.join('・') ?? 'すべてのアプリ'}、AI の根拠 {c.latestApproved.grants.grounding ? '使ってよい' : '使わない'}
                 <div><StageNote appStage={c.latestApproved.appStage} minAppVersions={c.latestApproved.minAppVersions} /></div>
               </>
             ) : '—'}
@@ -260,6 +261,7 @@ export function PublisherCollection() {
         {progress && <p role="status">{progress}</p>}
         {error && <p className="error" role="alert">{error}</p>}
       </form>
+      {zip && <PreReview kind="collection" who="provider" load={async () => reviewFiles(new Uint8Array(await zip.arrayBuffer()))} />}
     </section>
   );
 }

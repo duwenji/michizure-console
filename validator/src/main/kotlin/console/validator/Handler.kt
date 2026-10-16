@@ -254,8 +254,10 @@ class Handler(
         "warnings" to av(warnings.map { mapOf("code" to it.code, "detail" to it.detail.take(500)) }),
     )
 
+    /** As the list copies them (API-002 P-15): the app checks the copy against the package, `grounding` included. */
     private fun grants(g: Grants): Map<String, Any> =
-        mapOf("publishers" to (g.publishers?.sorted() ?: "*")) + (g.apps?.let { mapOf("apps" to it.sorted()) } ?: emptyMap())
+        mapOf("publishers" to (g.publishers?.sorted() ?: "*")) + (g.apps?.let { mapOf("apps" to it.sorted()) } ?: emptyMap()) +
+            (if (g.grounding) mapOf("grounding" to true) else emptyMap())
 
     /**
      * The collections listed now (DES-007 J-2): an `active` collection with an approved version,
