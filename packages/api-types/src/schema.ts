@@ -1192,8 +1192,6 @@ export interface components {
             genres: string[];
             /** @description パッケージの requires.features */
             requires: string[];
-            /** @description DES-012 R-3。承認した版の申告（偽は書かない）。リストでは宣伝の素材集の宣言でも真になる（R-4） */
-            promotional?: boolean;
             /** Format: date-time */
             approvedAt: string;
         };
@@ -1243,8 +1241,6 @@ export interface components {
             regions?: string[];
             /** @description 運営への説明 */
             note?: string;
-            /** @description 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 */
-            promotional?: boolean;
         };
         Validation: {
             ok: boolean;
@@ -1321,8 +1317,6 @@ export interface components {
             requires?: string[];
             offeredIn?: components["schemas"]["OfferedIn"];
             note?: string;
-            /** @description DES-012 R-1。申請での申告 */
-            promotional?: boolean;
             sha256?: string | null;
             size?: number | null;
             validation?: components["schemas"]["Validation"] | null;
@@ -1414,8 +1408,6 @@ export interface components {
             package: components["schemas"]["ListedPackage"];
             appStage?: number;
             minAppVersions: components["schemas"]["MinAppVersions"];
-            /** @description DES-012 R-3。承認した版の申告（偽は書かない） */
-            promotional?: boolean;
             /** Format: date-time */
             approvedAt: string;
         };
@@ -1429,8 +1421,6 @@ export interface components {
             accountId: components["schemas"]["AccountId"];
             state: components["schemas"]["SubmissionState"];
             note?: string;
-            /** @description DES-012 R-1。申請での申告 */
-            promotional?: boolean;
             sha256?: string | null;
             size?: number | null;
             validation?: components["schemas"]["Validation"] | null;
@@ -2312,8 +2302,6 @@ export interface operations {
                 "application/json": {
                     /** @description 運営への説明 */
                     note?: string;
-                    /** @description 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 */
-                    promotional?: boolean;
                 };
             };
         };

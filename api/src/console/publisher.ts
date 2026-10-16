@@ -3,7 +3,7 @@ import { QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import type { ProblemCode, Schemas } from '@yorisoi-console/api-types';
 import { CHANNEL_ID, accountId, b64url, providerId, utf8, verifyEd25519 } from '@yorisoi-console/protocol';
 import { auditItem, type Deps } from './deps.js';
-import { fail, flag, ifMatch, json, noContent, object, requiredText, text, withEtag, type Request, type Response } from './http.js';
+import { fail, ifMatch, json, noContent, object, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { DEFAULT_LIMITS, channelView, get, loadChannel, loadPublisher, offeredIn, page, publisherView, type Item } from './shared.js';
 import { deleteUses, notifyUsers, usesOfChannel, usesOfCollection } from './uses.js';
 import { jstDate, ulid } from './util.js';
@@ -73,7 +73,6 @@ export function submissionView(item: Item): Schemas['Submission'] {
     // What the machine review read from the package (DES-011 N-3, N-9); nothing before it ran.
     ...ecosystemOf(item.listing as { activities: string[]; genres: string[]; requires: string[] } | undefined),
     ...(item.note !== undefined ? { note: String(item.note) } : {}),
-    promotional: item.promotional === true,
     sha256: (item.sha256 as string | undefined) ?? null,
     size: (item.size as number | undefined) ?? null,
     validation: (item.validation as Schemas['Validation'] | undefined) ?? null,
@@ -485,8 +484,6 @@ export async function createSubmission(deps: Deps, req: Request): Promise<Respon
   const tags = textList(body, 'tags', 8, /^[a-z0-9-]{1,20}$/);
   const regions = textList(body, 'regions', 8, /^[0-9b-hjkmnp-z]{1,8}$/);
   const note = text(body, 'note', { max: 2000, optional: true, min: 0 });
-  // Declared by the publisher, checked by the operator (DES-012 R-1・R-2); false is not written.
-  const promotional = flag(body, 'promotional');
 
   const now = deps.now();
   const items: NonNullable<ConstructorParameters<typeof TransactWriteCommand>[0]['TransactItems']> = [];
@@ -509,7 +506,6 @@ export async function createSubmission(deps: Deps, req: Request): Promise<Respon
     PK: `CH#${channelId}`, SK: `SUB#${submissionId}`, type: 'submission', submissionId, channelId, publisherId,
     accountId: String(publisher.activeAccountId), state: 'uploading', intakeKey, iconIntakeKey,
     ...(description ? { description } : {}), ...(tags ? { tags } : {}), ...(regions ? { regions } : {}), ...(note ? { note } : {}),
-    ...(promotional ? { promotional } : {}),
     rev: 1, createdAt: at, updatedAt: at, ttl: Math.floor((now.getTime() + UPLOAD_EXPIRY_MS) / 1000) + 24 * 3600,
   };
   items.push(

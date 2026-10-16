@@ -7,7 +7,6 @@ import { mockClient } from 'aws-sdk-client-mock';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DynamoStore, kmsSigner } from '../src/publish/aws.js';
 import { DISCOVERY_PATH, LIST_PATH, MemoryStorage, MemoryStore, SeqConflictError, noCdn, publish, type PublishDeps } from '../src/publish/index.js';
-import { promotedVersions, withPromotion } from '../src/publish/publisher.js';
 
 const now = new Date('2026-10-03T03:00:00.000Z');
 const days = (n: number) => new Date(now.getTime() + n * 24 * 3600_000);
@@ -141,36 +140,5 @@ describe('AWS adapters', () => {
     ddb.on(TransactWriteCommand).rejects(new TransactionCanceledException({ message: 'cancelled', $metadata: {} }));
     await expect(dynamo.recordPublication(128, record)).rejects.toBeInstanceOf(SeqConflictError);
     ddb.restore();
-  });
-});
-
-describe('promotion (DES-012)', () => {
-  const collection = (promotional?: boolean) => ({
-    id: 'shop-ads', version: 1, producer: 'sg1' + 'c'.repeat(32), producerName: '商店街', name: 'お店', summary: '紹介', media: ['text'], resourcesSize: 10,
-    tags: [], grants: { publishers: '*' as const }, package: { url: 'https://x/c.zip', sha256: '0'.repeat(64), size: 1, format: 1 },
-    minAppVersions: { sanpoguide: 1 }, approvedAt: now.toISOString(), ...(promotional ? { promotional } : {}),
-  });
-
-  it('marks a channel that declares a promotional collection listed now (R-4)', () => {
-    const listed = { entry: sampleChannel(), material: { ownPrefetchBytes: 0, ownMedia: [], collections: ['shop-ads'] } };
-    expect(withPromotion(listed, listed.entry, new Map([['shop-ads', collection(true)]])).promotional).toBe(true);
-    expect(withPromotion(listed, listed.entry, new Map([['shop-ads', collection()]]))).not.toHaveProperty('promotional');
-    // Not listed now: the app can't use it, so it marks nothing.
-    expect(withPromotion(listed, listed.entry, new Map())).not.toHaveProperty('promotional');
-  });
-
-  it('raises a promotional entry to the versions that label promotion, and a version no app has without one (R-5)', () => {
-    const raised = promotedVersions({ ...collection(true), minAppVersions: { sanpoguide: 2, boat: 3 } }, { sanpoguide: 7 });
-    expect(raised).toMatchObject({ minAppVersions: { sanpoguide: 7, boat: 9999 } });
-    // Never lowered.
-    expect(promotedVersions({ ...collection(true), minAppVersions: { sanpoguide: 9 } }, { sanpoguide: 7 })).toMatchObject({ minAppVersions: { sanpoguide: 9 } });
-    expect(promotedVersions(collection(), {})).toEqual(collection());
-  });
-
-  it('publishes a promotional channel with the raised versions', async () => {
-    store.channels = [{ entry: { ...sampleChannel(), promotional: true, minAppVersions: { sanpoguide: 1 } } }];
-    deps.config.promotionalMinAppVersions = { sanpoguide: 4 };
-    await publish(deps, 'manual');
-    expect(published().body.channels[0]).toMatchObject({ promotional: true, minAppVersions: { sanpoguide: 4 } });
   });
 });

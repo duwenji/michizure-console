@@ -6,7 +6,7 @@ import { describe, ifMatch } from '../../api';
 import { useSession } from '../../main';
 import { openKeyFile, signPackage } from '../../publisher-crypto';
 import { Empty, Status, Time, useLoad } from '../common';
-import { EcosystemNote, PromotedCollections, PromotionalField, PromotionalNote, StageNote, ValidationView } from '../validation';
+import { EcosystemNote, StageNote, ValidationView } from '../validation';
 
 const STATE: Record<string, string> = {
   uploading: 'アップロード待ち', validating: '機械の確認中', validation_failed: '機械の確認で不合格', awaiting_review: '審査待ち',
@@ -99,7 +99,6 @@ export function PublisherChannel() {
   const [tags, setTags] = useState('');
   const [regions, setRegions] = useState('');
   const [note, setNote] = useState('');
-  const [promotional, setPromotional] = useState(false);
   const [progress, setProgress] = useState<string>();
   const [ticket, setTicket] = useState<Schemas['TestTicket']>();
   const [error, setError] = useState<string>();
@@ -124,7 +123,6 @@ export function PublisherChannel() {
           ...(tags ? { tags: split(tags) } : {}),
           ...(regions ? { regions: split(regions) } : {}),
           ...(note ? { note } : {}),
-          ...(promotional ? { promotional } : {}),
         },
       });
       if (!data) throw new Error('申請を作れませんでした');
@@ -159,12 +157,6 @@ export function PublisherChannel() {
             {c.latestApproved && (
               <div className="small">
                 <EcosystemNote activities={c.latestApproved.activities ?? ['walk']} genres={c.latestApproved.genres} requires={c.latestApproved.requires} offeredIn={c.offeredIn} />
-              </div>
-            )}
-            {c.latestApproved && (
-              <div className="small">
-                宣伝: <PromotionalNote declared={c.latestApproved.promotional} />
-                <PromotedCollections ids={((c.latestApproved as { collections?: { id: string }[] }).collections ?? []).map((x) => x.id)} />
               </div>
             )}
           </dd>
@@ -272,7 +264,6 @@ export function PublisherChannel() {
           運営への説明（審査のときに読まれます）
           <textarea rows={2} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
-        <PromotionalField checked={promotional} onChange={setPromotional} what="チャンネル" />
         <button disabled={!zip || !icon || !keyText || !passphrase || (progress !== undefined && !progress.startsWith('版'))}>署名して申請する</button>
         {progress && <p role="status">{progress}</p>}
         {error && <p className="error" role="alert">{error}</p>}

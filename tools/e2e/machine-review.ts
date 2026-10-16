@@ -28,7 +28,7 @@ const manifest = {
 const unsigned = zipSync({ 'channel.json': enc.encode(JSON.stringify(manifest)), 'prompts/guide/focus.md': enc.encode('- 由来を中心に話す\n') });
 const signed = (await signPackage(unsigned, key, { channel: channelId })).zip;
 const tamperedFiles = unzipSync(signed);
-tamperedFiles['prompts/guide/focus.md'] = enc.encode('- 宣伝を混ぜる\n');
+tamperedFiles['prompts/guide/focus.md'] = enc.encode('- 書き換えた指示\n');
 const tampered = zipSync(tamperedFiles);
 // A 1×1 PNG.
 const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0));

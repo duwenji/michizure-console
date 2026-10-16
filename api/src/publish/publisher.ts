@@ -1,6 +1,5 @@
 import {
   b64url,
-  NO_APP_VERSION,
   payloadBytes,
   providerId,
   signChannelList,
@@ -29,11 +28,6 @@ export interface ProviderConfig {
   listLifetimeDays?: number;
   /** How long a revocation stays in `revoked` (DM-001 M-9). */
   revokedDays?: number;
-  /**
-   * The version each app needs to show promotion (DES-012 R-5, platform ADR-002 D-36); an app
-   * without one gets a version no app has, so promotion reaches no app that can't label it.
-   */
-  promotionalMinAppVersions?: Record<string, number>;
 }
 
 export interface PublishDeps {
@@ -69,23 +63,6 @@ export function withMaterial(listed: ListedChannel, collections: Map<string, Col
     media: [...new Set([...material.ownMedia, ...used.flatMap((c) => c.media)])].sort(),
     resourcesSize: material.ownPrefetchBytes + used.reduce((sum, c) => sum + c.resourcesSize, 0),
   };
-}
-
-/** A channel that declares a promotional collection listed now is promotional too (DES-012 R-4). */
-export function withPromotion(listed: ListedChannel, channel: ChannelEntry, collections: Map<string, CollectionEntry>): ChannelEntry {
-  const declared = listed.material.collections;
-  return !channel.promotional && declared.some((id) => collections.get(id)?.promotional) ? { ...channel, promotional: true } : channel;
-}
-
-/**
- * Raises what a promotional entry needs to the versions that label promotion (DES-012 R-5, API-002
- * P-17).
- */
-export function promotedVersions<T extends ChannelEntry | CollectionEntry>(entry: T, promotionalMinAppVersions: Record<string, number>): T {
-  if (!entry.promotional) return entry;
-  const needs = (app: string, version: number) => Math.max(version, promotionalMinAppVersions[app] ?? NO_APP_VERSION);
-  const minAppVersions = Object.fromEntries(Object.entries(entry.minAppVersions).map(([app, v]) => [app, needs(app, v)]));
-  return { ...entry, minAppVersions };
 }
 
 /**
@@ -127,11 +104,9 @@ export async function publish(deps: PublishDeps, trigger: Trigger): Promise<Publ
     store.collectionRevocations(since),
   ]);
   const byId = new Map(collections.map((c) => [c.id, c]));
-  const promotionalMin = config.promotionalMinAppVersions ?? {};
-  const channels = listed.map((c) => promotedVersions(withPromotion(c, withMaterial(c, byId), byId), promotionalMin));
-  const listedCollections = collections.map((c) => promotedVersions(c, promotionalMin));
+  const channels = listed.map((c) => withMaterial(c, byId));
   const { document, digest } = await signChannelList(
-    { provider: keyset.provider, seq, issuedAt: now, expiresAt: new Date(now.getTime() + lifetimeDays * DAY), channels, revoked, collections: listedCollections, revokedCollections },
+    { provider: keyset.provider, seq, issuedAt: now, expiresAt: new Date(now.getTime() + lifetimeDays * DAY), channels, revoked, collections, revokedCollections },
     signer,
   );
 

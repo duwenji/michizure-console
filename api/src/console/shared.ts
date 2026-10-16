@@ -135,7 +135,6 @@ export function collectionSubmissionView(item: Item): Schemas['CollectionSubmiss
     accountId: String(item.accountId),
     state: item.state as Schemas['SubmissionState'],
     ...(item.note !== undefined ? { note: String(item.note) } : {}),
-    promotional: item.promotional === true,
     sha256: (item.sha256 as string | undefined) ?? null,
     size: (item.size as number | undefined) ?? null,
     validation: (item.validation as Schemas['Validation'] | undefined) ?? null,

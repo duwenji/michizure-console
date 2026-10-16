@@ -1,7 +1,7 @@
 import { QueryCommand, type TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { CHANNEL_ID } from '@yorisoi-console/protocol';
 import { auditItem, type Deps } from './deps.js';
-import { fail, flag, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
+import { fail, ifMatch, json, object, requireOperator, requiredText, text, withEtag, type Request, type Response } from './http.js';
 import { myPublisher, transact } from './publisher.js';
 import {
   DEFAULT_LIMITS, collectionSubmissionView, collectionView, get, loadCollection, loadCollectionSubmission, loadPublisher, page, publisherView, rolesOf, type Item,
@@ -164,8 +164,6 @@ export async function createCollectionSubmission(deps: Deps, req: Request): Prom
   if (account.pendingTransferId) fail('transfer_pending', 'a key transfer is pending');
   const body = object(req.body ?? {});
   const note = text(body, 'note', { max: 2000, optional: true, min: 0 });
-  // Declared by the producer, checked by the operator (DES-012 R-1・R-2); false is not written.
-  const promotional = flag(body, 'promotional');
 
   const now = deps.now();
   let stale: string | undefined;
@@ -182,7 +180,7 @@ export async function createCollectionSubmission(deps: Deps, req: Request): Prom
   const at = now.toISOString();
   const item = {
     PK: `COL#${collectionId}`, SK: `SUB#${submissionId}`, type: 'submission', kind: 'collection', submissionId, collectionId, publisherId,
-    accountId: String(account.activeAccountId), state: 'uploading', intakeKey, ...(note ? { note } : {}), ...(promotional ? { promotional } : {}),
+    accountId: String(account.activeAccountId), state: 'uploading', intakeKey, ...(note ? { note } : {}),
     rev: 1, createdAt: at, updatedAt: at, ttl: Math.floor((now.getTime() + UPLOAD_EXPIRY_MS) / 1000) + 24 * 3600,
   };
   const items: TransactItems = [

@@ -64,8 +64,6 @@ export interface ChannelEntry {
   requires: string[];
   /** API-002 P-20: the version each app needs, by app id. */
   minAppVersions: Record<string, number>;
-  /** API-002 P-16: declared, or declaring a promotional collection; absent means false. */
-  promotional?: boolean;
 }
 
 /** One entry of `collections[]` (API-002 P-10・P-15). */
@@ -87,8 +85,6 @@ export interface CollectionEntry {
   approvedAt: string;
   /** API-002 P-20. */
   minAppVersions: Record<string, number>;
-  /** API-002 P-16: made to promote; absent means false. */
-  promotional?: boolean;
 }
 
 export interface RevokedEntry {

@@ -114,8 +114,8 @@ const LISTING = {
 };
 
 /** A collection submission the machine review passed, as DES-007 leaves it. */
-async function awaitingReview(version = 1, listing: object = LISTING, promotional?: boolean) {
-  const created = await call(alice, 'POST', '/api/collections/kamakura-audio-guide/submissions', { body: { note: '観光協会の音声', ...(promotional !== undefined ? { promotional } : {}) } });
+async function awaitingReview(version = 1, listing: object = LISTING) {
+  const created = await call(alice, 'POST', '/api/collections/kamakura-audio-guide/submissions', { body: { note: '観光協会の音声' } });
   expect(created.status).toBe(201);
   const sid = created.body.submission.submissionId as string;
   await deps.db.send(
@@ -408,17 +408,6 @@ describe('channels using collections', () => {
     await call(operator, 'POST', `${admin(v3)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${admin(v3)}/approve`, { body: {}, ifMatch: 3 });
     expect(notices.filter((n) => n.publisherId === bobId).map((n) => n.event)).toEqual(['collection.grants_narrowed']);
-    // Granted again, now promotional: bob hears his channel will show「宣伝を含む」(DES-012 R-7), once.
-    notices = [];
-    const v4 = await awaitingReview(4, LISTING, true);
-    await call(operator, 'POST', `${admin(v4)}/start`, { ifMatch: 2 });
-    await call(operator, 'POST', `${admin(v4)}/approve`, { body: {}, ifMatch: 3 });
-    expect(notices.filter((n) => n.publisherId === bobId)).toEqual([expect.objectContaining({ event: 'collection.updated', version: 4, becamePromotional: true })]);
-    notices = [];
-    const v5 = await awaitingReview(5, LISTING, true);
-    await call(operator, 'POST', `${admin(v5)}/start`, { ifMatch: 2 });
-    await call(operator, 'POST', `${admin(v5)}/approve`, { body: {}, ifMatch: 3 });
-    expect(notices.filter((n) => n.publisherId === bobId)[0]).not.toHaveProperty('becamePromotional');
     // Revoked: bob hears that too.
     notices = [];
     const col = await call(operator, 'GET', '/api/collections/kamakura-audio-guide');
@@ -466,20 +455,20 @@ describe('channels using collections', () => {
 
 describe('publishing with collections', () => {
   /** Publishes from the table as the Lambda does, and reads the list back as an app would. */
-  async function publishList(promotionalMinAppVersions?: Record<string, number>) {
+  async function publishList() {
     await deps.db.send(new UpdateCommand({ TableName: deps.table, Key: { PK: 'KEYSET', SK: 'HEAD' }, UpdateExpression: 'SET #d = :d, seq = :s', ExpressionAttributeNames: { '#d': 'document' }, ExpressionAttributeValues: { ':d': await signDocument(provider.keyset, provider.root), ':s': 1 } }));
     await deps.db.send(new UpdateCommand({ TableName: deps.table, Key: { PK: 'SIGNKEY', SK: 'KEY#k-test' }, UpdateExpression: 'SET #s = :a, keyId = :k, kmsKeyArn = :arn', ExpressionAttributeNames: { '#s': 'status' }, ExpressionAttributeValues: { ':a': 'active', ':k': 'k-test', ':arn': 'local' } }));
     const storage = new MemoryStorage();
-    const record = await publish({ store: new DynamoStore(deps.table, raw), storage, cdn: noCdn, signerFor: () => provider.signing, config: { rootPublicKey: provider.rootKey, name: 'Test', ...(promotionalMinAppVersions ? { promotionalMinAppVersions } : {}) }, now: () => new Date(clock) }, 'manual');
+    const record = await publish({ store: new DynamoStore(deps.table, raw), storage, cdn: noCdn, signerFor: () => provider.signing, config: { rootPublicKey: provider.rootKey, name: 'Test' }, now: () => new Date(clock) }, 'manual');
     const json = (path: string) => JSON.parse(utf8.decode(storage.public.get(path)!));
     const discovery = verifyDiscovery(json(DISCOVERY_PATH), { expectedProvider: provider.provider });
     return { record, list: verifyChannelList(json(LIST_PATH), discovery.keyset, { now: new Date(clock) }).body };
   }
 
-  async function approvedCollection(promotional?: boolean) {
+  async function approvedCollection() {
     await account(alice, '鎌倉市観光協会');
     await call(alice, 'POST', '/api/collections', { body: { collectionId: 'kamakura-audio-guide' } });
-    const sid = await awaitingReview(1, LISTING, promotional);
+    const sid = await awaitingReview(1, LISTING);
     await call(operator, 'POST', `${admin(sid)}/start`, { ifMatch: 2 });
     await call(operator, 'POST', `${admin(sid)}/approve`, { body: { verification }, ifMatch: 3 });
   }
@@ -521,26 +510,6 @@ describe('publishing with collections', () => {
     ]);
     for (const field of ['resourceTypes', 'externalResources', 'appStage', 'submissionId']) expect(list.collections![0]).not.toHaveProperty(field);
     expect(record).toMatchObject({ channelCount: 1, collectionCount: 1, revokedCount: 0, revokedCollectionCount: 0 });
-  });
-
-  it('marks a promotional collection and the channels that declare it, and keeps both from apps that can’t label it (DES-012 R-4, R-5)', async () => {
-    await approvedCollection(true);
-    const approved = (await call(alice, 'GET', '/api/collections/kamakura-audio-guide')).body.latestApproved;
-    expect(approved.promotional).toBe(true);
-    await channelUsingIt();
-    // The channel didn't declare it: approval doesn't mark it, the list does.
-    expect((await call(bob, 'GET', '/api/channels/kamakura-history')).body.latestApproved).not.toHaveProperty('promotional');
-    const { list } = await publishList({ sanpoguide: 5 });
-    expect(list.collections![0]).toMatchObject({ promotional: true });
-    expect(list.channels[0]).toMatchObject({ promotional: true });
-  });
-
-  it('leaves out promotional when nothing is (DES-012 R-3)', async () => {
-    await approvedCollection(false);
-    await channelUsingIt();
-    const { list } = await publishList();
-    expect(list.collections![0]).not.toHaveProperty('promotional');
-    expect(list.channels[0]).not.toHaveProperty('promotional');
   });
 
   it('lists a revoked collection in revokedCollections, never in revoked (M-1)', async () => {

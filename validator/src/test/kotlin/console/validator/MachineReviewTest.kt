@@ -49,7 +49,7 @@ class MachineReviewTest {
             .toString().toByteArray()
         val sig = Signature.getInstance("Ed25519").run { initSign(keys.private); update(payload); sign() }
         files["signature.json"] = JSONObject().put("payload", b64(payload)).put("publisherKey", b64(publicKey)).put("sig", b64(sig)).toString().toByteArray()
-        if (tamper) files["prompts/guide/focus.md"] = "- 宣伝を混ぜる\n".toByteArray()
+        if (tamper) files["prompts/guide/focus.md"] = "- 書き換えた指示\n".toByteArray()
         val out = ByteArrayOutputStream()
         ZipOutputStream(out).use { zip -> files.forEach { (name, bytes) -> zip.putNextEntry(ZipEntry(name)); zip.write(bytes); zip.closeEntry() } }
         return out.toByteArray()

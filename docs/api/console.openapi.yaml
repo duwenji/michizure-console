@@ -428,7 +428,6 @@ paths:
               type: object
               properties:
                 note: { type: string, maxLength: 2000, description: 運営への説明 }
-                promotional: { type: boolean, description: 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 }
       responses:
         '201':
           description: 申請とアップロード先
@@ -1511,7 +1510,6 @@ components:
         activities: { type: array, items: { type: string }, description: DES-011 N-3。パッケージの activities }
         genres: { type: array, items: { type: string } }
         requires: { type: array, items: { type: string }, description: パッケージの requires.features }
-        promotional: { type: boolean, description: DES-012 R-3。承認した版の申告（偽は書かない）。リストでは宣伝の素材集の宣言でも真になる（R-4） }
         approvedAt: { type: string, format: date-time }
     MinAppVersions:
       type: object
@@ -1575,7 +1573,6 @@ components:
           maxItems: 8
           items: { type: string, pattern: '^[0-9b-hjkmnp-z]{1,8}$', description: geohash の接頭辞 }
         note: { type: string, maxLength: 2000, description: 運営への説明 }
-        promotional: { type: boolean, description: 宣伝を含む（DES-012 R-1。platform 審査基準 2.4）。省略は偽 }
     Validation:
       type: object
       required: [ok, errors, checkedAt, validatorVersion]
@@ -1666,7 +1663,6 @@ components:
         requires: { type: array, items: { type: string }, description: パッケージの requires.features }
         offeredIn: { $ref: '#/components/schemas/OfferedIn' }
         note: { type: string }
-        promotional: { type: boolean, description: DES-012 R-1。申請での申告 }
         sha256: { type: [string, 'null'] }
         size: { type: [integer, 'null'] }
         validation:
@@ -1779,7 +1775,6 @@ components:
         package: { $ref: '#/components/schemas/ListedPackage' }
         appStage: { type: integer }
         minAppVersions: { $ref: '#/components/schemas/MinAppVersions' }
-        promotional: { type: boolean, description: DES-012 R-3。承認した版の申告（偽は書かない） }
         approvedAt: { type: string, format: date-time }
     CollectionSubmission:
       type: object
@@ -1792,7 +1787,6 @@ components:
         accountId: { $ref: '#/components/schemas/AccountId' }
         state: { $ref: '#/components/schemas/SubmissionState' }
         note: { type: string }
-        promotional: { type: boolean, description: DES-012 R-1。申請での申告 }
         sha256: { type: [string, 'null'] }
         size: { type: [integer, 'null'] }
         validation:
