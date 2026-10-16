@@ -4,9 +4,10 @@
 
 ## 本番の準備
 
-1. ルート鍵・署名鍵の手順書（[ADR-001](adr/ADR-001-aws-architecture.md) T-1）
-2. 独自ドメイン（ADR-001 T-2）と、SES のサンドボックスの解除（T-3）。そのあと本番の `notify` を `ses` にする（DES-006 J-12・J-13）
-3. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.5）
+手順は [鍵の手順書](operations/keys.md) と [配備の手順](operations/deploy.md) にある。
+
+1. 独自ドメイン（[ADR-001](adr/ADR-001-aws-architecture.md) T-2）と、SES のサンドボックスの解除（T-3）。そのあと本番の `notify` を `ses` にする（DES-006 J-12・J-13）
+2. 鍵の移し替えの本人確認の手順（ADR-001 未決事項 No.5）
 
 ## 確かめること
 
