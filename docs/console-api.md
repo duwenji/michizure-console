@@ -312,7 +312,7 @@ sequenceDiagram
 
 ```json
 {
-  "generatedBy": "prompts 1.0.0",
+  "generatedBy": "core-format 2.0.0, prompts 4.0.0",
   "scenarios": [
     { "id": "start-morning-sunny", "label": "散歩の開始（朝・晴れ）", "system": "…", "user": "…" },
     { "id": "guide-temple", "label": "初めてのスポットの解説（寺社）", "system": "…", "user": "…" }

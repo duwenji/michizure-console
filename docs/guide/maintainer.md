@@ -49,7 +49,7 @@ flowchart LR
 | `api/src/publish` | 公開の処理（Lambda）。DB・S3・CloudFront・KMS は差し替え口の後ろ。毎日の外部の素材の確認は `external.ts` | DES-001・DES-009 |
 | `api/src/console` | 管理 API（Lambda。運営の操作 `operator.ts`、チャンネル提供者の操作 `publisher.ts`、素材集 `collections.ts`、利用の記録 `uses.ts`、審査 `review.ts`、鍵の移し替え `transfer.ts`）と Cognito の post-confirmation トリガー | DES-002〜DES-006・DES-008 |
 | `api/src/notify` | チャンネル提供者・素材提供者へのメール（SQS で受けて SES で送る Lambda。開発用は記録だけ） | DES-006・DES-008 |
-| `validator` | 機械審査の Lambda（Kotlin、Gradle、core-format・prompts 1.0.0）。チャンネルと素材集、外部の素材の確認 `External.kt` | DES-004・DES-007 |
+| `validator` | 機械審査の Lambda（Kotlin、Gradle、core-format 2.0.0・prompts 4.0.0）。チャンネルと素材集、外部の素材の確認 `External.kt` | DES-004・DES-007 |
 | `web` | 運営・チャンネル提供者・素材提供者の画面（React + Vite）。鍵の作成と署名は `web/src/publisher-crypto.ts` | DES-002・DES-003・DES-010 |
 | `tools/root-key` | ルート鍵の CLI（オフラインの端末で使う） | DES-001 |
 | `tools/provision` | 配備したリストの初期設定（署名鍵・鍵セットの登録と初回の公開） | DES-001 |
