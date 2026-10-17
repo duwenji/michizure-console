@@ -1,0 +1,94 @@
+{
+  "format": 1,
+  "id": "kamakura-history-walk",
+  "version": 1,
+  "publisher": "REPLACE_WITH_PUBLISHER_ACCOUNT_ID",
+  "name": "鎌倉歴史さんぽ",
+  "summary": "鶴岡八幡宮から鎌倉大仏をめぐり、歴史を感じる散歩案内",
+  "lang": "ja",
+  "activities": ["walk"],
+  "genres": ["history"],
+  "greeting": "鎌倉の歴史をたどる散歩に出かけましょう。",
+  "talk": {
+    "level": "normal",
+    "events": {
+      "spot": true,
+      "revisit": true,
+      "milestone": true,
+      "rest": false,
+      "start": true,
+      "finish": true
+    }
+  },
+  "spots": {
+    "prefer": ["shrine", "historic", "artwork"],
+    "skip": []
+  },
+  "guide": {
+    "length": "normal"
+  },
+  "mood": {
+    "tone": true,
+    "sound": "temple"
+  },
+  "collections": [
+    {
+      "as": "kamakura",
+      "id": "kamakura-local-history",
+      "minVersion": 1
+    }
+  ],
+  "cues": [
+    {
+      "id": "hachimangu-visit",
+      "trigger": {
+        "type": "spot",
+        "osm": "way/34550401"
+      },
+      "present": [
+        {
+          "as": "speak",
+          "source": [
+            "kamakura#hachimangu-intro",
+            "builtin:ai-guide",
+            "builtin:fallback-text"
+          ]
+        },
+        {
+          "as": "card",
+          "source": ["kamakura#hachimangu-gate-illustration"]
+        }
+      ]
+    },
+    {
+      "id": "daibutsu-visit",
+      "trigger": {
+        "type": "spot",
+        "osm": "node/260752586"
+      },
+      "present": [
+        {
+          "as": "card",
+          "source": ["kamakura#daibutsu-video-poster"]
+        },
+        {
+          "as": "sheet",
+          "source": ["kamakura#kamakura-daibutsu-video"]
+        }
+      ]
+    },
+    {
+      "id": "walk-finish",
+      "trigger": {
+        "type": "event",
+        "event": "finish"
+      },
+      "present": [
+        {
+          "as": "play",
+          "source": ["kamakura#walk-farewell-music"]
+        }
+      ]
+    }
+  ]
+}

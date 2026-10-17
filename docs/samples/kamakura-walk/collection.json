@@ -1,0 +1,125 @@
+{
+  "format": 1,
+  "id": "kamakura-local-history",
+  "version": 1,
+  "producer": "REPLACE_WITH_PRODUCER_ACCOUNT_ID",
+  "name": "鎌倉まち歩き資料集",
+  "summary": "鶴岡八幡宮から鎌倉大仏をめぐる散歩のテキスト・画像・音楽・映像",
+  "lang": "ja",
+  "grants": {
+    "publishers": "*",
+    "apps": ["sanpoguide"],
+    "grounding": false
+  },
+  "resources": [
+    {
+      "id": "hachimangu-intro",
+      "type": "text",
+      "file": "resources/text/hachimangu-intro.md",
+      "tags": ["history", "faith"],
+      "about": {
+        "type": "spot",
+        "osm": "way/34550401",
+        "name": "鶴岡八幡宮",
+        "lat": 35.3251836,
+        "lon": 139.5561787
+      }
+    },
+    {
+      "id": "hachimangu-gate-illustration",
+      "type": "image",
+      "file": "resources/img/hachimangu-grounds.png",
+      "alt": "鶴岡八幡宮の境内を描いたサンプルイラスト",
+      "credit": {
+        "author": "yorisoi-console サンプル制作",
+        "license": "CC0-1.0"
+      },
+      "tags": ["history", "faith"],
+      "about": {
+        "type": "spot",
+        "osm": "way/34550401",
+        "name": "鶴岡八幡宮",
+        "lat": 35.3251836,
+        "lon": 139.5561787
+      }
+    },
+    {
+      "id": "daibutsu-video-poster",
+      "type": "image",
+      "file": "resources/img/kamakura-daibutsu-poster.jpg",
+      "alt": "高徳院で鎌倉大仏を見学する人々",
+      "credit": {
+        "author": "Miltan Monjib",
+        "license": "permission",
+        "source": "https://www.pexels.com/video/tourists-at-kotoku-in-with-great-buddha-statue-34654527/"
+      },
+      "tags": ["history", "faith"],
+      "about": {
+        "type": "spot",
+        "osm": "node/260752586",
+        "name": "鎌倉大仏",
+        "lat": 35.3168482,
+        "lon": 139.5357212
+      }
+    },
+    {
+      "id": "walk-farewell-music",
+      "type": "audio",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Hotaru_no_Hikari%28Auld_lang_syne_in_Japan%29.ogg",
+      "sha256": "9ea7d5857444f79d19e7b7d9d56b9fba5493b81d2632ac3d5b34143545180514",
+      "size": 732619,
+      "durationSec": 60.3,
+      "mime": "audio/ogg",
+      "transcript": "walk-farewell-music-transcript",
+      "credit": {
+        "author": "me (guitar and vocal)",
+        "license": "PD",
+        "source": "https://commons.wikimedia.org/wiki/File:Hotaru_no_Hikari(Auld_lang_syne_in_Japan).ogg"
+      },
+      "tags": ["history"]
+    },
+    {
+      "id": "kamakura-daibutsu-video",
+      "type": "video",
+      "url": "https://videos.pexels.com/video-files/34654527/14688757_1920_1080_60fps.mp4",
+      "sha256": "02bbbfaab2bb5b90168585a0e544ba2acfa194bc12e5e01ed43c44273551b19f",
+      "size": 33974358,
+      "durationSec": 16.717,
+      "mime": "video/mp4",
+      "poster": "daibutsu-video-poster",
+      "transcript": "kamakura-daibutsu-video-transcript",
+      "credit": {
+        "author": "Miltan Monjib",
+        "license": "permission",
+        "source": "https://www.pexels.com/video/tourists-at-kotoku-in-with-great-buddha-statue-34654527/"
+      },
+      "tags": ["history", "faith"],
+      "about": {
+        "type": "spot",
+        "osm": "node/260752586",
+        "name": "鎌倉大仏",
+        "lat": 35.3168482,
+        "lon": 139.5357212
+      }
+    },
+    {
+      "id": "walk-farewell-music-transcript",
+      "type": "text",
+      "file": "resources/text/walk-farewell-music-transcript.md",
+      "tags": ["history"]
+    },
+    {
+      "id": "kamakura-daibutsu-video-transcript",
+      "type": "text",
+      "file": "resources/text/kamakura-daibutsu-video-transcript.md",
+      "tags": ["history", "faith"],
+      "about": {
+        "type": "spot",
+        "osm": "node/260752586",
+        "name": "鎌倉大仏",
+        "lat": 35.3168482,
+        "lon": 139.5357212
+      }
+    }
+  ]
+}
