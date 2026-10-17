@@ -7,19 +7,19 @@ SanpoGuide の第三者のチャンネルと素材集を審査して公開する
 - 運営: 審査（機械で確かめた結果と、AI に話させた見本）、承認・差し戻し・取り下げ、鍵の移し替えの承認
 - 自動: 承認済みチャンネル・リストを作り、署名して公開する。毎日、素材集の外部の素材を確かめる
 
-アプリとの境界は、platform の [API-002（承認済みチャンネル・リスト）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) だけ。パッケージと素材集の形式は [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)。
+アプリとの境界は [platform API-CHANNEL-LIST（旧 API-002）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-CHANNEL-LIST.md) だけ。パッケージと素材集の形式は [platform API-CHANNEL-PACKAGE（旧 API-003）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-CHANNEL-PACKAGE.md)・[platform API-MATERIAL-PRODUCER（旧 API-004）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-MATERIAL-PRODUCER.md)。
 
 ## 構成
 
-AWS（ap-northeast-1）。API Gateway・Lambda・DynamoDB・Cognito・KMS・SQS、公開は S3 と CloudFront。全体を図で見るには **構成図**（[HTML 版](docs/architecture.html)はブラウザで開く。GitHub の上では [Markdown 版](docs/architecture.md)）、設計の理由は [ADR-001](docs/adr/ADR-001-aws-architecture.md)。npm workspaces のモノレポ（Node.js 22 以上）。
+AWS（ap-northeast-1）。API Gateway・Lambda・DynamoDB・Cognito・KMS・SQS、公開は S3 と CloudFront。全体を図で見るには **構成図**（[HTML 版](docs/architecture.html)はブラウザで開く。GitHub の上では [Markdown 版](docs/architecture.md)）、設計の理由は [console ADR-001](docs/adr/ADR-001-aws-architecture.md)。npm workspaces のモノレポ（Node.js 22 以上）。
 
 ```
-packages/protocol  API-002 の文書の作成と検証（共通）
+packages/protocol  platform API-CHANNEL-LIST の文書の作成と検証（共通）
 packages/api-types 管理 API の型（docs/api/console.openapi.yaml から生成）
 api/               Lambda（TypeScript）。公開の処理（api/src/publish）、管理 API（api/src/console）、チャンネル提供者へのメール（api/src/notify）
 tools/root-key     ルート鍵の CLI（オフラインで使う）
 tools/provision    配備した環境に署名鍵・鍵セットを登録して公開する（運営の画面ができるまで）
-conformance/       API-002 の準拠テスト（任意のリストの URL に対して流せる）
+conformance/       platform API-CHANNEL-LIST の準拠テスト（任意のリストの URL に対して流せる）
 infra/             AWS CDK
 web/               運営・チャンネル提供者・素材提供者の画面（React + Vite）
 validator/         機械審査の Lambda（Kotlin、Gradle、yorisoi-platform の core-format とプロンプト・パック）
@@ -52,12 +52,13 @@ cd infra && npx cdk synth -c env=dev -c rootPublicKey=<base64url>
 
 ## 文書
 
+- **[文書一覧](docs/README.md)**: このリポジトリの設計・契約・ガイド・運用文書（まずここから）
 - **[利用ガイド](docs/guide/README.md)**: 運営・チャンネル提供者・開発・保守をする人ごとの使い方（まずここから）
 
 - [TODO.md](docs/TODO.md): 進め方と次にやること
-- [ADR-001](docs/adr/ADR-001-aws-architecture.md): AWS の構成
-- [DM-001](docs/data-model.md): データモデル
-- [API-001](docs/console-api.md): 管理 API（[OpenAPI](docs/api/console.openapi.yaml)）
+- [console ADR-001](docs/adr/ADR-001-aws-architecture.md): AWS の構成
+- [console DM-001](docs/data-model.md): データモデル
+- [console API-001](docs/console-api.md): 管理 API（[OpenAPI](docs/api/console.openapi.yaml)）
 - [DES-001](docs/design/DES-001-publisher.md): 公開の処理・ルート鍵の CLI・準拠テスト
 - [DES-002](docs/design/DES-002-operator-console.md): 運営の画面
 - [DES-003](docs/design/DES-003-publisher-console.md): チャンネル提供者の API と画面（3a）

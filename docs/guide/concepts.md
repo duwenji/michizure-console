@@ -95,18 +95,18 @@ stateDiagram-v2
 | 1 つのチャンネル提供者のチャンネル数 | 5（運営が変えられる。取り下げたものも数える） | DM-001 M-2 |
 | 1 日の申請（アップロード） | 20（日本時間で数える） | DM-001 M-2 |
 | 1 日の試用チケット | 10 | DM-001 M-2 |
-| パッケージの大きさ | 2MB | API-002 |
+| パッケージの大きさ | 2MB | platform API-CHANNEL-LIST |
 | アイコン | PNG、256×256 以下、100KB 以下 | API-001 |
-| リストの期限 | 発行から 14 日以内 | API-002 |
-| 署名鍵の有効期間 | 鍵セットで 1 年以内（画面の既定は 180 日） | API-002 |
-| 試用チケットの期限 | 7 日 | API-002 |
+| リストの期限 | 発行から 14 日以内 | platform API-CHANNEL-LIST |
+| 署名鍵の有効期間 | 鍵セットで 1 年以内（画面の既定は 180 日） | platform API-CHANNEL-LIST |
+| 試用チケットの期限 | 7 日 | platform API-CHANNEL-LIST |
 | 取り下げを `revoked` に載せる期間 | 7 日 | DM-001 M-9 |
 | 承認されなかったパッケージの保存 | 90 日 | DM-001 M-4 |
 | 操作の記録の保存 | 消さない | DM-001 M-3 |
 
 ## 6. 素材集と素材提供者
 
-素材（テキスト・画像・音声・映像）は、チャンネルとは別に「素材集」として審査・公開されます（platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)）。素材集を作るのは素材提供者、それを使って散策者に見せるのはチャンネルです。
+素材（テキスト・画像・音声・映像）は、チャンネルとは別に「素材集」として審査・公開されます（[platform ADR-MATERIAL-PRODUCERS（旧 ADR-002）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/decisions/ADR-MATERIAL-PRODUCERS.md)）。素材集を作るのは素材提供者、それを使って散策者に見せるのはチャンネルです。
 
 ```mermaid
 flowchart LR

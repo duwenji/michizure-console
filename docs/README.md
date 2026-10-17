@@ -1,0 +1,47 @@
+# yorisoi-console の文書
+
+このリポジトリの文書は、チャンネル管理システムの設計・API・データ・利用・運用を説明します。画面や運用手順はこのシステムに固有のものです。
+
+エコシステム共通の方針と契約は [yorisoi-platform](https://github.com/duwenji/yorisoi-platform) が正本です。platform の ADR と API 契約が共有ルールを定め、このリポジトリの ADR・DES はそのルールに従う管理システムの実装を定めます。
+
+## 設計と管理システムの契約
+
+| 知りたいこと | 文書 |
+|---|---|
+| AWS 構成とコンポーネントの関係 | [構成図](architecture.md) |
+| 管理システムのアーキテクチャ判断 | [console ADR-001](adr/ADR-001-aws-architecture.md) |
+| 機能ごとの設計 | [console DES-001〜DES-011](design/) |
+| 管理画面が使う API | [console API-001](console-api.md) と [OpenAPI 定義](api/console.openapi.yaml) |
+| DynamoDB の項目・キー・状態 | [console DM-001](data-model.md) |
+| 残作業と確認事項 | [console TODO](TODO.md) |
+
+## 利用ガイド
+
+| 読者 | 文書 |
+|---|---|
+| まず全体を知りたい | [利用ガイド](guide/README.md) |
+| 仕組みと用語 | [仕組み](guide/concepts.md) |
+| 運営 | [運営ガイド](guide/operator.md) |
+| チャンネル提供者 | [チャンネル提供者ガイド](guide/publisher.md) |
+| 素材提供者 | [素材提供者ガイド](guide/producer.md) |
+| 開発・保守 | [開発・保守ガイド](guide/maintainer.md) |
+
+## 運用手順
+
+| 作業 | 文書 |
+|---|---|
+| AWS 費用の見積もり | [費用](operations/cost.md) |
+| 環境の配備 | [配備の手順](operations/deploy.md) |
+| ルート鍵・署名鍵の管理 | [鍵の手順書](operations/keys.md) |
+
+## エコシステム共通の正本
+
+| 知りたいこと | 正本 |
+|---|---|
+| 意思決定と共有方針 | [platform ADR 一覧](https://github.com/duwenji/yorisoi-platform/blob/main/docs/decisions/README.md) |
+| API・データ形式の境界 | [platform API 契約一覧](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/README.md) |
+| 関係者の呼び方 | [関係者と共通用語](https://github.com/duwenji/yorisoi-platform/blob/main/docs/overview/roles-and-vocabulary.md) |
+| チャンネル審査方針 | [審査方針](https://github.com/duwenji/yorisoi-platform/blob/main/docs/policies/channel-review.md) |
+| SanpoGuide の使い方と運用 | [SanpoGuide 手引き](https://github.com/duwenji/yorisoi-platform/blob/main/docs/apps/sanpoguide/manual/README.md) |
+
+文書 ID はリポジトリごとに管理します。たとえば `console ADR-001` と `platform ADR-CHANNEL-CURATION` は別の文書です。platform 文書の旧番号は、リンク表示に履歴情報として併記する場合がありますが、共有契約を指すときは canonical ID を使います。

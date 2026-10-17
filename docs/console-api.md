@@ -18,9 +18,9 @@
 
 ## 目的・背景
 
-[ADR-001](adr/ADR-001-aws-architecture.md) で管理システムの構成を、[DM-001](data-model.md) でデータを決めた。本書は、チャンネル提供者・素材提供者と運営が SPA から使う API を決める。素材提供者の役割と素材集の操作は、platform の [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)（素材の素材提供者）による。
+[ADR-001](adr/ADR-001-aws-architecture.md) で管理システムの構成を、[DM-001](data-model.md) でデータを決めた。本書は、チャンネル提供者・素材提供者と運営が SPA から使う API を決める。素材提供者の役割と素材集の操作は、[platform ADR-MATERIAL-PRODUCERS（旧 ADR-002）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/decisions/ADR-MATERIAL-PRODUCERS.md)（素材の素材提供者）による。
 
-この API の利用者は、同じリポジトリの SPA（`web/`）だけ。アプリ（SanpoGuide）はこの API を使わない。アプリが使うのは、公開用の静的ファイル（platform の API-002）だけである。
+この API の利用者は、同じリポジトリの SPA（`web/`）だけ。アプリ（SanpoGuide）はこの API を使わない。アプリが使うのは、公開用の静的ファイル（platform API-CHANNEL-LIST）だけである。
 
 ## スコープ・非スコープ
 
@@ -31,7 +31,7 @@
 - 素材提供者: 役割を有効にする、素材集の登録・申請・取り消し・審査の結果の確認、素材集を使っているチャンネルの確認。運営: 素材集の審査（身元の確認を含む）・取り下げ
 
 非スコープ:
-- 公開用の静的ファイル（platform の API-002）
+- 公開用の静的ファイル（platform API-CHANNEL-LIST）
 - Lambda の内部の呼び出し（機械審査・公開。ADR-001 A-10・A-11）
 - 通知のメールの文面（実装時に決める。送る出来事と宛先は C-14）
 
@@ -41,10 +41,10 @@
 |---|---|---|
 | ADR-001 | A-3（HTTP API・JWT）、A-4（Cognito のグループ）、A-5（鍵の紐づけ）、A-11〜A-15、A-18（上限・停止）、D-4（見本はブラウザから） | 本書で API にする |
 | DM-001 | AP-01〜AP-22、状態の移り方、M-2（上限）、M-5（版の番号）、M-11（`rev`） | 本書の操作の対応先 |
-| platform API-002 | `channels[]` の項目（`description`・`tags`・`regions`・`icon`）、試用チケット、鍵セット | 申請の入力・試用チケット・鍵セットの登録 |
-| platform API-003 | エラーコード、チャンネル提供者の署名 | 機械審査の結果をそのまま返す |
+| platform API-CHANNEL-LIST | `channels[]` の項目（`description`・`tags`・`regions`・`icon`）、試用チケット、鍵セット | 申請の入力・試用チケット・鍵セットの登録 |
+| platform API-CHANNEL-PACKAGE | エラーコード、チャンネル提供者の署名 | 機械審査の結果をそのまま返す |
 | DM-001 | M-16〜M-25、AP-23〜AP-29 | 本書で API にする |
-| platform ADR-002・API-004 | D-8・D-9・D-14・D-17〜D-22、素材集の形式、`CollectionReferences` | 本書で API にする。エラーコードは API-003・API-004 のもの |
+| platform ADR-MATERIAL-PRODUCERS・platform API-MATERIAL-PRODUCER | D-8・D-9・D-14・D-17〜D-22、素材集の形式、`CollectionReferences` | 本書で API にする。エラーコードは platform API-CHANNEL-PACKAGE・platform API-MATERIAL-PRODUCER のもの |
 
 ## 方針・決定事項
 
@@ -53,7 +53,7 @@
 | No. | 論点 | 決定 |
 |---|---|---|
 | C-1 | 見本用のプロンプトを組み立てる場所 | 機械審査の Lambda が、アプリのプロンプト・パック（`PromptTemplates` とプロンプトのファイル）で場面ごとのプロンプトを組み立てる。SPA はそれを AI に送るだけ。アプリと同じ組み立て方になる |
-| C-2 | エラーの形 | RFC 9457（`application/problem+json`）に `code` を足す。platform の API-001 と同じ |
+| C-2 | エラーの形 | RFC 9457（`application/problem+json`）に `code` を足す。platform の [API-SECRET-MESSAGES（旧 API-001）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-SECRET-MESSAGES.md) と同じ |
 | C-3 | 契約の正本 | 本書と OpenAPI 3.1。SPA と Lambda の型は OpenAPI から作る |
 | C-4 | チャンネル提供者の退会 | チャンネル提供者が自分で退会できる。公開中のチャンネルはすべて取り下げ、Cognito のユーザーと連絡先を消す。操作の記録、アカウントIDの予約、チャンネルIDは残す（再利用させない） |
 | C-14 | チャンネル提供者への通知 | 判定（承認・差し戻し・却下）、取り下げ、鍵の移し替えの結果（承認・認めない）を、チャンネル提供者にメールで知らせる。送るのは Amazon SES（ADR-001 A-19）。宛先は Cognito で確認済みのメールアドレス（`contact` ではない）。本文には理由と画面へのリンクだけを入れ、見本・運営の `sub` は入れない。メールが送れなくても操作は成功させ、送信の結果は操作の記録に残す |
@@ -111,7 +111,7 @@ sequenceDiagram
     P->>P: チャンネル提供者の鍵で署名（ブラウザ）
     P->>API: POST /api/publisher/keys（紐づけ）
     P->>API: POST /api/channels（チャンネル ID を登録）
-    P->>P: パッケージを作り、チャンネル提供者の鍵で署名（API-003 F-6）
+    P->>P: パッケージを作り、チャンネル提供者の鍵で署名（platform API-CHANNEL-PACKAGE F-6）
     P->>API: POST /api/channels/{id}/submissions
     API-->>P: 署名付き POST（パッケージ・アイコン）
     P->>S3: アップロード
@@ -219,7 +219,7 @@ sequenceDiagram
 項目の詳細は OpenAPI。ここでは判断が要るところだけを書く。
 
 共通の決まり:
-- 文字コードは UTF-8、日時は UTC の ISO 8601（ミリ秒まで）、ID は ULID（チャンネル ID は API-002 の書式）
+- 文字コードは UTF-8、日時は UTC の ISO 8601（ミリ秒まで）、ID は ULID（チャンネル ID は platform API-CHANNEL-LIST の書式）
 - 知らない項目は無視する。応答への項目の追加は互換性のある変更
 - 状態が変わるものの応答には、本文の `rev` と同じ値の `ETag`（`"{rev}"`）を付ける
 
@@ -259,7 +259,7 @@ sequenceDiagram
 - `name`・`summary`・`lang`・`version` はパッケージの `channel.json` から機械審査が読む。この要求には含めない
 - 受け付けるのは、チャンネル提供者が `active`、移し替えの申し出がない、チャンネルが自分のもの、審査待ちの申請がない（DM-001 M-2）、今日の申請の数が上限の内、のとき
 - 両方のファイルが届いたら機械審査が始まる（`validating`）。結果は `validation` に入る。不合格なら `validation_failed`
-- 機械審査では、API-003 の確認（ADR-001 A-11）に加えて、次を確かめる: アイコンが PNG で 256×256 以下、`channel.json` の `id` がこのチャンネル、`publisher` がチャンネル提供者の今の鍵、`version` が最後に承認した版より大きい（M-5）
+- 機械審査では、platform API-CHANNEL-PACKAGE の確認（ADR-001 A-11）に加えて、次を確かめる: アイコンが PNG で 256×256 以下、`channel.json` の `id` がこのチャンネル、`publisher` がチャンネル提供者の今の鍵、`version` が最後に承認した版より大きい（M-5）
 
 ### POST /api/collections/{collectionId}/submissions
 
@@ -275,7 +275,7 @@ sequenceDiagram
 ```
 
 - 受け付けるのは、アカウントが `active` で素材提供者の役割を持つ、移し替えの申し出がない、素材集が自分のもの、審査待ちの申請がない、今日の申請の数（チャンネルと合わせて数える。M-19）が上限の内、のとき
-- 機械審査では、API-004 の確かめる手順 1（`CollectionValidator`）に加えて、次を確かめる: `collection.json` の `id` がこの素材集、`producer` がアカウントの今の鍵、`version` が最後に承認した版より大きい（M-5）、外部の素材の大きさと SHA-256（M-20）、利用の記録にある素材の ID が残り種類が変わっていない（D-8・M-22。`inUse` に理由）。利用許諾を狭めて使えなくなるチャンネルがあれば `warnings` に出す（拒まない）
+- 機械審査では、platform API-MATERIAL-PRODUCER の確かめる手順 1（`CollectionValidator`）に加えて、次を確かめる: `collection.json` の `id` がこの素材集、`producer` がアカウントの今の鍵、`version` が最後に承認した版より大きい（M-5）、外部の素材の大きさと SHA-256（M-20）、利用の記録にある素材の ID が残り種類が変わっていない（D-8・M-22。`inUse` に理由）。利用許諾を狭めて使えなくなるチャンネルがあれば `warnings` に出す（拒まない）
 
 ### 機械審査の結果（素材と素材集）
 
@@ -292,7 +292,7 @@ sequenceDiagram
   "errors": [ { "code": "resource_mismatch", "detail": "…" }, { "code": "resource_in_use", "detail": "…" } ], … }
 ```
 
-- チャンネルの `collections[].status` は `usable` / `unusable`（`CollectionReferences` の結果。機械審査は、その時点で公開中の素材集を読んで解決するので `not_fetched` は出ない）。1 つでも `unusable` があれば不合格（API-003 手順 9a）
+- チャンネルの `collections[].status` は `usable` / `unusable`（`CollectionReferences` の結果。機械審査は、その時点で公開中の素材集を読んで解決するので `not_fetched` は出ない）。1 つでも `unusable` があれば不合格（platform API-CHANNEL-PACKAGE 手順 9a）
 - 承認のときに、チャンネルは素材集をもう一度解決し、素材集は D-8 をもう一度確かめる。通らなければ `409 resource_in_use`（素材集）または `409 invalid_state`（チャンネル。`detail` に理由）
 
 ### POST /api/admin/collections/{collectionId}/submissions/{submissionId}/approve
@@ -306,7 +306,7 @@ sequenceDiagram
 
 ### POST …/test-tickets
 
-機械審査に合格した申請（`awaiting_review`・`in_review`・`returned`・`approved`）だけ。応答は、署名済みのチケット（API-002 の形）と、QR コードにする文字列。SPA が QR コードを描く。
+機械審査に合格した申請（`awaiting_review`・`in_review`・`returned`・`approved`）だけ。応答は、署名済みのチケット（platform API-CHANNEL-LIST の形）と、QR コードにする文字列。SPA が QR コードを描く。
 
 ### GET /api/admin/…/sample-prompts
 
@@ -423,7 +423,7 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 | CV-04 | 鍵の紐づけ: 切れた・使用済みの一度きりの文字列、違う鍵の署名、使われたアカウントIDを、それぞれのエラーで拒む |
 | CV-05 | 申請: 上限（チャンネル数、審査待ち、1 日の数）を同時の要求でも超えない |
 | CV-06 | アップロード: 2MB・100KB を超えるファイルを S3 が拒み、1 時間届かない申請が `expired` になる |
-| CV-07 | 機械審査: `id`・`publisher`・`version`・アイコンの不一致が `validation_failed` になり、API-003 のエラーコードが返る |
+| CV-07 | 機械審査: `id`・`publisher`・`version`・アイコンの不一致が `validation_failed` になり、platform API-CHANNEL-PACKAGE のエラーコードが返る |
 | CV-08 | 状態の移り方: DM-001 の図にない移り方はすべて `invalid_state` |
 | CV-09 | 承認・取り下げ・移し替えの承認・鍵セットの登録のあと、リストが作り直される |
 | CV-10 | 退会: チャンネルが取り下げられ、チャンネル ID とアカウントIDが再利用できない |
@@ -460,6 +460,6 @@ AI の出力だけを保存する（C-13）。応答の `samplesId` を判定の
 - [api/console.openapi.yaml](api/console.openapi.yaml): 入出力の正本
 - [ADR-001](adr/ADR-001-aws-architecture.md): AWS の構成
 - [DM-001](data-model.md): データモデル
-- platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md)・[API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)・[審査基準](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-review-policy.md)
+- [platform API-CHANNEL-LIST（旧 API-002）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-CHANNEL-LIST.md)・[platform API-CHANNEL-PACKAGE（旧 API-003）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-CHANNEL-PACKAGE.md)・[platform チャンネル審査方針](https://github.com/duwenji/yorisoi-platform/blob/main/docs/policies/channel-review.md)
 - [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457): Problem Details for HTTP APIs
-- platform [ADR-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/adr/ADR-002-material-producers.md)・[API-004](https://github.com/duwenji/yorisoi-platform/blob/main/docs/material-producer-api.md)
+- [platform ADR-MATERIAL-PRODUCERS（旧 ADR-002）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/decisions/ADR-MATERIAL-PRODUCERS.md)・[platform API-MATERIAL-PRODUCER（旧 API-004）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-MATERIAL-PRODUCER.md)

@@ -1,6 +1,6 @@
 # 鍵の手順書
 
-ルート鍵と署名鍵を作る・保管する・入れ替える・失効させる手順（[ADR-001](../adr/ADR-001-aws-architecture.md) A-8・A-9、platform [API-002](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-list-api.md) P-1・P-2）。画面の操作は[運営ガイド 5 章](../guide/operator.md#5-署名鍵と鍵セット)、KMS の鍵の追加は[保守ガイド 8 章](../guide/maintainer.md#8-署名鍵を足す)にあり、この手順書はそれらをいつ・どの順で使うかと、画面の外で行うことを書く。
+ルート鍵と署名鍵を作る・保管する・入れ替える・失効させる手順（[ADR-001](../adr/ADR-001-aws-architecture.md) A-8・A-9、[platform API-CHANNEL-LIST（旧 API-002）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-CHANNEL-LIST.md) P-1・P-2）。画面の操作は[運営ガイド 5 章](../guide/operator.md#5-署名鍵と鍵セット)、KMS の鍵の追加は[保守ガイド 8 章](../guide/maintainer.md#8-署名鍵を足す)にあり、この手順書はそれらをいつ・どの順で使うかと、画面の外で行うことを書く。
 
 ## 1. 鍵と置き場所
 
@@ -90,11 +90,11 @@ read -rs ROOT_KEY_PASSPHRASE && export ROOT_KEY_PASSPHRASE
 2. 運営が新しい鍵を登録し、新しい鍵だけを載せ、疑わしい鍵 ID を `revokedKeys` に足した鍵セットにオフラインで署名して登録する（[運営ガイド 5.4](../guide/operator.md#54-署名鍵を失効させる)）
 3. 公開の履歴を見て、疑わしい鍵で署名された覚えのない公開がないか確かめる
 
-アプリには最大 24 時間（取得の間隔）で届き、失効した鍵で署名されたリストは署名の日時にかかわらず使われなくなる（API-002）。
+アプリには最大 24 時間（取得の間隔）で届き、失効した鍵で署名されたリストは署名の日時にかかわらず使われなくなる（platform API-CHANNEL-LIST）。
 
 ## 7. ルート鍵をなくした・漏れた
 
-ルート鍵は管理システムの外で立て直す手段なので、これを失うとアプリの更新が要る（API-002 の「ルート鍵の入れ替えはリストIDが変わる」）。
+ルート鍵は管理システムの外で立て直す手段なので、これを失うとアプリの更新が要る（platform API-CHANNEL-LIST の「ルート鍵の入れ替えはリストIDが変わる」）。
 
 | 事態 | 影響 | すること |
 |---|---|---|

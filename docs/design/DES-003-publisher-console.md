@@ -25,7 +25,7 @@
 | API-001 | チャンネル提供者の操作（`/api/publisher*`、`/api/channels*`、申請、取り消し）、C-4（退会）、C-10（署名付き POST） | 実装（下表） |
 | DM-001 | USER・PUB・KEY・ACCOUNT・CHALLENGE・QUOTA・CH・SUB、M-2・M-5・M-7・M-15、DV-02〜DV-04 | 実装 |
 | ADR-001 | A-5（鍵の紐づけ）、A-11（受付用の S3）、D-7（誰でも登録できる） | 実装 |
-| platform API-003 | F-6（チャンネル提供者の署名） | 画面の中で署名する |
+| platform API-CHANNEL-PACKAGE | F-6（チャンネル提供者の署名） | 画面の中で署名する |
 
 ## 方針・決定事項
 
@@ -57,7 +57,7 @@
 | J-7 | 受付用の S3 は非公開。署名付き POST（15 分）で、大きさ（パッケージ 2MB・アイコン 100KB）と Content-Type を S3 が強制する。CORS はすべての送り元を認める（署名付きのポリシーがなければ上げられない。送り元を画面に限ると CloudFormation の依存が一周する） | API-001 C-10 |
 | J-8 | 受付用の S3 の `archive/` は 90 日、`intake/` は 30 日で消す（結果の出なかった申請の分） | DM-001 M-4 |
 | J-9 | 鍵のファイルは、秘密鍵（PKCS#8）を PBKDF2（SHA-256、60 万回）+ AES-GCM で暗号化した JSON。開くときに、中の秘密鍵と公開鍵が組になっているかを確かめる。合言葉は 12 文字以上 | ファイルが流出しても使えないように。公開鍵だけ差し替えたファイルを拒む |
-| J-10 | 画面での署名は、ZIP を展開し、`signature.json` 以外の全ファイルの SHA-256 に署名して `signature.json` を足し、ZIP にし直す。前の `signature.json` は捨てる。署名の前に、`channel.json` の `id`・`version`・`publisher` を確かめる | API-003 F-6。アカウントIDの計算はサーバー・`core-format` と同じ値（テストで確認） |
+| J-10 | 画面での署名は、ZIP を展開し、`signature.json` 以外の全ファイルの SHA-256 に署名して `signature.json` を足し、ZIP にし直す。前の `signature.json` は捨てる。署名の前に、`channel.json` の `id`・`version`・`publisher` を確かめる | platform API-CHANNEL-PACKAGE F-6。アカウントIDの計算はサーバー・`core-format` と同じ値（テストで確認） |
 
 ## 未決事項・リスク
 
@@ -69,4 +69,4 @@
 ## 関連ドキュメント・参照リンク
 
 - [API-001](../console-api.md)、[DM-001](../data-model.md)、[DES-002](DES-002-operator-console.md)、[チャンネル提供者ガイド](../guide/publisher.md)
-- platform [API-003](https://github.com/duwenji/yorisoi-platform/blob/main/docs/channel-package-format.md)
+- [platform API-CHANNEL-PACKAGE（旧 API-003）](https://github.com/duwenji/yorisoi-platform/blob/main/docs/contracts/API-CHANNEL-PACKAGE.md)

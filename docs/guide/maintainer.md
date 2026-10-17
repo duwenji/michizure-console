@@ -44,7 +44,7 @@ flowchart LR
 
 | 場所 | 中身 | 設計書 |
 |---|---|---|
-| `packages/protocol` | API-002 の文書の作成と検証（署名、要約、ID、エラーコード） | DES-001 |
+| `packages/protocol` | platform API-CHANNEL-LIST の文書の作成と検証（署名、要約、ID、エラーコード） | DES-001 |
 | `packages/api-types` | 管理 API の型（`docs/api/console.openapi.yaml` から生成） | DES-002 |
 | `api/src/publish` | 公開の処理（Lambda）。DB・S3・CloudFront・KMS は差し替え口の後ろ。毎日の外部の素材の確認は `external.ts` | DES-001・DES-009 |
 | `api/src/console` | 管理 API（Lambda。運営の操作 `operator.ts`、チャンネル提供者の操作 `publisher.ts`、素材集 `collections.ts`、利用の記録 `uses.ts`、審査 `review.ts`、鍵の移し替え `transfer.ts`）と Cognito の post-confirmation トリガー | DES-002〜DES-006・DES-008 |
@@ -236,4 +236,4 @@ aws cognito-idp admin-add-user-to-group --user-pool-id $P --username <メール>
 | [TODO](../TODO.md) | 残っている作業 |
 | [配備の手順](../operations/deploy.md)・[費用](../operations/cost.md) | 環境ごとの値、手順、費用 |
 | [鍵の手順書](../operations/keys.md) | 署名鍵の入れ替えの予定（4 月・10 月）と、失効・ルート鍵の事故の手順 |
-| platform の API-002・API-003・API-004・審査基準 | アプリとの約束（リスト・パッケージ・素材集・審査） |
+| platform API-CHANNEL-LIST・platform API-CHANNEL-PACKAGE・platform API-MATERIAL-PRODUCER・審査基準 | アプリとの約束（リスト・パッケージ・素材集・審査） |
